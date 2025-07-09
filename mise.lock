@@ -1,0 +1,39 @@
+[tools.bun]
+version = "1.2.17"
+backend = "core:bun"
+
+[tools.bun.checksums]
+"bun-windows-x64-baseline.zip" = "sha256:803e6a7d8bed9063ef7833de036aca0d1a23e5d25cd7a8cf628cba50a3199f18"
+
+[tools.pre-commit]
+version = "4.2.0"
+backend = "aqua:pre-commit/pre-commit"
+
+[tools.pre-commit.checksums]
+"pre-commit-4.2.0.pyz" = "sha256:0d4d80fd598dd1f7c268569de49e7c7a692a3de6f7a97cf14ad4e6cce993bbdf"
+
+[tools.ruff]
+version = "0.12.1"
+backend = "aqua:astral-sh/ruff"
+
+[tools.ruff.checksums]
+"ruff-x86_64-pc-windows-msvc.zip" = "sha256:ed16ae044866378c27855f44400c1eb0db8ecec26ef07582dae1d550b968d9fe"
+
+[tools.sops]
+version = "3.10.2"
+backend = "aqua:getsops/sops"
+
+[tools.ttyd]
+version = "1.7.7"
+backend = "aqua:tsl0922/ttyd"
+
+[tools.ttyd.checksums]
+"ttyd.win32.exe" = "sha256:e33a27501b10b96981335bcba938b1145c7f52551a343e72160f00ab71832b37"
+
+[tools."ubi:graphviz/graphviz"]
+version = "13.0.1"
+backend = "ubi:graphviz/graphviz[exe=dot,matching=win64,provider=gitlab]"
+
+[tools.uv]
+version = "0.7.16"
+backend = "aqua:astral-sh/uv"

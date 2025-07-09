@@ -1,0 +1,34 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# pixi environments
+.pixi
+*.egg-info
+
+# contain secretes
+.envrc
+.env
+.env.json
+
+# logs
+logs/*
+
+# get rid of .keep files except specific ones
+.keep
+!logs/.keep
+
+# irrelevant
+context/
+_old/
+undefined/
+
+#
+.vscode/

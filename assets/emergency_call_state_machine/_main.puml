@@ -1,0 +1,38 @@
+@startuml Emergency Call
+
+!include medical_emergency.puml
+!include fire_emergency.puml
+!include non_emergency.puml
+
+hide empty description
+
+
+'--- Legend -------------------------------------------------------------
+'  Green  = State‑variables / flags the engine maintains
+'  Yellow = Questions (state‑transition tests)
+'  Blue   = Outcome "actions" that the engine can return
+'  White  = Terminal node
+'------------------------------------------------------------------------
+
+' skinparam monochrome true
+' skinparam state {
+'     StartColor #28a745
+'     EndColor   #f8f9fa
+'     FontSize   12
+' }
+
+title EMS Call-Taker State Model
+
+state Notrufannahme {
+
+    [*] --> Who : caller identification
+    Who --> Where : caller location
+    Where --> What : situation description
+
+}
+
+What --> Non_Emergency
+What --> Medical_Emergency
+What --> Fire_Emergency
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml Notrufabfrage_ILS
+
+start
+
+:Greeting;
+repeat
+    :Who?;
+backward:Clarify;
+repeat while (Incomplete Name)
+
+repeat
+    :Where?;
+    split
+        :unclear;
+    split again
+        :incomplete;
+    end split
+backward:Clarify;
+repeat while (Incomplete Address)
+
+repeat
+    :What?;
+backward:Clarify;
+repeat while (What?)
+
+split
+    :Non-Emergency;
+    detach
+split again
+    :Medical Emergency;
+    detach
+split again
+    :Fire Emergency;
+    detach
+end split
+
+@enduml

@@ -1,0 +1,114 @@
+[project]
+name = "ems-prepared"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+version = "0.1.0"
+dependencies = [
+    "deepmerge>=2.0",
+    "fastapi>=0.115.13",
+    "langgraph>=0.5.0",
+    "numpy>=2.3.1",
+    "pycountry>=24.6.1",
+    "pydantic-ai>=0.2.18",
+    "pyjson5>=1.6.9",
+    "python-dotenv-vault>=0.6.4",
+    "rapidfuzz>=3.13.0",
+]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[dependency-groups]
+dev = [
+  "basedpyright>=1.29.4",
+  "datamodel-code-generator>=0.31.0",
+  "devtools>=0.12.2",
+  "ipykernel>=6.29.5",
+  "pip>=25.1.1",
+  "pre-commit>=4.2.0",
+  "ptpython>=3.0.30",
+  "pyrefly>=0.20.2",
+  "ruff>=0.11.13",
+  "toml-sort>=0.24.2",
+  "ty>=0.0.1a11",
+  "deepdiff>=8.5.0",
+  "loguru>=0.7.3",
+]
+experiment = [
+    "pydantic-ai-examples>=0.2.18",
+]
+lsp = [
+    # "cst-lsp>=0.1.3",
+    "jedi-language-server>=0.45.1",
+]
+test = [
+  "pytest>=8.4.1",
+  "pytest-sugar>=1.0.0",
+  "pytest-asyncio>=0.23.6"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ems_prepared"]
+
+
+# [tool.pixi.dependencies]
+# erdantic = ">=1.1.0.post1,<2"
+
+# [tool.pixi.environments]
+# default = {solve-group = "default"}
+# dev = {features = ["dev"], solve-group = "default"}
+
+# [tool.pixi.pypi-dependencies]
+# ems-prepared = {editable = true, path = "."}
+
+# [tool.pixi.tasks]
+
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# platforms = ["win-64"]
+
+[tool.ruff.lint]
+ignore = [
+  "D203",
+  "D213"
+]
+select = [
+  "C901",
+  "D",
+  "E",
+  "E4",
+  "E7",
+  "E9",
+  "F",
+  "FAST",
+  "FURB",
+  "I",
+  "PERF",
+  "RUF",
+  "W"
+]
+
+[tool.basedpyright]
+typeCheckingMode='off' # disable linting as it seems to produce a lot of false positives when using pydantic
+# reportUndefinedVariable = true
+reportInvalidTypeForm = false
+reportArgumentType = false
+reportIncompatibleMethodOverride = false
+reportAssignmentType = false
+
+[tool.pyrefly]
+#### configuring your type check settings
+ignore-errors-in-generated-code = true
+# use-untyped-imports = true
+# ignore-missing-source = true
+[tool.pyrefly.errors]
+bad-assignment = false
+invalid-argument = false
+bad-argument-type=false
+bad-override = false
+unexpected-keyword = false
+invalid-param-spec = false
+unknown-name = false
+missing-attribute = false

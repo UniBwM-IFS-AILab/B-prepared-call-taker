@@ -1,0 +1,24 @@
+@startuml fire (id=Fire)
+
+state Non_Emergency as "No Emergency" #C3DBFF {
+    Non_Emergency: No immediate dispatch necessary
+
+    state PatientTransport as "Patient Transport needed" #C3F7C3
+    PatientTransport: Ambulance w/o urgency
+    PatientTransport: Transport with doctor
+
+    state ForwardCall as "Forward Call" #C3F7C3
+    ForwardCall: Poisoning
+    ForwardCall: Pharmacy service
+    ForwardCall: Police
+    ForwardCall: ...
+
+    [*] --> ForwardCall: forward to non-emergency service
+    [*] --> PatientTransport: forward to patient transport service
+
+    PatientTransport --> [*]: end of call
+    ForwardCall --> [*]: end of call
+}
+
+
+@enduml
