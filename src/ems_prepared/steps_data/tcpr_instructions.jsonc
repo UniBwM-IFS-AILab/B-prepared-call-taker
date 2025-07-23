@@ -1,0 +1,60 @@
+{
+  "de": {
+    "title": "SOFORTEINSTIEG",
+    "subtitle": "Durchführung Thoraxkompression",
+    "steps": [
+      "Legen Sie den Patienten nach Möglichkeit auf den Fußboden, so dass er/sie auf dem Rücken liegt. Ist dort genug Platz?",
+      "Knien Sie sich seitlich neben den Brustkorb des Patienten, so dass Ihre Knie nebeneinander in Höhe der Brust sind.",
+      "Machen Sie den Oberkörper des Patienten frei.",
+      "Legen Sie einen Handballen Ihrer Hand auf die Mitte des knöchernen Brustkorbs vom Patienten, also auf die untere Hälfte des Brustbeins - das ist deutlich oberhalb der Magengrube.",
+      "Legen Sie den Handballen Ihrer zweiten Hand auf den Handrücken Ihrer ersten Hand.",
+      "Beugen Sie sich so über den Patienten, dass Sie mit gestreckten Armen senkrecht drücken können.",
+      "Drücken Sie jetzt kräftig auf den Brustkorb!",
+      "Drücken Sie immer wieder - mindestens 5 cm tief - immer im Wechsel tief drücken und dann komplett entlasten - ganz runter und ganz hoch, ohne den Kontakt zum Brustkorb zu verlieren.",
+    //   "Drücken Sie schnell, 100 mal pro Minute! Drücken-drücken-drücken. Es ist wichtig, dass Sie so schnell drücken! Ich zähle in diesem Tempo für Sie mit, bitte jedes Mal drücken: 1-2-3-4-5-6-7-8",
+    //   "Jetzt zählen Sie bitte laut mit …",
+    //   "Fahren Sie mit der Herzdruckmassage ohne Pause fort!",
+    //   "Ich bleibe bei Ihnen am Telefon, bis der Rettungsdienst eintrifft! Sagen Sie Bescheid, wenn es ein Problem gibt oder sich was ändert!"
+    ],
+    "aed_note": "Sobald ein Defi / AED verfügbar ist:\n„Schalten Sie das Gerät ein und befolgen Sie die Anweisungen. Ich bleibe am Telefon und helfe Ihnen.“",
+    "additional_notes": [
+      "Vorzählen, möglichst Metronom / Audio-Datei als Taktgeber nutzen!",
+      "Weiter motivieren: ggf. mitzählen lassen - „tief drücken“ - „schneller“…",
+      "Wenn weitere Personen anwesend: alle zwei Minuten Helferwechsel",
+    ],
+    "questions": [
+      "Hat der Rettungsdienst ungehindert Zutritt, wenn er gleich bei Ihnen eintrifft?",
+      "Können Sie jemanden auf die Straße schicken, der sich bemerkbar macht?"
+    ],
+    "post_note": "Nach dem Eintreffen des Rettungsdienstes fortfahren mit Seite 6 „Nachbereitung Reanimation“"
+  },
+  "en": {
+    "title": "IMMEDIATE START",
+    "subtitle": "Performing Chest Compressions",
+    "steps": [
+      "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?",
+      "Kneel beside the patient's chest so that your knees are next to each other at chest level.",
+      "Expose the patient's upper body.",
+      "Place the heel of one hand on the middle of the patient's bony chest, i.e., on the lower half of the sternum—clearly above the pit of the stomach.",
+      "Place the heel of your second hand on the back of your first hand.",
+      "Lean over the patient so that you can push straight down with your arms extended.",
+      "Now press firmly on the chest!",
+      "Keep pressing—at least 5 cm deep—alternating between deep compressions and complete release—going all the way down and all the way up without losing contact with the chest.",
+    //   "Compress quickly, 100 times per minute! Press-press-press. It is important that you compress this fast! I'll count at this tempo for you, please press each time: 1-2-3-4-5-6-7-8.",
+    //   "Now please count out loud…",
+    //   "Continue chest compressions without a break!",
+    //   "I will stay with you on the phone until the emergency services arrive! Let me know if there is a problem or anything changes!"
+    ],
+    "aed_note": "As soon as a defibrillator / AED is available:\n“Turn the device on and follow the instructions. I will stay on the phone and help you.”",
+    "additional_notes": [
+      "Count in, ideally use a metronome or audio file as a beat guide!",
+      "Keep motivating: if necessary let them count along—“press deep”—“faster”…",
+      "If additional people are present: change helper every two minutes.",
+    ],
+    "questions": [
+      "Will the emergency services have unobstructed access when they arrive?",
+      "Can you send someone to the street to signal them?"
+    ],
+    "post_note": "After the emergency services arrive, continue with page 6 “Post-resuscitation follow-up”."
+  }
+}

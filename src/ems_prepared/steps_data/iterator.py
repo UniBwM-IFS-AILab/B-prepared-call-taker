@@ -1,23 +1,28 @@
 import os
+import typing as t
 from collections.abc import Iterator
+
+JsonType: t.TypeAlias = t.List["JsonValue"] | t.Mapping[str, "JsonValue"]
+JsonValue: t.TypeAlias = str | int | float | None | JsonType
 
 import pycountry
 import pyjson5 as json
+
 
 class QuestionIterator:
     """Iterator that yields questions from data.json based on language and category."""
 
     def __init__(self, language: str, category: str):
-        """
-        Initialize the iterator.
+        """Initialize the iterator.
 
         Args:
             language: Language code ('de', 'en') or language name ('German', 'English')
             category: Category name to iterate through
+
         """
         self.language_code: str = self._get_language_code(language)
         self.category: str = category
-        self.data: dict[str, ...] = self._load_data()
+        self.data: JsonValue = self._load_data()
         self.questions: list[str] = self._get_questions()
         self.index: int = 0
 
@@ -58,10 +63,10 @@ class QuestionIterator:
             f"Language '{language}' not supported or not found in pycountry database"
         )
 
-    def _load_data(self) -> dict[str, ...]:
+    def _load_data(self) -> JsonValue:
         """Load data from JSON file."""
         current_dir = os.path.dirname(__file__)
-        data_path = os.path.join(current_dir, "data.jsonc")
+        data_path = os.path.join(current_dir, "questions.jsonc")
 
         with open(data_path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -80,7 +85,7 @@ class QuestionIterator:
                 f"Category '{self.category}' not available for language '{self.language_code}'"
             )
 
-        category_data: list[str] | dict[str, ...] = language_data[self.category]
+        category_data: list[str] | dict[str, str] = language_data[self.category]
 
         if isinstance(category_data, list):
             # Direct list of questions

@@ -1,13 +1,13 @@
 {
   "de": {
-    "Notrufannahme": [
+    "Intro": [
       // "Hier ist der Notruf für Feuerwehr und Rettungsdienst.",
       "Mit wem spreche ich bitte?",
       "Wo genau ist der Einsatzort / die Einsatzstelle?",
       "Was ist jetzt akut passiert?",
       // "Sind Sie der Patient / beim Patienten?" # FIXME: only do this if needed, maybe a different data format (with a schema that defines a list of optional questions the llm can choose from)
     ],
-    "Schlüsselfragen": {
+    "Key Questions": {
       "Atmung / Atemwege": [
         "Bekommt er / sie jetzt genug Luft?"
       ],
@@ -59,7 +59,7 @@
     }
   },
   "en": {
-    "Emergency Call Introduction": [
+    "Intro": [
       // "This is the emergency call for fire department and ambulance service.",
       "With whom am I speaking, please?",
       "Where exactly is the emergency location?",
