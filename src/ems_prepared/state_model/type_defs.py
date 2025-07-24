@@ -3,7 +3,6 @@
 This module provides type aliases used throughout the state model.
 """
 
-# FIXME: ensure that this is not interpreted as an optional type in pydantic models
 from enum import Enum, StrEnum, auto
 from typing import TypeAlias
 
@@ -14,6 +13,22 @@ Unknown: TypeAlias = None
 
 type KnownBoolean = bool | Unknown
 type KnownString = str | Unknown
+
+
+def tristate(values) -> KnownBoolean:
+    from functools import reduce
+
+    def tri_combine(acc, curr):
+        # single True is sufficient
+        if acc is True or curr is True:
+            return True
+        # All needs to be False
+        if acc is False and curr is False:
+            return False
+        # at least one None, nothing True yet
+        return Unknown
+
+    return reduce(tri_combine, values, Unknown)
 
 
 class EmergencyType(StrEnum):
@@ -30,3 +45,9 @@ class DispoType(Enum):
 
     RD1 = auto()  # Notfall
     RD2 = auto()  # Notarzteinsatz
+
+
+class KnownBoolean2(Enum):
+    YES = True
+    NO = False
+    UNKNOWN = None

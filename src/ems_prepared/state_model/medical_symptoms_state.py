@@ -30,7 +30,7 @@ from ems_prepared.state_model.medical.immediate_disposition_state import (
 )
 from ems_prepared.state_model.medical.neurological_state import Neurological
 from ems_prepared.state_model.medical.tcpr_state import TeleCpr
-from ems_prepared.state_model.type_defs import KnownBoolean, Unknown
+from ems_prepared.state_model.type_defs import KnownBoolean, tristate
 
 
 class MedicalEmergency(
@@ -48,7 +48,48 @@ class MedicalEmergency(
     comprehensive view of the patient's medical emergency status.
     """
 
-    # @model_validator(mode="before") #TODO: maybe reactivate if needed
+    # TODO: move RD1 and RD2 detection to KeyQuestionSymptom and calculate RD1/RD2 by looping over members of type KeyQuestionSymptom
+    @property
+    def rd1_symptoms(self) -> set[KnownBoolean]:
+        """Returns the list of symptoms for rd1."""
+        return {
+            getattr(self, name)
+            for name, field in type(self).model_fields.items()
+            if field.annotation is RD1_Boolean
+        }
+
+    @property
+    def rd2_symptoms(self) -> set[KnownBoolean]:
+        """Returns the set of fields of type KnownBoolean for rd2."""
+        return {
+            getattr(self, name)
+            for name, field in type(self).model_fields.items()
+            if field.annotation
+            # TODO: CPR_Boolean (and Urgency_boolean in the future should not be needed here, instead use extra computed_field "cpr_needed" which itself is an RD2_Boolean)
+            in [
+                RD2_Boolean,
+                # CPR_Boolean,
+                Urgency_Boolean,
+            ]
+        }
+
+    # computed fields are not shown to pydantic_ai agents when enforcing strutured output using output_type
+    @computed_field
+    @property
+    def rd1(self) -> SkipJsonSchema[KnownBoolean]:
+        """Returns the count of symptoms in rd1_symptoms."""
+        return tristate(self.rd1_symptoms)
+
+    @computed_field(description="")
+    @property
+    def rd2(self) -> SkipJsonSchema[KnownBoolean]:
+        """Returns the count of symptoms in rd2_symptoms."""
+        # if self.hidden_rd2 is False:
+        #     return False
+
+        return tristate(self.rd2_symptoms)
+
+    @model_validator(mode="before")
     @classmethod
     def check_similar_field_names(cls, data: T) -> T:
         """Check for very similar field names in the model and perform validation.
@@ -94,41 +135,3 @@ class MedicalEmergency(
                         f'"{field_names[i]}" and "{field_names[j]}" are too similar (score: {score:.2f})'  # noqa: E501
                     )
         return data
-
-    # TODO: move RD1 and RD2 detection to KeyQuestionSymptom and calculate RD1/RD2 by looping over members of type KeyQuestionSymptom
-    @property
-    def rd1_symptoms(self) -> set[KnownBoolean]:
-        """Returns the list of symptoms for rd1."""
-        return {
-            getattr(self, name)
-            for name, field in type(self).model_fields.items()
-            if field.annotation is RD1_Boolean
-        }
-
-    @property
-    def rd2_symptoms(self) -> set[KnownBoolean]:
-        """Returns the set of fields of type KnownBoolean for rd2."""
-        return {
-            getattr(self, name)
-            for name, field in type(self).model_fields.items()
-            if field.annotation in [RD2_Boolean, CPR_Boolean, Urgency_Boolean]
-        }
-
-    # computed fields are not shown to pydantic_ai agents when enforcing strutured output using output_type
-    @computed_field
-    @property
-    def rd1(self) -> SkipJsonSchema[KnownBoolean]:
-        """Returns the count of symptoms in rd1_symptoms."""
-        return any(self.rd1_symptoms) or None
-
-    # NOTE: this is a hack, better alternatives would be very welcome
-    # hidden_rd2: KnownBoolean = Field(Unknown, exclude=True, repr=False)
-
-    @computed_field(description="")
-    @property
-    def rd2(self) -> SkipJsonSchema[KnownBoolean]:
-        """Returns the count of symptoms in rd2_symptoms."""
-        # if self.hidden_rd2 is False:
-        #     return False
-
-        return any(self.rd2_symptoms) or None
