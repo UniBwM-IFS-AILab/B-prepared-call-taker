@@ -6,7 +6,7 @@ from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.models.google import GoogleModelSettings
 from rich import print
 
-from ems_prepared.agents.models import gemini_flash_model, llama3_model
+from ems_prepared.agents.models import gemini_flash_model, gpt4o_model, llama3_model
 from ems_prepared.state_model.emergency_call_state import EmergencyCall
 
 ROLE: str = "You are a Call taker in a call center for Emergencies who speaks english and german."
@@ -42,7 +42,7 @@ settings = GoogleModelSettings(
 
 async def state_fill_task(
     # agent: Agent[str, EmergencyCall],
-    question: str,
+    prompt: str,
     user_response: str,
     state: BaseModel,
 ) -> BaseModel | str:
@@ -50,7 +50,7 @@ async def state_fill_task(
 
     Parameters
     ----------
-    question : str
+    prompt : str
         The question that was asked to the user.
     response : str
         The user's response to the question.
@@ -65,7 +65,7 @@ async def state_fill_task(
     """
 
     agent_task: str = (
-        f"Question: {question}"
+        f"Question: {prompt}"
         #
         f"Answer: {user_response}"
         #
@@ -80,14 +80,38 @@ async def state_fill_task(
 
     print(result.usage())
 
-    return result.output
+    cleaned = response_cleanup(result.output)
+
+    return cleaned
+
+
+def response_cleanup(input: BaseModel | str):
+    if isinstance(input, str):
+        # Model returns markdown codeblock
+        if input.startswith("```") and input.endswith("```"):
+            print("deteced Markdown codeblock in Agent response")
+
+            input = input.removeprefix("```")
+            input = input.removesuffix("```")
+            if input.startswith("json"):
+                input = input.removeprefix("json")
+
+            # input = input[input.find("\n") + 1 : input.rfind("\n")]
+
+        # try to produce String at the end of methods
+        try:
+            return EmergencyCall.model_validate_json(input)
+        except Exception as _:
+            return input
+
+    return input
 
 
 state_fill_agent = Agent[BaseModel, BaseModel | str](
-    gemini_flash_model,
+    gpt4o_model,
     output_type=[EmergencyCall, str],
     # deps_type=EmergencyCall,
-    model_settings=settings,
+    # model_settings=settings,
     system_prompt=(ROLE, TASK, DECISIONS, RULES),  # noqa: E501
 )
 
