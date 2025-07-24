@@ -1,13 +1,11 @@
 """Module for asynchronous operations in the emergency call workflow."""
 
 import asyncio
-import json
 from datetime import datetime
-from enum import Enum, auto
 from pathlib import Path
+from typing import Iterator
 
-from pydantic_graph.graph import Graph, GraphRunResult
-from pydantic_graph.persistence.file import FileStatePersistence
+from pydantic_graph.graph import Graph
 from rich import print
 
 from ems_prepared.graphs.nodes import (
@@ -31,7 +29,7 @@ from ems_prepared.graphs.utils import (
 from ems_prepared.settings import RunMode, Settings
 from ems_prepared.state_model.emergency_call_state import EmergencyCall
 
-questions: list[str] = iter(
+questions: Iterator[str] = iter(
     [
         # "Hier ist der Notruf für Feuerwehr und Rettungsdienst.",
         "Mit wem spreche ich bitte?",
@@ -44,7 +42,7 @@ questions: list[str] = iter(
 
 async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     """Run the main graph synchronously for demonstration purposes."""
-    main_graph: Graph[EmergencyCall] = Graph[EmergencyCall](
+    main_graph = Graph[EmergencyCall, None, EmergencyCall](
         nodes=[
             Greeting,
             AskCaller,
@@ -59,6 +57,7 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
             ChooseQuestion,
         ],
     )
+    deps = Settings(graph_name="main_graph")
     state: EmergencyCall = EmergencyCall()
 
     graph_name: str = "emergency_call"
@@ -76,10 +75,12 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     persistence = setup_file_persistence(
         main_graph, current_log_dir / f"{save_file_base}_persistence.json"
     )
-    async with main_graph.iter(Greeting(), state=state, persistence=persistence) as run:
+    async with main_graph.iter(
+        Greeting(), state=state, deps=deps, persistence=persistence
+    ) as run:
         async for node in run:
             try:
-                print(f"Node: {node.get_node_id()}")
+                print(f"Node: {node.get_node_id()}")  # type: ignore
             except Exception as _:
                 print(node)
     result = run.result
