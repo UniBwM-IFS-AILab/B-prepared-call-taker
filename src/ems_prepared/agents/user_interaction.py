@@ -7,6 +7,7 @@ This module provides:
 
 from enum import Enum, auto
 
+from rich.pretty import pprint
 from rich.prompt import Prompt
 
 
@@ -21,7 +22,7 @@ class InputMode(Enum):
     TEST = auto()
 
 
-async def ask_user(question: str, mode: InputMode = InputMode.CLI) -> str | None:
+async def prompt_user(question: str, mode: InputMode = InputMode.CLI) -> str | None:
     """Prompt the user for input in the given mode."""
     match mode:
         case InputMode.CLI:
@@ -30,4 +31,16 @@ async def ask_user(question: str, mode: InputMode = InputMode.CLI) -> str | None
         case InputMode.REQUEST:
             pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
         case InputMode.TEST:
-            pass # handle differently if it makes sense
+            pass  # handle differently if it makes sense
+
+
+def tell_user(question: str, mode: InputMode = InputMode.CLI) -> str | None:
+    """Tell the user in the given mode."""
+    match mode:
+        case InputMode.CLI:
+            # return input(question)
+            return pprint(question)
+        case InputMode.REQUEST:
+            pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
+        case InputMode.TEST:
+            pass  # handle differently if it makes sense
