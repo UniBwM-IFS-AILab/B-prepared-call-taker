@@ -1,10 +1,8 @@
 """Custom merge strategies for deepmerge operations."""
 
-from typing import TypeVar
-
 from deepmerge.merger import Merger
+from pydantic.types import T
 
-T = TypeVar("T")
 EMPTY_VALUES: list[dict[None, None] | list[None] | str | None] = [
     None,
     "",
