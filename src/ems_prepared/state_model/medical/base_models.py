@@ -19,7 +19,7 @@ from ems_prepared.state_model.type_defs import KnownBoolean, Unknown
 # todo maybe move these elswhere
 type RD1_Boolean = KnownBoolean
 type RD2_Boolean = KnownBoolean
-type CPR_Boolean = KnownBoolean
+type CPR_Boolean = RD2_Boolean
 type Urgency_Boolean = KnownBoolean
 
 
@@ -73,55 +73,3 @@ class KeyQuestionSymptom(BaseModel):
 #     def rd2(self) -> KnownBoolean:
 #         """Returns the count of symptoms in all rd2_symptoms across all models."""
 #         return any(model.rd2 for model in self.symptom_groups)
-
-
-class CPRSymptom(KeyQuestionSymptom):
-    """A model that extends KnownBoolean to include additional attributes."""
-
-    @computed_field(
-        title="CPR Needed",
-        description="Indicates if CPR is needed based on the symptoms.",
-    )
-    @property
-    def cpr_needed(self) -> KnownBoolean:
-        """Returns True if CPR is needed based on the symptoms."""
-        # return any(
-        #     getattr(self, name)
-        #     for name, field in type(self).model_fields.items()
-        #     if field.annotation is KnownBoolean and name != "cpr_needed"
-        # )
-        return reduce(
-            lambda acc, curr_field: acc or curr_field,
-            (
-                getattr(self, name)
-                for name, field in type(self).model_fields.items()
-                if field.annotation is CPR_Boolean and name != "urgency_needed"
-            ),
-            Unknown,
-        )
-
-
-class UrgencySymptom(KeyQuestionSymptom):
-    """A model that extends KnownBoolean to include additional attributes for urgency symptoms."""
-
-    @computed_field(
-        title="Urgency Needed",
-        description="Indicates if urgency is needed based on the symptoms.",
-    )
-    @property
-    def urgency_needed(self) -> KnownBoolean:
-        """Returns True if urgency is needed based on the symptoms."""
-        # return none_any(
-        #     getattr(self, name)
-        #     for name, field in type(self).model_fields.items()
-        #     if field.annotation is KnownBoolean and name != "urgency_needed"
-        # )
-        return reduce(
-            lambda acc, x: acc or x,
-            (
-                getattr(self, name)
-                for name, field in type(self).model_fields.items()
-                if field.annotation is Urgency_Boolean and name != "urgency_needed"
-            ),
-            Unknown,
-        )

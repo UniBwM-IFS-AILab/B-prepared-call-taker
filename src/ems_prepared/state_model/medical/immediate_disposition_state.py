@@ -1,10 +1,11 @@
 from pydantic import BaseModel, Field
+from pydantic.fields import computed_field
 
-from ems_prepared.state_model.medical.base_models import UrgencySymptom
-from ems_prepared.state_model.type_defs import KnownBoolean, Unknown
+from ems_prepared.state_model.medical.base_models import KeyQuestionSymptom
+from ems_prepared.state_model.type_defs import KnownBoolean, Unknown, tristate
 
 
-class ImmediateDisposition(UrgencySymptom):
+class ImmediateDisposition(KeyQuestionSymptom):
     """Model representing a patient's immediate disposition with various key questions."""
 
     cyanosis: KnownBoolean = Field(
@@ -31,3 +32,18 @@ class ImmediateDisposition(UrgencySymptom):
         title="Severe Injury",
         description="Indicates if the patient is currently experiencing a severe injury.",
     )
+
+    @computed_field(
+        title="Urgency Needed",
+        description="Indicates if urgency is needed based on the symptoms.",
+    )
+    @property
+    def urgency_needed(self) -> KnownBoolean:
+        """Returns True if urgency is needed based on the symptoms."""
+        symptoms: list = [
+            self.cyanosis,
+            self.suffocation,
+            self.severe_accident,
+            self.severe_injury,
+        ]
+        return tristate(symptoms)
