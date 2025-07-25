@@ -6,28 +6,30 @@ from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.models.google import GoogleModelSettings
 from rich import print
 
-from ems_prepared.agents.models import gemini_flash_model, gpt4o_model, llama3_model
+from ems_prepared.agents.models import (
+    gpt4o_model,
+    system_prompt,
+)
 from ems_prepared.state_model.emergency_call_state import EmergencyCall
 
-ROLE: str = "You are a Call taker in a call center for Emergencies who speaks english and german."
-
-TASK: str = (
-    "You receive a user provided Answer to a question about the situation"
-    "Extract Values from the Answer to fit the variables defined in the State."
-)
-
-RULES: str = (
-    "Only return Json as a string according to the schema, unless you can't extract new values from the Answer compared to the current state. Only then, ask the user for more information"
-    "When you cannot extract new data, you are not allowed to ask for specific fields directly."
-    "None signifies unknown values"
-    "Return only a valid JSON object that satisfies the schema above. Do not include any additional keys or explanatory text."
-    "If the user's message contains a value for any field, copy that value into the JSON. Leave a field null only when the user truly did not supply it."
-)
-
-DECISIONS: str = (
-    "Ask the user for more information if you can't extract new values from the Answer compared to the current state."
-    "Also ask for specification if you are unsure if a variable should be set or not"
-    "Also ask further if the answer does not provide enough information to fill the variable fully."
+state_fill_prompt = system_prompt(
+    role="You are a Call taker in a call center for Emergencies who speaks english and german.",
+    task=(
+        "You receive a user provided Answer to a question about the situation"
+        "Extract Values from the Answer to fit the variables defined in the State."
+    ),
+    rules=(
+        "Only return Json as a string according to the schema, unless you can't extract new values from the Answer compared to the current state. Only then, ask the user for more information"
+        "When you cannot extract new data, you are not allowed to ask for specific fields directly."
+        "None signifies unknown values"
+        "Return only a valid JSON object that satisfies the schema above. Do not include any additional keys or explanatory text."
+        "If the user's message contains a value for any field, copy that value into the JSON. Leave a field null only when the user truly did not supply it."
+    ),
+    decisions=(
+        "Ask the user for more information if you can't extract new values from the Answer compared to the current state."
+        "Also ask for specification if you are unsure if a variable should be set or not"
+        "Also ask further if the answer does not provide enough information to fill the variable fully."
+    ),
 )
 
 
@@ -63,7 +65,6 @@ async def state_fill_task(
         The merged state with extracted information.
 
     """
-
     agent_task: str = (
         f"Question: {prompt}"
         #
@@ -86,13 +87,16 @@ async def state_fill_task(
 
 
 def response_cleanup(input: BaseModel | str):
+    """Apply various fixes to strings returned by LLMs."""
     if isinstance(input, str):
-        # Model returns markdown codeblock
+        # Case: LLM returns markdown codeblock instead of strucured data / code
         if input.startswith("```") and input.endswith("```"):
             print("deteced Markdown codeblock in Agent response")
 
             input = input.removeprefix("```")
             input = input.removesuffix("```")
+
+            # TODO: remove everything until first \n char instead
             if input.startswith("json"):
                 input = input.removeprefix("json")
 
@@ -110,11 +114,8 @@ def response_cleanup(input: BaseModel | str):
 state_fill_agent = Agent[BaseModel, BaseModel | str](
     gpt4o_model,
     output_type=[EmergencyCall, str],
-    # deps_type=EmergencyCall,
-    # model_settings=settings,
-    system_prompt=(ROLE, TASK, DECISIONS, RULES),  # noqa: E501
+    system_prompt=(state_fill_prompt.full_prompt),
 )
-
 
 if __name__ == "__main__":
     state = EmergencyCall()
