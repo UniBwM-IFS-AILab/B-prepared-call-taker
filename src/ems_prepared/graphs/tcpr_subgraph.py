@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import field
-from datetime import datetime
-from pathlib import Path
-from typing import Iterator, NoReturn, override
+from collections.abc import Iterator
+from typing import override
 
 from pydantic.dataclasses import dataclass
 from pydantic.types import T
@@ -12,8 +10,12 @@ from pydantic_graph.graph import Graph, GraphRunResult
 from pydantic_graph.nodes import BaseNode, End, GraphRunContext
 from rich import print
 
-from ems_prepared.agents.user_interaction import prompt_user, tell_user
+from ems_prepared.agents.user_interaction import (
+    converse_with_user,
+    tell_user,
+)
 from ems_prepared.agents.variable_fill_agent import var_fill_task
+from ems_prepared.graphs.type_defs import EmergencyNode
 from ems_prepared.graphs.utils import (
     save_mermaid_graph,
     save_state_json,
@@ -27,7 +29,7 @@ instructions = {
     "en": [
         "An ambulance is on its way to you, please let me know once it is here. \n"
         "Please follow the instructions, confirm once you finished. \n"
-        "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?",
+        "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?"
         "Kneel beside the patient's chest so that your knees are next to each other at chest level."
         "Expose the patient's upper body.",
         "Place the heel of one hand on the middle of the patient's bony chest, i.e., on the lower half of the sternum—clearly above the pit of the stomach."
@@ -73,10 +75,8 @@ class Instruct(BaseNode[EmergencyCall, Settings]):
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> Instruct | ArtificialVentilation | EMSArrived:
-        response: str = await prompt_user(self.instruction)
-        parse_response: bool | str | EmergencyCall = await var_fill_task(
-            self.instruction, response, ctx.state
-        )
+        parse_response = await converse_with_user(self.instruction, ctx, var_fill_task)
+
         try:
             if parse_response is True:
                 return Instruct(next(instruct_iterator))
@@ -88,7 +88,9 @@ class Instruct(BaseNode[EmergencyCall, Settings]):
             elif type(parse_response) is str:
                 pass
             elif type(parse_response) is EmergencyCall:
-                ignore_empty_merger.merge(ctx.state.__dict__, parse_response.__dict__)
+                _ = ignore_empty_merger.merge(
+                    ctx.state.__dict__, parse_response.__dict__
+                )
                 if ctx.state.ems_arrived:
                     return EMSArrived()
             return Instruct(next(instruct_iterator))
@@ -100,29 +102,26 @@ class Instruct(BaseNode[EmergencyCall, Settings]):
 
 
 ### CPR LOOP
-@dataclass
-class GenericInstruct(BaseNode[T, T]):
-    """A base node for a step in the CPR cycle (30 compressions, 2 breaths)."""
+# @dataclass
+# class GenericInstruct(BaseNode[StateT, DepsT]):
+#     """A base node for a step in the CPR cycle (30 compressions, 2 breaths)."""
 
-    instruction: str
-    next_node_type: type[BaseNode]
+#     instruction: str
+#     next_node_type: type[BaseNode]
 
-    @override
-    async def run(
-        self,
-        ctx: GraphRunContext[T, T],
-    ):
-        pass
+#     @override
+#     async def run(
+#         self,
+#         ctx: GraphRunContext[StateT, DepsT],
+#     ) -> None:
+#         pass
 
 
 async def instruct_user(
     ctx, instruction, next_node_type: BaseNode[EmergencyCall, Settings]
 ):
     # TODO generalized verions
-
-    user_response: str | None = await prompt_user(question=instruction)
-    if user_response is None:
-        raise
+    parse_result = await converse_with_user(instruction, ctx, var_fill_task)
 
     # TODO: insert timer to check if at least some minimum time is past (maybe only use if InputMode.REQUEST, where we can assume an interactive application on the other side)
 
@@ -159,8 +158,12 @@ class ArtificialVentilation(BaseNode[EmergencyCall, Settings]):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> ChestCompression | EMSArrived:
-        return await instruct_user(ctx, self.instruction, ChestCompression())
+    ) -> EmergencyNode | EMSArrived:
+        result = await instruct_user(ctx, self.instruction, ChestCompression())
+        if result is None:
+            raise TypeError("Return is none, while it should not be")
+
+        return result
 
 
 @dataclass
@@ -174,15 +177,18 @@ class ChestCompression(BaseNode[EmergencyCall, Settings]):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> ArtificialVentilation | EMSArrived:
-        return await instruct_user(ctx, self.instruction, ArtificialVentilation())
+    ) -> EmergencyNode | EMSArrived:
+        result = await instruct_user(ctx, self.instruction, ArtificialVentilation())
+        if result is None:
+            raise TypeError("Return is none, while it should not be")
+        return result
 
 
 ###
 
 
-@dataclass
-class AEDArrived(BaseNode[EmergencyCall, Settings]):
+@dataclass  # TODO
+class AEDArrived(EmergencyNode):
     @override
     async def run(
         self,
@@ -196,7 +202,7 @@ class AEDArrived(BaseNode[EmergencyCall, Settings]):
 
 
 @dataclass
-class EMSArrived(BaseNode[EmergencyCall, Settings]):
+class EMSArrived(EmergencyNode):
     @override
     async def run(
         self,
@@ -221,14 +227,16 @@ class EMSArrived(BaseNode[EmergencyCall, Settings]):
     #         pass
 
 
-async def run_graph(state, deps) -> GraphRunResult:
+async def run_graph(
+    state: EmergencyCall, deps: Settings
+) -> GraphRunResult[EmergencyCall, EmergencyCall] | None:
     deps.log_dir.mkdir(parents=True, exist_ok=True)
 
     graph = Graph[EmergencyCall, Settings, EmergencyCall](
         nodes=[Instruct, ArtificialVentilation, ChestCompression, EMSArrived],
     )
 
-    asyncio.create_task(
+    _ = asyncio.create_task(
         save_mermaid_graph(
             graph,
             deps.log_dir / f"{deps.file_name}_mermaid",
@@ -246,13 +254,13 @@ async def run_graph(state, deps) -> GraphRunResult:
         persistence=persistence,
     ) as run:
         async for node in run:
-            try:
+            if isinstance(node, BaseNode):
                 print(f"Node: {node.get_node_id()}")  # type: ignore
-            except Exception as _:
+            else:
                 print(node)
-    result = run.result
+    result: GraphRunResult[EmergencyCall, EmergencyCall] | None = run.result
     if result is not None:
-        asyncio.create_task(save_state_json(result, deps.log_dir / deps.file_name))
+        _ = asyncio.create_task(save_state_json(result, deps.log_dir / deps.file_name))
 
     return result
 
@@ -261,9 +269,10 @@ async def main():
     """Function to test the graph in isolation."""
 
     state = EmergencyCall(cardiac_arrest=True)
-    deps = Settings(graph_name="tcp_subgraph_only")
-    result: GraphRunResult = await run_graph(state, deps)
-    print("Graph finished with state:", result.state)
+    deps = Settings(name="tcp_subgraph_only")
+    result = await run_graph(state, deps)
+    if result is not None:
+        print("Graph finished with state:", result.state)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 import os
 import typing as t
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 
-JsonType: t.TypeAlias = t.List["JsonValue"] | t.Mapping[str, "JsonValue"]
+JsonType: t.TypeAlias = list["JsonValue"] | Mapping[str, "JsonValue"]
 JsonValue: t.TypeAlias = str | int | float | None | JsonType
 
 import pycountry

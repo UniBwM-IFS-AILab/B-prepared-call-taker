@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterator
 
+from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph
 from rich import print
 
@@ -42,7 +43,7 @@ questions: Iterator[str] = iter(
 
 async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     """Run the main graph synchronously for demonstration purposes."""
-    main_graph = Graph[EmergencyCall, None, EmergencyCall](
+    main_graph = Graph[EmergencyCall, Settings, EmergencyCall](
         nodes=[
             Greeting,
             AskCaller,
@@ -57,7 +58,7 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
             ChooseQuestion,
         ],
     )
-    deps = Settings(graph_name="main_graph")
+    deps = Settings(name="main_graph")
     state: EmergencyCall = EmergencyCall()
 
     graph_name: str = "emergency_call"
@@ -65,7 +66,7 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     current_log_dir: Path = Path("logs") / graph_name / timestamp
     current_log_dir.mkdir(parents=True, exist_ok=True)
     save_file_base = f"{graph_name}_{timestamp}_{call_origin.name}"
-    asyncio.create_task(
+    _ = asyncio.create_task(
         save_mermaid_graph(
             main_graph,
             current_log_dir / f"{save_file_base}_mermaid",
@@ -79,13 +80,15 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
         Greeting(), state=state, deps=deps, persistence=persistence
     ) as run:
         async for node in run:
-            try:
+            if isinstance(node, BaseNode):
                 print(f"Node: {node.get_node_id()}")  # type: ignore
-            except Exception as _:
+            else:
                 print(node)
     result = run.result
     if result is not None:
-        asyncio.create_task(save_state_json(result, current_log_dir / save_file_base))
+        _ = asyncio.create_task(
+            save_state_json(result, current_log_dir / save_file_base)
+        )
 
 
 if __name__ == "__main__":
