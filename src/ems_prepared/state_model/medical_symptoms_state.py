@@ -4,9 +4,7 @@ This module provides:
 - MedicalEmergency: A model combining symptoms and states from various emergency call protocol components.
 """  # noqa: E501
 
-from deepdiff.helper import UnkownValueCode
 from numpy import ndarray
-from pydantic import Field
 from pydantic.fields import computed_field
 from pydantic.functional_validators import model_validator
 from pydantic.json_schema import SkipJsonSchema
@@ -55,7 +53,7 @@ class MedicalEmergency(
         return {
             getattr(self, name)
             for name, field in type(self).model_fields.items()
-            if field.annotation is RD1_Boolean
+            if field.annotation is type(RD1_Boolean)
         }
 
     @property
@@ -67,9 +65,12 @@ class MedicalEmergency(
             if field.annotation
             # TODO: CPR_Boolean (and Urgency_boolean in the future should not be needed here, instead use extra computed_field "cpr_needed" which itself is an RD2_Boolean)
             in [
-                RD2_Boolean,
-                # CPR_Boolean,
-                Urgency_Boolean,
+                type(var)
+                for var in [
+                    RD2_Boolean,
+                    CPR_Boolean,
+                    Urgency_Boolean,  # TODO: remove Urgency_BOOlean as well
+                ]
             ]
         }
 
@@ -84,9 +85,6 @@ class MedicalEmergency(
     @property
     def rd2(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd2_symptoms."""
-        # if self.hidden_rd2 is False:
-        #     return False
-
         return tristate(self.rd2_symptoms)
 
     @model_validator(mode="before")

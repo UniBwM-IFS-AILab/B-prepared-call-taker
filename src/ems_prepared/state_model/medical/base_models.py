@@ -9,12 +9,9 @@ This module provides:
 """
 # - KnownBooleanParent: a Pydantic model that contains a list of KnownBooleanLeaf instances and can be chained recursively.
 
-from functools import reduce
-
 from pydantic import BaseModel
-from pydantic.fields import computed_field
 
-from ems_prepared.state_model.type_defs import KnownBoolean, Unknown
+from ems_prepared.state_model.type_defs import KnownBoolean
 
 # todo maybe move these elswhere
 type RD1_Boolean = KnownBoolean

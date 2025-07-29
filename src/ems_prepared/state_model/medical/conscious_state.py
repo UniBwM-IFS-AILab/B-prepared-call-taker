@@ -18,20 +18,20 @@ class Consciousness(KeyQuestionSymptom):
     """Model representing a patient's consciousness status with various key questions."""
 
     now_unresponsive: RD1_Boolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Normal Responsiveness",
         description="Indicates if the patient is currently unresponsive.",
     )
 
     unconscious: RD2_Boolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Unconscious",
         description="Indicates if the patient is currently unconscious.",
     )
     rapidly_progressing_unconsciousness: RD2_Boolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Rapidly Progressing Unconsciousness",
         description="Indicates if the patient is currently experiencing rapidly progressing unconsciousness.",

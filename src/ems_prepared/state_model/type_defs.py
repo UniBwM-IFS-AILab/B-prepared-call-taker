@@ -4,21 +4,22 @@ This module provides type aliases used throughout the state model.
 """
 
 from enum import Enum, StrEnum, auto
-from typing import TypeAlias
+from typing import Iterable
 
-Unknown: TypeAlias = None
-# type Unknown = None  # this does not work
+# Unknown: TypeAlias = None
+type Unknown = None  # this does not work
+
 # Unknown = NewType("Unknown", tp=None)
 
-
-type KnownBoolean = bool | Unknown
+type KnownBoolean = Unknown | bool
+# KnownBoolean: TypeAlias = Unknown | bool
 type KnownString = str | Unknown
 
 
-def tristate(values) -> KnownBoolean:
+def tristate(values: Iterable[KnownBoolean]) -> KnownBoolean:
     from functools import reduce
 
-    def tri_combine(acc, curr):
+    def tri_combine(acc: KnownBoolean, curr: KnownBoolean) -> KnownBoolean:
         # single True is sufficient
         if acc is True or curr is True:
             return True
@@ -26,9 +27,9 @@ def tristate(values) -> KnownBoolean:
         if acc is False and curr is False:
             return False
         # at least one None, nothing True yet
-        return Unknown
+        return None
 
-    return reduce(tri_combine, values, Unknown)
+    return reduce(tri_combine, values, None)
 
 
 class EmergencyType(StrEnum):

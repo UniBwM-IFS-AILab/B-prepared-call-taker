@@ -14,15 +14,15 @@ class EmergencyCall(MedicalEmergency):
     """Model representing an emergency call with essential details."""
 
     caller_name: KnownString = Field(
-        default=Unknown,
+        default=None,
         title="Caller Name",
         description="Name of the person making the emergency call.",
     )  # type: ignore
     caller_phone: KnownString = Field(
-        default=Unknown, title="Caller Phone", description="Phone number of the caller."
+        default=None, title="Caller Phone", description="Phone number of the caller."
     )  # type: ignore
     location: KnownString = Field(
-        default=Unknown,
+        default=None,
         title="Distinctive Location",
         alias="Address",
         description=(
@@ -31,7 +31,7 @@ class EmergencyCall(MedicalEmergency):
         ),
     )  # type: ignore
     emergency_type: EmergencyType | Unknown = Field(
-        default=Unknown,
+        default=None,
         examples=[
             EmergencyType.FIRE,
             EmergencyType.MEDICAL,
@@ -43,7 +43,7 @@ class EmergencyCall(MedicalEmergency):
         description="Type of emergency (e.g., medical, fire, non-emergency).",
     )  # type: ignore
     situation_description: KnownString = Field(
-        default=Unknown,
+        default=None,
         alias="What",
         title="Situation Description",
         description="Description of what just happened. The reason for calling the emergency line.",

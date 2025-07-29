@@ -14,19 +14,19 @@ class TeleCpr(BaseModel):
     """Model representing a patient's CPR status with various key questions."""
 
     cardiac_arrest: CPR_Boolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Cardiac Arrest",
         description="Indicates if the patient is currently experiencing cardiac arrest.",
     )
     agonal_breathing: CPR_Boolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Agonal Breathing",
         description="Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns).",
     )
     ems_arrived: KnownBoolean = Field(
-        default=Unknown,
+        default=None,
         examples=[True, False, Unknown],
         title="Emergency Medical Services (EMS) Arrived",
         description="Indicates if an someone from EMS, such as an Ambulance or a doctor arrived at the location of the emergency.",
