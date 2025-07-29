@@ -22,18 +22,18 @@ class RunMode(Enum):
 
 class Settings(BaseSettings):
     # Logging
-    graph_name: str
+    name: str
     timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     @computed_field
     @cached_property
     def log_dir(self) -> Path:
-        return Path("logs") / self.graph_name / self.timestamp
+        return Path("logs") / self.name / self.timestamp
 
     @computed_field
     @cached_property
     def file_name(self) -> str:
-        return f"{self.graph_name}_{self.timestamp}"
+        return f"{self.name}_{self.timestamp}"
 
     # Runtime
     locale: str = "en"  # TODO: replace with enum & correct localization system

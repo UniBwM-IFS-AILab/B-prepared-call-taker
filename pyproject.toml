@@ -82,6 +82,8 @@ select = [
   "W"
 ]
 
+[tool.basedpyright]
+reportImplicitStringConcatenation = false
 
 [tool.pyrefly]
 #### configuring your type check settings

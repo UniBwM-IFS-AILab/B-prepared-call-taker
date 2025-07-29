@@ -5,7 +5,6 @@ from collections.abc import Iterator
 from typing import override
 
 from pydantic.dataclasses import dataclass
-from pydantic.types import T
 from pydantic_graph.graph import Graph, GraphRunResult
 from pydantic_graph.nodes import BaseNode, End, GraphRunContext
 from rich import print
@@ -118,31 +117,40 @@ class Instruct(BaseNode[EmergencyCall, Settings]):
 
 
 async def instruct_user(
-    ctx, instruction, next_node_type: BaseNode[EmergencyCall, Settings]
-):
+    ctx: GraphRunContext[EmergencyCall, Settings],
+    instruction: str,
+    next_node: EmergencyNode,
+) -> EMSArrived | EmergencyNode | None:
     # TODO generalized verions
     parse_result = await converse_with_user(instruction, ctx, var_fill_task)
 
     # TODO: insert timer to check if at least some minimum time is past (maybe only use if InputMode.REQUEST, where we can assume an interactive application on the other side)
 
-    parse_response = await var_fill_task(
-        prompt=instruction,
-        user_response=user_response,
-        current_state=ctx.state,
-    )
 
-    if parse_response is True:
-        return next_node_type  # ()  # type: ignore
-    elif parse_response is False:
-        raise TypeError(
-            f"Error with type returned by var_fill_agent, value is {parse_response}"
-        )
-    elif type(parse_response) is str:
-        pass
-    elif type(parse_response) is EmergencyCall:
-        ignore_empty_merger.merge(ctx.state.__dict__, parse_response.__dict__)
+    if type(parse_result) is EmergencyCall:
+        _ = ignore_empty_merger.merge(ctx.state.__dict__, parse_result.__dict__)
         if ctx.state.ems_arrived:
             return EMSArrived()
+    elif parse_result is True:
+        return next_node
+    elif parse_result is False:
+        raise TypeError(
+            f"Error with type returned by var_fill_agent, value is {parse_result}"
+        )
+    elif type(parse_result) is str:
+        # user_response: str | None = await prompt_user(parse_result)
+        # return await instruct_user(
+        #     ctx, instruction=user_response, next_node_type=next_node_type
+        # )
+        # result = await converse_with_user(
+        #     prompt=parse_result, state=ctx.state, task_function=var_fill_task
+        # )
+        return await instruct_user(ctx, parse_result, next_node)
+    else:
+        raise TypeError(
+            f"Unexpected type returned by var_fill_agent, value is {parse_result}, type is {type(parse_result)}"
+        )
+    return next_node
 
 
 @dataclass
@@ -195,10 +203,6 @@ class AEDArrived(EmergencyNode):
         ctx: GraphRunContext[EmergencyCall, Settings],
     ):
         pass
-
-
-# @dataclass
-# class
 
 
 @dataclass
