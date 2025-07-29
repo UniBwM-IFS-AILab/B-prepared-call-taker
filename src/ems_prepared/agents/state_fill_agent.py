@@ -4,16 +4,19 @@ from deepdiff import DeepDiff
 from pydantic import BaseModel
 from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.models.google import GoogleModelSettings
+from pydantic_graph import GraphRunContext
 from rich import print
 
 from ems_prepared.agents.models import (
     gpt4o_model,
     system_prompt,
 )
+from ems_prepared.agents.reusable_prompts import calltaker_role
+from ems_prepared.settings import Settings
 from ems_prepared.state_model.emergency_call_state import EmergencyCall
 
 state_fill_prompt = system_prompt(
-    role="You are a Call taker in a call center for Emergencies who speaks english and german.",
+    role=calltaker_role,
     task=(
         "You receive a user provided Answer to a question about the situation"
         "Extract Values from the Answer to fit the variables defined in the State."
@@ -46,7 +49,7 @@ async def state_fill_task(
     # agent: Agent[str, EmergencyCall],
     prompt: str,
     user_response: str,
-    state: BaseModel,
+    ctx: GraphRunContext[EmergencyCall, Settings],
 ) -> BaseModel | str:
     """Extract structured information from a user's response using AI.
 
@@ -70,13 +73,13 @@ async def state_fill_task(
         #
         f"Answer: {user_response}"
         #
-        f"State: {state}"
+        f"State: {ctx.state}"
         # f"State: {state.model_dump_json(indent=2)}"
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
     result: AgentRunResult[BaseModel | str] = await state_fill_agent.run(
-        user_prompt=agent_task,  # deps=state
+        user_prompt=agent_task, deps=ctx.deps
     )
 
     print(result.usage())
@@ -111,9 +114,10 @@ def response_cleanup(input: BaseModel | str):
     return input
 
 
-state_fill_agent = Agent[BaseModel, BaseModel | str](
+state_fill_agent = Agent(
     gpt4o_model,
     output_type=[EmergencyCall, str],
+    deps_type=Settings,
     system_prompt=(state_fill_prompt.full_prompt),
 )
 
@@ -125,11 +129,16 @@ if __name__ == "__main__":
         "Statement: here is Carl, there is a man that fell off his bike. He is bleeding and holding his knee"
         "State: {state}"
     )
+    deps = Settings(name="state_fill_agent_main")
 
-    result = state_fill_agent.run_sync(user_prompt=prompt.format(state=state))
+    result = state_fill_agent.run_sync(
+        user_prompt=prompt.format(state=state), deps=deps
+    )
     print(result)
     state2 = result.output
-    result2 = state_fill_agent.run_sync(user_prompt=prompt.format(state=state2))
+    result2 = state_fill_agent.run_sync(
+        user_prompt=prompt.format(state=state2), deps=deps
+    )
     print(result2)
 
     if isinstance(result2.output, EmergencyCall):
