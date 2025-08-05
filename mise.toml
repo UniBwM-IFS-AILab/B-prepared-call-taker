@@ -43,7 +43,11 @@ age_key_file = '~/.config/mise/age.txt'
 
 [tasks.emergency_call]
 alias = 'ems'
-run = "uv run {{cwd}}/src/ems_prepared/graphs/emergency_main_graph.py"
+run = "uv run {{config_root}}/src/ems_prepared/graphs/emergency_main_graph.py"
+
+[tasks.non_graph]
+alias = 'dumb'
+run = "uv run {{config_root}}/src/ems_prepared/non_graph/agent.py"
 
 
 [tools."ubi:graphviz/graphviz"]

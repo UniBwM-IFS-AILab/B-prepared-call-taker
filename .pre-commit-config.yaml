@@ -14,7 +14,6 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-illegal-windows-names
       - id: debug-statements
-      - id: end-of-file-fixer
   # - repo: https://github.com/astral-sh/ruff-pre-commit
   #   rev: v0.12.2
   #   hooks:
@@ -26,10 +25,10 @@ repos:
       # - id: ruff-check
       #   name: "ruff import sorting"
       #   args: ["check", "--select", "I", "--fix"]
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.7.19
-    hooks:
-      - id: uv-lock
+  # - repo: https://github.com/astral-sh/uv-pre-commit
+  #   rev: 0.7.19
+  #   hooks:
+  #     - id: uv-lock
 
   # - repo: https://github.com/econchick/interrogate
   #   rev: 1.7.0
@@ -51,3 +50,9 @@ repos:
   #     - id: typos
   #       args: []
   #       pass_filenames: false
+
+  # - repo: https://github.com/tweag/FawltyDeps
+  #   rev: v0.20.0
+  #   hooks:
+  #     - id: check-undeclared
+  #     - id: check-unused

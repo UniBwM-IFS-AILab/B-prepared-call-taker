@@ -24,7 +24,7 @@ requires = ["hatchling"]
 call-graph = [
     "python-call-graph>=2.1.4",
 ]
-call-uv  = [
+call-uv = [
     "pycg>=0.0.8",
     "pyvis>=0.3.2",
 ]
@@ -43,6 +43,7 @@ dev = [
   "deepdiff>=8.5.0",
   "loguru>=0.7.3",
   "pyright>=1.1.403",
+  "mypy>=1.17.1",
 ]
 experiment = [
     "pydantic-ai-examples>=0.2.18",
@@ -55,6 +56,14 @@ test = [
   "pytest>=8.4.1",
   "pytest-sugar>=1.0.0",
   "pytest-asyncio>=0.23.6"
+]
+whisper = [
+    "accelerate>=1.9.0",
+    "cython>=3.1.2",
+    "datasets[audio]>=4.0.0",
+    "faster-whisper>=1.1.1",
+    "torch>=2.7.1",
+    "transformers>=4.54.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -101,3 +110,16 @@ reportImplicitStringConcatenation = false
 # missing-attribute = false
 
 [tool.ty]
+
+[tool.uv]
+default-groups = ["dev", "test"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
