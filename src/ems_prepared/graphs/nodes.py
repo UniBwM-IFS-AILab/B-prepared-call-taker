@@ -8,7 +8,11 @@ from pydantic_graph.graph import GraphRunResult
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 from rich import print
 
-from ems_prepared.agents.state_fill_agent import state_fill_agent, state_fill_task
+from ems_prepared.agents.state_fill_agent import (
+    response_cleanup,
+    state_fill_agent,
+    state_fill_task,
+)
 from ems_prepared.agents.user_interaction import (
     converse_with_user,
     tell_user,
@@ -171,6 +175,7 @@ class ChooseSubGraph(EmergencyNode):
             case EmergencyType.NON_EMERGENCY:
                 pass
             case _:
+                # TODO: deuplicate this code, use one agents for stae fill and one for conversation to make this easier
                 print("Forcing Agent to decide the Emergency type...")
                 result = await state_fill_agent.run(
                     user_prompt=(
@@ -179,17 +184,19 @@ class ChooseSubGraph(EmergencyNode):
                     ),
                     deps=ctx.deps,
                 )
-                if isinstance(result.output, EmergencyCall):
-                    if result.output.emergency_type is None:
+                print(result.output)
+                print(type(result.output))
+                cleaned = response_cleanup(result.output)
+
+                if isinstance(cleaned, EmergencyCall):
+                    if cleaned.emergency_type is None:
                         raise
                     print(
-                        f"Detected Type: {result.output.model_dump(include={'emergency_type'})}"
+                        f"Detected Type: {cleaned.model_dump(include={'emergency_type'})}"
                     )
-                    _ = ignore_empty_merger.merge(
-                        ctx.state.__dict__, result.output.__dict__
-                    )
+                    # _ = ignore_empty_merger.merge(ctx.state.__dict__, cleaned.__dict__) # seems duplicated / unnecessary
 
-                return EvaluateAgentOutput(result.output)
+                return EvaluateAgentOutput(cleaned)
 
         raise
 
@@ -252,7 +259,7 @@ class TCPR(EmergencyNode):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "Disposition | End[EmergencyCall]":
+    ) -> "Disposition | Annotated[End[EmergencyCall], Edge(label='EMS arrived')]":
         if not any([ctx.state.agonal_breathing, ctx.state.cardiac_arrest]):
             raise
         print("Patient needs T-CPR")
@@ -264,6 +271,7 @@ class TCPR(EmergencyNode):
             _ = ignore_empty_merger.merge(ctx.state.__dict__, result.state.__dict__)
         else:
             raise TypeError
+
         if ctx.state.ems_arrived:
             return End(ctx.state)
         return Disposition(DispoType.RD2)

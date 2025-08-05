@@ -1,7 +1,7 @@
 # from google.genai.types import HarmBlockThreshold, HarmCategory
 
+
 from deepdiff import DeepDiff
-from pydantic import BaseModel
 from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.models.google import GoogleModelSettings
 from pydantic_graph import GraphRunContext
@@ -50,7 +50,7 @@ async def state_fill_task(
     prompt: str,
     user_response: str,
     ctx: GraphRunContext[EmergencyCall, Settings],
-) -> BaseModel | str:
+) -> EmergencyCall | str:
     """Extract structured information from a user's response using AI.
 
     Parameters
@@ -78,7 +78,7 @@ async def state_fill_task(
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
-    result: AgentRunResult[BaseModel | str] = await state_fill_agent.run(
+    result: AgentRunResult[EmergencyCall | str] = await state_fill_agent.run(
         user_prompt=agent_task, deps=ctx.deps
     )
 
@@ -89,7 +89,7 @@ async def state_fill_task(
     return cleaned
 
 
-def response_cleanup(input: BaseModel | str):
+def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
     """Apply various fixes to strings returned by LLMs."""
     if isinstance(input, str):
         # Case: LLM returns markdown codeblock instead of strucured data / code
@@ -103,7 +103,7 @@ def response_cleanup(input: BaseModel | str):
             if input.startswith("json"):
                 input = input.removeprefix("json")
 
-            # input = input[input.find("\n") + 1 : input.rfind("\n")]
+        # input = input[input.find("\n") + 1 :  input.rfind("\n")]
 
         # try to produce String at the end of methods
         try:
