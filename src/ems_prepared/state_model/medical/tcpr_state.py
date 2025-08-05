@@ -36,7 +36,7 @@ class TeleCpr(BaseModel):
     def cpr_symptoms(self) -> set[RD2_Boolean]:
         """Returns the list of symptoms for rd1."""
         return {
-            getattr(self, name)
+            field
             for name, field in type(self).model_fields.items()
             if field.annotation is CPR_Boolean
         }

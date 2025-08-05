@@ -30,7 +30,7 @@ class EmergencyCall(MedicalEmergency):
             "It must be precise enough so that is distinct within the area of the department that takes the call."
         ),
     )  # type: ignore
-    emergency_type: EmergencyType | Unknown = Field(
+    emergency_type: EmergencyType | None = Field(
         default=None,
         examples=[
             EmergencyType.FIRE,

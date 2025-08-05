@@ -4,10 +4,10 @@ This module provides type aliases used throughout the state model.
 """
 
 from enum import Enum, StrEnum, auto
-from typing import Iterable
+from typing import Iterable, TypeAlias
 
-# Unknown: TypeAlias = None
-type Unknown = None  # this does not work
+Unknown: TypeAlias = None
+# type Unknown = None  # this does not work
 
 # Unknown = NewType("Unknown", tp=None)
 

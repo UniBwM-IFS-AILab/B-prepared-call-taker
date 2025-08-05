@@ -51,26 +51,24 @@ class MedicalEmergency(
     def rd1_symptoms(self) -> set[KnownBoolean]:
         """Returns the list of symptoms for rd1."""
         return {
-            getattr(self, name)
+            # getattr(self, name)
+            field
             for name, field in type(self).model_fields.items()
-            if field.annotation is type(RD1_Boolean)
+            if field.annotation is RD1_Boolean
         }
 
     @property
     def rd2_symptoms(self) -> set[KnownBoolean]:
         """Returns the set of fields of type KnownBoolean for rd2."""
         return {
-            getattr(self, name)
+            field
             for name, field in type(self).model_fields.items()
             if field.annotation
             # TODO: CPR_Boolean (and Urgency_boolean in the future should not be needed here, instead use extra computed_field "cpr_needed" which itself is an RD2_Boolean)
             in [
-                type(var)
-                for var in [
-                    RD2_Boolean,
-                    CPR_Boolean,
-                    Urgency_Boolean,  # TODO: remove Urgency_BOOlean as well
-                ]
+                RD2_Boolean,
+                CPR_Boolean,
+                Urgency_Boolean,  # TODO: remove Urgency_BOOlean as well
             ]
         }
 
