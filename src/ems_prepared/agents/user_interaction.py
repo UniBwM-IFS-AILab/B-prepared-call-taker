@@ -38,6 +38,7 @@ async def prompt_user(question: str, mode: InputMode = InputMode.CLI) -> str | N
             pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
         case InputMode.TEST:
             pass  # handle differently if it makes sense
+    return None
 
 
 def tell_user(question: str, mode: InputMode = InputMode.CLI) -> None:

@@ -54,7 +54,7 @@ class Greeting(EmergencyNode):
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> "AskCaller":
         """Greet the user."""
-        _ = tell_user(self.greeting)
+        tell_user(self.greeting)
         return AskCaller(question=next(emergency_questions))
 
 

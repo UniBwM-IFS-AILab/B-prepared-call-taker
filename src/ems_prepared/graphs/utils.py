@@ -22,7 +22,7 @@ async def save_mermaid_graph(
 
 
 async def save_state_json(
-    result: GraphRunResult[BaseModel, StateT],
+    result: GraphRunResult[EmergencyCall, StateT],
     save_path: Path,
 ) -> None:
     # log final state

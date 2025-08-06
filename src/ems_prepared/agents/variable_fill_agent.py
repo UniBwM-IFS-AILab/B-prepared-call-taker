@@ -1,7 +1,6 @@
 # from google.genai.types import HarmBlockThreshold, HarmCategory
 
 
-from pydantic import BaseModel
 from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_graph import GraphRunContext
 from rich import print
@@ -66,7 +65,7 @@ async def var_fill_task(
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
-    result: AgentRunResult[BaseModel | bool | str] = await var_fill_agent.run(
+    result: AgentRunResult[EmergencyCall | bool | str] = await var_fill_agent.run(
         user_prompt=agent_task
     )
 
