@@ -9,20 +9,20 @@ from pydantic_graph.graph import Graph, GraphRunResult
 from pydantic_graph.nodes import BaseNode, End, GraphRunContext
 from rich import print
 
-from ems_prepared.agents.user_interaction import (
+from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
 )
 from ems_prepared.agents.variable_fill_agent import var_fill_task
-from ems_prepared.graphs.type_defs import EmergencyNode
-from ems_prepared.graphs.utils import (
+from ems_prepared.policies.graphs.type_defs import EmergencyNode
+from ems_prepared.policies.graphs.utils import (
     save_mermaid_graph,
     save_state_json,
     setup_file_persistence,
 )
-from ems_prepared.settings import LOCALE, Settings
-from ems_prepared.state_model.custom_deepmerge import ignore_empty_merger
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
+from ems_prepared.util.settings import LOCALE, Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 
 instructions = {
     "en": [
@@ -125,7 +125,6 @@ async def instruct_user(
     parse_result = await converse_with_user(instruction, ctx, var_fill_task)
 
     # TODO: insert timer to check if at least some minimum time is past (maybe only use if InputMode.REQUEST, where we can assume an interactive application on the other side)
-
 
     if type(parse_result) is EmergencyCall:
         _ = ignore_empty_merger.merge(ctx.state.__dict__, parse_result.__dict__)

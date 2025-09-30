@@ -9,7 +9,7 @@ from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph
 from rich import print
 
-from ems_prepared.graphs.nodes import (
+from ems_prepared.policies.graphs.nodes import (
     RD1,
     RD2,
     TCPR,
@@ -22,24 +22,13 @@ from ems_prepared.graphs.nodes import (
     Greeting,
     HighUrgency,
 )
-from ems_prepared.graphs.utils import (
+from ems_prepared.policies.graphs.utils import (
     save_mermaid_graph,
     save_state_json,
     setup_file_persistence,
 )
-from ems_prepared.settings import RunMode, Settings
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
-
-questions: Iterator[str] = iter(
-    [
-        # "Hier ist der Notruf für Feuerwehr und Rettungsdienst.",
-        "Mit wem spreche ich bitte?",
-        "Wo genau ist der Einsatzort / die Einsatzstelle?",
-        "Was ist jetzt akut passiert?",
-        # "Sind Sie der Patient / beim Patienten?" # FIXME: only do this if needed, maybe a different data format (with a schema that defines a list of optional questions the llm can choose from)
-    ]
-)
-
+from ems_prepared.util.settings import RunMode, Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     """Run the main graph synchronously for demonstration purposes."""

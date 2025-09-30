@@ -1,5 +1,7 @@
 """Defines the graph for the emergency call workflow."""
 
+from __future__ import annotations
+
 from typing import Annotated, override
 
 from pydantic import BaseModel
@@ -13,24 +15,18 @@ from ems_prepared.agents.state_fill_agent import (
     state_fill_agent,
     state_fill_task,
 )
-from ems_prepared.agents.user_interaction import (
+from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
 )
-from ems_prepared.graphs import tcpr_subgraph
-from ems_prepared.graphs.type_defs import EmergencyNode
-from ems_prepared.settings import LOCALE, Settings
-from ems_prepared.state_model.custom_deepmerge import ignore_empty_merger
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
-from ems_prepared.state_model.type_defs import DispoType, EmergencyType, Unknown
-from ems_prepared.steps_data.iterator import QuestionIterator
-
-# logger.add(
-#     sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>"
-# )
-
-# TODO: replace me wtih proper localisation
-
+from ems_prepared.policies.graphs import tcpr_subgraph
+from ems_prepared.policies.graphs.type_defs import EmergencyNode
+from ems_prepared.util.settings import LOCALE, Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.dialogue_state.medical.base_models import RD2_Boolean
+from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType, Unknown
+from ems_prepared.locale.iterator import QuestionIterator
+from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 
 emergency_questions = QuestionIterator(LOCALE, "Intro")
 state_print_filter = {"patient_symptoms"}
@@ -52,10 +48,28 @@ class Greeting(EmergencyNode):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "AskCaller":
+    ) -> "ChooseQuestion":
         """Greet the user."""
         tell_user(self.greeting)
-        return AskCaller(question=next(emergency_questions))
+        return ChooseQuestion()
+
+
+@dataclass
+class ChooseQuestion(EmergencyNode):
+    @override
+    async def run(
+        self, ctx: GraphRunContext[EmergencyCall, Settings]
+    ) -> (
+        Annotated[ChooseSubGraph, Edge(label="No more Questions")]
+        | Annotated[AskCaller, Edge(label="Next Question")]
+    ):
+        #
+        try:
+            next_question: str = next(emergency_questions)
+            return AskCaller(question=next_question)
+        except StopIteration:
+            print("choosing new subgraph")
+            return ChooseSubGraph()
 
 
 @dataclass
@@ -68,7 +82,7 @@ class AskCaller(EmergencyNode):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "EvaluateAgentOutput":
+    ) -> Annotated[EvaluateAgentOutput, Edge(label="Output received")]:
         """Ask the user."""
 
         parse_result = await converse_with_user(self.question, ctx, state_fill_task)
@@ -83,7 +97,11 @@ class EvaluateAgentOutput(EmergencyNode):
     @override
     async def run(
         self, ctx: GraphRunContext[EmergencyCall, Settings]
-    ) -> "Annotated[AskCaller, Edge(label='Agent asks clarifying question')] | Annotated[EvaluateState, Edge(label='New State detected')] | Annotated[Disposition, Edge(label='Trigger w/ RD1, no RD2 symptoms detected')]":
+    ) -> (
+        Annotated[AskCaller, Edge(label="Agent asks clarifying question")]
+        | Annotated[EvaluateState, Edge(label="New State detected")]
+        | Annotated[Disposition, Edge(label="Trigger w/ RD1, no RD2 symptoms detected")]
+    ):
         if isinstance(self.run_result, BaseModel):
             print("Model returned new data")
             _ = ignore_empty_merger.merge(ctx.state.__dict__, self.run_result.__dict__)
@@ -104,7 +122,13 @@ class EvaluateState(EmergencyNode):
     @override
     async def run(
         self, ctx: GraphRunContext[EmergencyCall, Settings]
-    ) -> "Annotated[ChooseQuestion, Edge(label='No Outcome yet')] | RD2 | RD1 | TCPR | Annotated[HighUrgency, Edge(label='Immediate Disposition')]":
+    ) -> (
+        Annotated[ChooseQuestion, Edge(label="No Outcome yet")]
+        | RD2
+        | RD1
+        | TCPR
+        | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
+    ):
         # -> "Annotated[ChooseSubGraph, Edge(label='No more Questions')] | Annotated[AskCaller, Edge(label='Next Question')] | RD2 | RD1 | TCPR | Annotated[HighUrgency, Edge(label='Immediate Disposition')]":
         print(f"Current State: {ctx.state.model_dump(exclude_none=True)}")
 
@@ -122,27 +146,17 @@ class EvaluateState(EmergencyNode):
 
 
 @dataclass
-class ChooseQuestion(EmergencyNode):
-    @override
-    async def run(
-        self, ctx: GraphRunContext[EmergencyCall, Settings]
-    ) -> "Annotated[ChooseSubGraph, Edge(label='No more Questions')] | Annotated[AskCaller, Edge(label='Next Question')]":
-        #
-        try:
-            next_question: str = next(emergency_questions)
-            return AskCaller(question=next_question)
-        except StopIteration:
-            print("choosing new subgraph")
-            return ChooseSubGraph()
-
-
-@dataclass
 class ChooseSubGraph(EmergencyNode):
     @override
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "Annotated[AskCaller, Edge(label='New set of questions')] | Annotated[EvaluateAgentOutput, Edge(label='Force-update emergency type in state')] ":
+    ) -> (
+        Annotated[ChooseQuestion, Edge(label="New set of questions")]
+        | Annotated[
+            EvaluateAgentOutput, Edge(label="Force-update emergency type in state")
+        ]
+    ):
         # NOTE: We do not really need a subgraph (for now),
         # we only need to switch the set of questions to go through
         match ctx.state.emergency_type:
@@ -167,7 +181,7 @@ class ChooseSubGraph(EmergencyNode):
                     # "situation_description",
                 }
 
-                return AskCaller(next(emergency_questions))
+                return ChooseQuestion()
             case EmergencyType.FIRE:
                 pass
             case EmergencyType.FIRE_MEDICAL:
@@ -175,7 +189,7 @@ class ChooseSubGraph(EmergencyNode):
             case EmergencyType.NON_EMERGENCY:
                 pass
             case _:
-                # TODO: deuplicate this code, use one agents for stae fill and one for conversation to make this easier
+                # TODO: deduplicate this code, use one agents for stae fill and one for conversation to make this easier
                 print("Forcing Agent to decide the Emergency type...")
                 result = await state_fill_agent.run(
                     user_prompt=(
@@ -216,7 +230,11 @@ class RD1(EmergencyNode):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "RD2 | Annotated[Disposition, Edge(label='Use RD1')]|AskCaller":
+    ) -> (
+        Annotated[RD2, Edge(label="Increase to RD2")]
+        | Annotated[Disposition, Edge(label="Use RD1")]
+        | Annotated[AskCaller, Edge(label="Check for RD2")]
+    ):
         if ctx.state.rd1 is not True:
             raise
         else:
@@ -231,6 +249,10 @@ class RD1(EmergencyNode):
             print("Asking for RD2")
             # self.visited = True
             return AskCaller(self.question)
+
+        rd2_booleans = filter(lambda x: type(x) is RD2_Boolean, ctx.state)
+
+
         # self.visited = True
         return RD2() if ctx.state.rd2 else Disposition(DispoType.RD1)
 
@@ -243,7 +265,7 @@ class RD2(EmergencyNode):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> "Annotated[Disposition, Edge(label='Use RD2')]":
+    ) -> Annotated[Disposition, Edge(label="Use RD2")]:
         if not ctx.state.rd2:
             raise
         print("Reached RD2")

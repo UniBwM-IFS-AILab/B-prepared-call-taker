@@ -6,8 +6,8 @@ from pydantic_graph.graph import Graph, GraphRunResult
 from pydantic_graph.nodes import StateT
 from pydantic_graph.persistence.file import FileStatePersistence
 
-from ems_prepared.settings import Settings
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
+from ems_prepared.util.settings import Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 
 async def save_mermaid_graph(
