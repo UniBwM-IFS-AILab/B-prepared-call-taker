@@ -6,12 +6,12 @@ This module defines:
 
 from pydantic import Field
 
-from ems_prepared.state_model.medical.base_models import (
+from ems_prepared.dialogue_state.medical.base_models import (
     KeyQuestionSymptom,
     RD1_Boolean,
     RD2_Boolean,
 )
-from ems_prepared.state_model.type_defs import Unknown
+from ems_prepared.dialogue_state.type_defs import Unknown
 
 
 class Breathing(KeyQuestionSymptom):

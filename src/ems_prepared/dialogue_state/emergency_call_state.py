@@ -6,8 +6,8 @@ including caller information, location, emergency type, and medical details.
 
 from pydantic import Field
 
-from ems_prepared.state_model.medical_symptoms_state import MedicalEmergency
-from ems_prepared.state_model.type_defs import EmergencyType, KnownString, Unknown
+from ems_prepared.dialogue_state.medical_symptoms_state import MedicalEmergency
+from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString, Unknown
 
 
 class EmergencyCall(MedicalEmergency):

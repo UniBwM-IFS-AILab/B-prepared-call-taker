@@ -2,12 +2,12 @@ from pydantic import BaseModel, Field
 from pydantic.fields import computed_field
 from pydantic.json_schema import SkipJsonSchema
 
-from ems_prepared.state_model.medical.base_models import (
+from ems_prepared.dialogue_state.medical.base_models import (
     CPR_Boolean,
     KeyQuestionSymptom,
     RD2_Boolean,
 )
-from ems_prepared.state_model.type_defs import KnownBoolean, Unknown, tristate
+from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
 
 class TeleCpr(BaseModel):

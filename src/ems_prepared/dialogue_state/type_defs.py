@@ -2,9 +2,9 @@
 
 This module provides type aliases used throughout the state model.
 """
-
+from typing import TypeAlias
 from enum import Enum, StrEnum, auto
-from typing import Iterable, TypeAlias
+from collections.abc import Iterable
 
 Unknown: TypeAlias = None
 # type Unknown = None  # this does not work

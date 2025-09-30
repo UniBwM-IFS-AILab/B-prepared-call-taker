@@ -11,13 +11,13 @@ This module provides:
 
 from pydantic import BaseModel
 
-from ems_prepared.state_model.type_defs import KnownBoolean
+from ems_prepared.dialogue_state.type_defs import KnownBoolean
 
 # todo maybe move these elswhere
 type RD1_Boolean = KnownBoolean
 type RD2_Boolean = KnownBoolean
 type CPR_Boolean = RD2_Boolean
-type Urgency_Boolean = KnownBoolean
+type Urgency_Boolean = RD2_Boolean
 
 
 class KeyQuestionSymptom(BaseModel):

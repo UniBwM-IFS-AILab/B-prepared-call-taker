@@ -13,22 +13,22 @@ from rapidfuzz import utils
 from rapidfuzz.fuzz import token_sort_ratio
 from rapidfuzz.process import cdist
 
-from ems_prepared.state_model.medical.additional_state import AdditionalQuestions
-from ems_prepared.state_model.medical.base_models import (
+from ems_prepared.dialogue_state.medical.additional_state import AdditionalQuestions
+from ems_prepared.dialogue_state.medical.base_models import (
     CPR_Boolean,
     RD1_Boolean,
     RD2_Boolean,
     Urgency_Boolean,
 )
-from ems_prepared.state_model.medical.breathing_state import Breathing
-from ems_prepared.state_model.medical.circulation_state import Circulation
-from ems_prepared.state_model.medical.conscious_state import Consciousness
-from ems_prepared.state_model.medical.immediate_disposition_state import (
+from ems_prepared.dialogue_state.medical.breathing_state import Breathing
+from ems_prepared.dialogue_state.medical.circulation_state import Circulation
+from ems_prepared.dialogue_state.medical.conscious_state import Consciousness
+from ems_prepared.dialogue_state.medical.immediate_disposition_state import (
     ImmediateDisposition,
 )
-from ems_prepared.state_model.medical.neurological_state import Neurological
-from ems_prepared.state_model.medical.tcpr_state import TeleCpr
-from ems_prepared.state_model.type_defs import KnownBoolean, tristate
+from ems_prepared.dialogue_state.medical.neurological_state import Neurological
+from ems_prepared.dialogue_state.medical.tcpr_state import TeleCpr
+from ems_prepared.dialogue_state.type_defs import KnownBoolean, tristate
 
 
 class MedicalEmergency(

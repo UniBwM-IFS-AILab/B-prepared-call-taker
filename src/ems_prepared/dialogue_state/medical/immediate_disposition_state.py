@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 from pydantic.fields import computed_field
 
-from ems_prepared.state_model.medical.base_models import KeyQuestionSymptom
-from ems_prepared.state_model.type_defs import KnownBoolean, Unknown, tristate
+from ems_prepared.dialogue_state.medical.base_models import KeyQuestionSymptom
+from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
 
 class ImmediateDisposition(KeyQuestionSymptom):
