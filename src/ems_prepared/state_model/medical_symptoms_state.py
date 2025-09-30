@@ -51,8 +51,8 @@ class MedicalEmergency(
     def rd1_symptoms(self) -> set[KnownBoolean]:
         """Returns the list of symptoms for rd1."""
         return {
-            # getattr(self, name)
-            field
+            # this will compute a set of respective values, meaning len will be 3 at most
+            getattr(self, name)
             for name, field in type(self).model_fields.items()
             if field.annotation is RD1_Boolean
         }
@@ -61,25 +61,26 @@ class MedicalEmergency(
     def rd2_symptoms(self) -> set[KnownBoolean]:
         """Returns the set of fields of type KnownBoolean for rd2."""
         return {
-            field
+            # this will compute a set of respective values, meaning len will be 3 at most
+            getattr(self, name)
             for name, field in type(self).model_fields.items()
             if field.annotation
             # TODO: CPR_Boolean (and Urgency_boolean in the future should not be needed here, instead use extra computed_field "cpr_needed" which itself is an RD2_Boolean)
             in [
                 RD2_Boolean,
                 CPR_Boolean,
-                Urgency_Boolean,  # TODO: remove Urgency_BOOlean as well
+                Urgency_Boolean,  # TODO: remove Urgency_Boolean as well
             ]
         }
 
     # computed fields are not shown to pydantic_ai agents when enforcing strutured output using output_type
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def rd1(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd1_symptoms."""
         return tristate(self.rd1_symptoms)
 
-    @computed_field(description="")
+    @computed_field(description="")  # type: ignore[prop-decorator]
     @property
     def rd2(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd2_symptoms."""
