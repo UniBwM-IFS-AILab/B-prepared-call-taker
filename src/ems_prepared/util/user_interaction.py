@@ -13,8 +13,8 @@ from pydantic_graph import GraphRunContext
 from rich.pretty import pprint
 from rich.prompt import Prompt
 
-from ems_prepared.settings import Settings
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
+from ems_prepared.util.settings import Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 
 class InputMode(Enum):
