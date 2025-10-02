@@ -5,10 +5,8 @@ from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_graph import GraphRunContext
 from rich import print
 
-from ems_prepared.agents.models import (
-    gpt4o_model,
-    system_prompt,
-)
+from ems_prepared.models.openai_models import build_gpt4o_model
+from ems_prepared.models.system_prompt import system_prompt
 from ems_prepared.agents.reusable_prompts import calltaker_role
 from ems_prepared.settings import Settings
 from ems_prepared.state_model.emergency_call_state import EmergencyCall
@@ -75,7 +73,7 @@ async def var_fill_task(
 
 
 var_fill_agent = Agent(
-    gpt4o_model,
+    build_gpt4o_model(),
     output_type=[EmergencyCall, str, bool],
     system_prompt=state_fill_prompt.full_prompt,  # noqa: E501
 )
