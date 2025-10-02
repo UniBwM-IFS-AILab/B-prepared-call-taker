@@ -15,6 +15,12 @@ type KnownBoolean = Unknown | bool
 # KnownBoolean: TypeAlias = Unknown | bool
 type KnownString = str | Unknown
 
+# todo maybe move these elswhere
+type RD1_Boolean = KnownBoolean
+type RD2_Boolean = KnownBoolean
+type CPR_Boolean = RD2_Boolean
+type Urgency_Boolean = RD2_Boolean
+
 
 def tristate(values: Iterable[KnownBoolean]) -> KnownBoolean:
     from functools import reduce
