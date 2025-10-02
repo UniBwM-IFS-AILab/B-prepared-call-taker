@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from pydantic.fields import computed_field
 
-from ems_prepared.dialogue_state.medical.base_models import KeyQuestionSymptom
+from ems_prepared.dialogue_state.medical.base_models import KeyQuestionSymptom, RD2_Boolean
 from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
 
@@ -38,7 +38,7 @@ class ImmediateDisposition(KeyQuestionSymptom):
         description="Indicates if urgency is needed based on the symptoms.",
     )
     @property
-    def urgency_needed(self) -> KnownBoolean:
+    def urgency_needed(self) -> RD2_Boolean:
         """Returns True if urgency is needed based on the symptoms."""
         symptoms: list = [
             self.cyanosis,
