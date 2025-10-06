@@ -9,6 +9,7 @@ from pydantic.dataclasses import dataclass
 from pydantic_graph.graph import GraphRunResult
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 from rich import print
+from devtools import debug
 
 from ems_prepared.agents.state_fill_agent import (
     response_cleanup,
@@ -104,21 +105,23 @@ class EvaluateAgentOutput(EmergencyNode):
     ):
         if isinstance(self.run_result, BaseModel):
             print("Model returned new data")
-            _ = ignore_empty_merger.merge(ctx.state.__dict__, self.run_result.__dict__)
-            return EvaluateState()
+            return EvaluateState(self.run_result)
+
+        elif ctx.state.rd1:
+            # FIXME: this prevents multi-turn clarifying questions
+            print("Rd1 is already true and we could not extract extra info")
+            return Disposition(DispoType.RD1)
 
         # elif isinstance(self.run_result, str):
         else:
-            if ctx.state.rd1:
-                # NOTE: we could not extract new state (RD2) and already have an outcome
-                return Disposition(DispoType.RD1)
-
             print("Model could not extract new data, likely asking for more info")
             return AskCaller(question=self.run_result)
 
 
 @dataclass
 class EvaluateState(EmergencyNode):
+    new_state: BaseModel
+
     @override
     async def run(
         self, ctx: GraphRunContext[EmergencyCall, Settings]
@@ -128,8 +131,14 @@ class EvaluateState(EmergencyNode):
         | RD1
         | TCPR
         | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
+        | Annotated[Disposition, Edge(label="Accept RD1 as final")]
     ):
-        # -> "Annotated[ChooseSubGraph, Edge(label='No more Questions')] | Annotated[AskCaller, Edge(label='Next Question')] | RD2 | RD1 | TCPR | Annotated[HighUrgency, Edge(label='Immediate Disposition')]":
+
+        # tracking varaible set before merge to see if rd1 was already true
+        rd1_already_done = True if ctx.state.rd1 else False
+
+        # Merge State inplace
+        _ = ignore_empty_merger.merge(ctx.state.__dict__, self.new_state.__dict__)
         print(f"Current State: {ctx.state.model_dump(exclude_none=True)}")
 
         if ctx.state.cpr_needed:
@@ -140,6 +149,9 @@ class EvaluateState(EmergencyNode):
         elif ctx.state.rd2:
             return RD2()
         elif ctx.state.rd1:
+            if rd1_already_done: # NOTE: we could not extract new state (RD2) and already have an outcome
+                print("RD1 accepted as final state.")
+                return Disposition(DispoType.RD1)
             return RD1()
         else:
             return ChooseQuestion()
@@ -231,7 +243,7 @@ class RD1(EmergencyNode):
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> (
-        Annotated[RD2, Edge(label="Increase to RD2")]
+    Annotated[RD2, Edge(label="Increase to RD2")]
         | Annotated[Disposition, Edge(label="Use RD1")]
         | Annotated[AskCaller, Edge(label="Check for RD2")]
     ):
@@ -240,6 +252,16 @@ class RD1(EmergencyNode):
         else:
             print("Reached RD1")
             # print(f"already visited: {self.visited}")
+
+
+        # TODO:
+        rd2_booleans = [
+            name
+            for name, field in ctx.state #.model_fields.items()
+            if type(field) is RD2_Boolean
+        ]
+        debug(rd2_booleans)
+        # breakpoint()
 
         if ctx.state.rd2 is Unknown:  # and not self.visited:
             # NOTE: this is a hack!
@@ -250,7 +272,6 @@ class RD1(EmergencyNode):
             # self.visited = True
             return AskCaller(self.question)
 
-        rd2_booleans = filter(lambda x: type(x) is RD2_Boolean, ctx.state)
 
 
         # self.visited = True
