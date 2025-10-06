@@ -55,12 +55,12 @@ async def main(call_origin: RunMode = RunMode.MAIN) -> None:  # pragma: no cover
     current_log_dir: Path = Path("logs") / graph_name / timestamp
     current_log_dir.mkdir(parents=True, exist_ok=True)
     save_file_base = f"{graph_name}_{timestamp}_{call_origin.name}"
-    _ = asyncio.create_task(
-        save_mermaid_graph(
-            main_graph,
-            current_log_dir / f"{save_file_base}_mermaid",
-        )
-    )
+    # _ = asyncio.create_task(
+    #     save_mermaid_graph(
+    #         main_graph,
+    #         current_log_dir / f"{save_file_base}_mermaid",
+    #     )
+    # )
 
     persistence = setup_file_persistence(
         main_graph, current_log_dir / f"{save_file_base}_persistence.json"

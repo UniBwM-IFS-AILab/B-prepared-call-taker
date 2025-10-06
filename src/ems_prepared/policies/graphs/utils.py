@@ -1,4 +1,5 @@
 import json
+import asyncio
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -14,9 +15,13 @@ async def save_mermaid_graph(
     graph: Graph[EmergencyCall, Settings, EmergencyCall],
     save_path: Path,
 ) -> None:
+    # Save the markdown file
     mermaid_file_path = save_path.with_suffix(".md")
-    mermaid_content = f"```mermaid\n{graph.mermaid_code()}\n```"
+    mermaid_code = graph.mermaid_code()
+    mermaid_content = f"```mermaid\n{mermaid_code}\n```"
     _ = mermaid_file_path.write_text(mermaid_content, encoding="utf-8")
+
+    
 
     graph.mermaid_save(save_path.with_suffix(".jpg"))
 
