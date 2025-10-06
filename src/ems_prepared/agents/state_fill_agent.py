@@ -11,8 +11,8 @@ from rich import print
 from ems_prepared.models.openai_models import build_gpt4o_model
 from ems_prepared.models.system_prompt import system_prompt
 from ems_prepared.agents.reusable_prompts import calltaker_role
-from ems_prepared.settings import Settings
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
+from ems_prepared.util.settings import Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 state_fill_prompt = system_prompt(
     role=calltaker_role,
@@ -33,16 +33,6 @@ state_fill_prompt = system_prompt(
         "Also ask further if the answer does not provide enough information to fill the variable fully."
     ),
 )
-
-
-settings = GoogleModelSettings(
-    temperature=1.0,
-    extra_body={
-        "response_mime_type": "application/json",
-        "response_schema": EmergencyCall,
-    },
-)
-
 
 async def state_fill_task(
     # agent: Agent[str, EmergencyCall],
@@ -141,5 +131,5 @@ if __name__ == "__main__":
     print(result2)
 
     if isinstance(result2.output, EmergencyCall):
-        print("2nd call to agent found more info when it shouldnt")
+        print("2nd call to agent found more info when it shouldn't")
         print(f"Diff: {DeepDiff(result2.output, result.output)}")

@@ -8,8 +8,8 @@ from rich import print
 from ems_prepared.models.openai_models import build_gpt4o_model
 from ems_prepared.models.system_prompt import system_prompt
 from ems_prepared.agents.reusable_prompts import calltaker_role
-from ems_prepared.settings import Settings
-from ems_prepared.state_model.emergency_call_state import EmergencyCall
+from ems_prepared.util.settings import Settings
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 state_fill_prompt: system_prompt = system_prompt(
     role=calltaker_role,
