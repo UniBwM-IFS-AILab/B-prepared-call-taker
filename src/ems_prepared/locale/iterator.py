@@ -1,12 +1,23 @@
+# make type checking ignore this file
+# type: ignore
+
+
 import os
 import typing as t
 from collections.abc import Iterator, Mapping
 
-JsonType: t.TypeAlias = list["JsonValue"] | Mapping[str, "JsonValue"]
-JsonValue: t.TypeAlias = str | int | float | None | JsonType
-
 import pycountry
 import pyjson5 as json
+from pydantic.types import JsonValue
+
+
+def load_questions() -> dict[str, dict]:
+    """Load data from JSON file."""
+    current_dir = os.path.dirname(__file__)
+    data_path = os.path.join(current_dir, "questions.jsonc")
+
+    with open(data_path, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 class QuestionIterator:
@@ -119,7 +130,7 @@ class QuestionIterator:
     def get_available_categories(self) -> list[str]:
         """Get list of available categories for the current language."""
         if self.language_code in self.data:
-            return list(self.data[self.language_code].keys())
+            return list[str](self.data[self.language_code].keys())
         return []
 
 

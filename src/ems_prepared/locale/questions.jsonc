@@ -7,7 +7,7 @@
       "Was ist jetzt akut passiert?",
       // "Sind Sie der Patient / beim Patienten?" # FIXME: only do this if needed, maybe a different data format (with a schema that defines a list of optional questions the llm can choose from)
     ],
-    "Key Questions": {
+    "Medical": {
       "Atmung / Atemwege": [
         "Bekommt er / sie jetzt genug Luft?"
       ],
@@ -66,55 +66,57 @@
       "What has just happened acutely?",
       // "Are you the patient / with the patient?"
     ],
-    "Key Questions": {
-      "Breathing / Airways": [
-        "Is he / she getting enough air now?"
-      ],
-      "Consciousness": [
-        "Is he / she reacting normally now (as usual) when you speak to him / her?"
-      ],
-      "Heart / Circulation": [
-        "Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?",
-        "Is there an acute circulatory problem?"
-      ],
-      "Neurological Deficit": [
-        "Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?",
-        "Have there been acute speech, language, or comprehension disturbances?",
-        "Have there been acute visual disturbances (double vision, blindness, field of view loss)?",
-        "Are there acute and first-time severe headaches?",
-        "Is there one-sided sensory disturbance?",
-        "Is there acute dizziness with tendency to fall?",
-        "Is there a seizure?"
-      ],
-      "Supplementary Questions": [
-        "Is there a serious injury?",
-        "Is there a severe, non-injury-related bleeding?",
-        "Is there a poisoning?",
-        "Is childbirth imminent? How far apart are the contractions?",
-        "Is the patient experiencing (very) severe pain?",
-        "Is the patient mentally or behaviorally conspicuous?",
-        "Is diabetes or another metabolic disorder known in the patient?",
-        "Does the patient feel noticeably hot or very cold?"
-      ]
-    },
-    "Fire Service": {
-      "Fire": [
-        "Where exactly is it burning?",
-        "Are people injured or in danger?",
-        "What exactly is burning?",
-        "Do you see warning signs of danger?"
-      ],
-      "Technical Rescue (THL)": [
-        "Who or what is involved?",
-        "How many injured / involved persons are there?",
-        "Are people trapped?",
-        "Do you see warning signs of danger?"
-      ],
-      "Hazmat (ABC)": [
-        "Is a hazardous substance leaking? If yes, where?",
-        "Are people injured or in danger?",
-        "What is the quantity, and are there danger or warning signs, type of vehicle?"
-      ]
-    }
+    "Medical": //{
+    // "Breathing / Airways":
+    [
+      "Is he / she getting enough air now?",
+      // ],
+      // "Consciousness": [
+      "Is he / she reacting normally now (as usual) when you speak to him / her?",
+      // ],
+      // "Heart / Circulation": [
+      "Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?",
+      "Is there an acute circulatory problem?",
+      // ],
+      // "Neurological Deficit": [
+      "Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?",
+      "Have there been acute speech, language, or comprehension disturbances?",
+      "Have there been acute visual disturbances (double vision, blindness, field of view loss)?",
+      "Are there acute and first-time severe headaches?",
+      "Is there one-sided sensory disturbance?",
+      "Is there acute dizziness with tendency to fall?",
+      "Is there a seizure?",
+      // ],
+      // "Supplementary Questions": [
+      "Is there a serious injury?",
+      "Is there a severe, non-injury-related bleeding?",
+      "Is there a poisoning?",
+      "Is childbirth imminent? How far apart are the contractions?",
+      "Is the patient experiencing (very) severe pain?",
+      "Is the patient mentally or behaviorally conspicuous?",
+      "Is diabetes or another metabolic disorder known in the patient?",
+      "Does the patient feel noticeably hot or very cold?",
+    ],
+    // },
+    "Fire Service": [
+      // {
+      // "Fire": [
+      "Where exactly is it burning?",
+      "Are people injured or in danger?",
+      "What exactly is burning?",
+      "Do you see warning signs of danger?",
+      // ],
+      // "Technical Rescue (THL)": [
+      "Who or what is involved?",
+      "How many injured / involved persons are there?",
+      "Are people trapped?",
+      "Do you see warning signs of danger?",
+      // ],
+      // "Hazmat (ABC)": [
+      "Is a hazardous substance leaking? If yes, where?",
+      "Are people injured or in danger?",
+      "What is the quantity, and are there danger or warning signs, type of vehicle?",
+    ]
+    // }
   }
 }
