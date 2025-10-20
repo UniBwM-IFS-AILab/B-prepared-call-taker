@@ -43,4 +43,4 @@ class Settings(BaseSettings):
 
     # Runtime
     locale: str = "en"  # TODO: replace with enum & correct localization system
-    call_origin: RunMode = RunMode.MAIN
+    call_origin: InputMode = InputMode.CLI
