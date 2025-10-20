@@ -5,7 +5,7 @@ idiomatic_version_file_enable_tools = ["python"]
 windows_shim_mode = 'symlink'
 
 [tools]
-uv = 'latest'
+uv = "latest"
 ruff = "latest"
 #
 sops = "latest"
@@ -43,11 +43,14 @@ age_key_file = '~/.config/mise/age.txt'
 
 [tasks.emergency_call]
 alias = 'ems'
-run = "uv run {{config_root}}/src/ems_prepared/graphs/emergency_main_graph.py"
+run = "uv run {{config_root}}/src/ems_prepared/policies/graphs/emergency_main_graph.py"
 
-[tasks.non_graph]
+[tasks.llm_only]
 alias = 'dumb'
-run = "uv run {{config_root}}/src/ems_prepared/non_graph/agent.py"
+run = "uv run {{config_root}}/src/ems_prepared/policies/llm_only/agent.py"
+
+[tasks.server]
+run = "fastapi dev {{config_root}}/src/ems_prepared/adapters/app.py"
 
 
 [tools."ubi:graphviz/graphviz"]

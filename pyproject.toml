@@ -5,15 +5,15 @@ readme = "README.md"
 requires-python = ">=3.13"
 version = "0.1.0"
 dependencies = [
-    "deepmerge>=2.0",
-    "fastapi>=0.116.1",
-    "numpy>=2.3.1",
-    "pycountry>=24.6.1",
-    "pydantic-ai>=0.4.3",
-    "pydantic-settings>=2.10.1",
-    "pyjson5>=1.6.9",
-    "python-dotenv-vault>=0.7",
-    "rapidfuzz>=3.13.0",
+  "deepmerge>=2.0",
+  "fastapi>=0.116.1",
+  "numpy>=2.3.1",
+  "pycountry>=24.6.1",
+  "pydantic-ai>=0.4.3",
+  "pydantic-settings>=2.10.1",
+  "pyjson5>=1.6.9",
+  "python-dotenv-vault>=0.7",
+  "rapidfuzz>=3.13.0",
 ]
 
 [build-system]
@@ -21,15 +21,10 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [dependency-groups]
-call-graph = [
-    "python-call-graph>=2.1.4",
-]
-call-uv = [
-    "pycg>=0.0.8",
-    "pyvis>=0.3.2",
-]
+call-graph = ["python-call-graph>=2.1.4"]
+call-uv = ["pycg>=0.0.8", "pyvis>=0.3.2"]
 dev = [
-  "basedpyright>=1.31.0",
+  # "basedpyright>=1.31.0",
   "datamodel-code-generator>=0.31.2",
   "devtools>=0.12.2",
   "ipykernel>=6.29.5",
@@ -45,36 +40,29 @@ dev = [
   "pyright>=1.1.403",
   "mypy>=1.17.1",
 ]
-experiment = [
-    "pydantic-ai-examples>=0.2.18",
-]
+experiment = ["pydantic-ai-examples>=0.2.18"]
 lsp = [
-    # "cst-lsp>=0.1.3",
-    "jedi-language-server>=0.45.1",
+  # "cst-lsp>=0.1.3",
+  "jedi-language-server>=0.45.1",
 ]
-test = [
-  "pytest>=8.4.1",
-  "pytest-sugar>=1.0.0",
-  "pytest-asyncio>=0.23.6"
+server = [
+    "fastapi[standard]>=0.118.0",
 ]
+test = ["pytest>=8.4.1", "pytest-sugar>=1.0.0", "pytest-asyncio>=0.23.6"]
 whisper = [
-    "accelerate>=1.9.0",
-    "cython>=3.1.2",
-    "datasets[audio]>=4.0.0",
-    "faster-whisper>=1.1.1",
-    "torch>=2.7.1",
-    "transformers>=4.54.0",
+  "accelerate>=1.9.0",
+  "cython>=3.1.2",
+  "datasets[audio]>=4.0.0",
+  "faster-whisper>=1.1.1",
+  "torch>=2.7.1",
+  "transformers>=4.54.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ems_prepared"]
 
 [tool.ruff.lint]
-ignore = [
-  "D203",
-  "D213",
-  "E501"
-]
+ignore = ["D203", "D213", "E501"]
 select = [
   "C901",
   "D",
@@ -88,7 +76,7 @@ select = [
   "I",
   "PERF",
   "RUF",
-  "W"
+  "W",
 ]
 
 [tool.basedpyright]

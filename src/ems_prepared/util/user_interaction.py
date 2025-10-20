@@ -8,7 +8,8 @@ This module provides:
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
-from pydantic.types import T
+import fastapi as fapi
+from fastapi.exceptions import WebSocketException
 from pydantic_graph import GraphRunContext
 from rich.pretty import pprint
 from rich.prompt import Prompt
@@ -27,9 +28,15 @@ async def prompt_user(question: str, deps: Settings) -> str | None:
             return Prompt.ask(question)  # blocking read
         case InputMode.API:
             pprint(question)
-            return Prompt.ask(question)
-        case InputMode.REQUEST:
-            pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
+            if deps.websocket is not None:
+                await deps.websocket.send_text(question)
+                message = await deps.websocket.receive_text()
+                # await deps.websocket.send_text(message)
+                return message
+            # TODO: use yield like in this example: https://ai.pydantic.dev/examples/chat-app/#example-code
+            # this allows us to post-process the user message before displaying ii in hte frontend (e.g. a llm could try to correct the ASR errors)
+            else:
+                raise WebSocketException(code=fapi.status.HTTP_503_SERVICE_UNAVAILABLE)
 
         case InputMode.TEST:
             pass
@@ -43,9 +50,8 @@ async def tell_user(message: str, deps: Settings) -> None:
             pprint(message)
         case InputMode.API:
             pprint(message)
-            # return input(question)
-            pprint(question)
-        case InputMode.REQUEST:
+            if deps.websocket is not None:
+                return await deps.websocket.send_text(message)
 
             pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
         case InputMode.TEST:

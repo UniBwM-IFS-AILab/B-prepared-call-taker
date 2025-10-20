@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from pydantic import computed_field
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from starlette.websockets import WebSocket
 
 LOCALE: str = "en"  # "de"  # "en"
 
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
     session_id: UUID = uuid4()
     save_path: Path = Path("logs") / user_id.hex / session_id.hex
 
+    websocket: WebSocket | None = Field(default=None, exclude=True, repr=False)
 
     @computed_field
     @cached_property
