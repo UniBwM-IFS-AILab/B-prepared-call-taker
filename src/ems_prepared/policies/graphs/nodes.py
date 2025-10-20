@@ -6,30 +6,26 @@ from typing import Annotated, override
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from pydantic_graph.graph import GraphRunResult
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 from rich import print
-from devtools import debug
 
 from ems_prepared.agents.state_fill_agent import (
     response_cleanup,
     state_fill_agent,
     state_fill_task,
 )
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.dialogue_state.medical.base_models import RD2_Boolean
+from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType, Unknown
+from ems_prepared.policies.graphs.type_defs import EmergencyNode
+from ems_prepared.util.custom_deepmerge import ignore_empty_merger
+from ems_prepared.util.settings import LOCALE, Settings
 from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
 )
-from ems_prepared.policies.graphs import tcpr_subgraph
-from ems_prepared.policies.graphs.type_defs import EmergencyNode
-from ems_prepared.util.settings import LOCALE, Settings
-from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.dialogue_state.medical.base_models import RD2_Boolean
-from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType, Unknown
-from ems_prepared.locale.iterator import QuestionIterator
-from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 
-emergency_questions = QuestionIterator(LOCALE, "Intro")
+# emergency_questions = QuestionIterator(LOCALE, "Intro")
 state_print_filter = {"patient_symptoms"}
 
 
@@ -51,7 +47,10 @@ class Greeting(EmergencyNode):
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> "ChooseQuestion":
         """Greet the user."""
-        tell_user(self.greeting)
+        await tell_user(self.greeting, ctx.deps)
+
+        ctx.state.phase = "Intro"
+        ctx.state._current_iterator = ctx.state.fifo()
         return ChooseQuestion()
 
 
@@ -66,7 +65,7 @@ class ChooseQuestion(EmergencyNode):
     ):
         #
         try:
-            next_question: str = next(emergency_questions)
+            next_question: str = next(ctx.state._current_iterator)
             return AskCaller(question=next_question)
         except StopIteration:
             print("choosing new subgraph")
@@ -133,13 +132,14 @@ class EvaluateState(EmergencyNode):
         | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
         | Annotated[Disposition, Edge(label="Accept RD1 as final")]
     ):
-
         # tracking varaible set before merge to see if rd1 was already true
         rd1_already_done = True if ctx.state.rd1 else False
 
         # Merge State inplace
         _ = ignore_empty_merger.merge(ctx.state.__dict__, self.new_state.__dict__)
-        print(f"Current State: {ctx.state.model_dump(exclude_none=True)}")
+        print(
+            f"Current State: {ctx.state.model_dump(exclude_none=True, exclude=['questions'])}"
+        )
 
         if ctx.state.cpr_needed:
             # needs to take precedence over RD2 because cpr_needed implies RD2
@@ -149,7 +149,9 @@ class EvaluateState(EmergencyNode):
         elif ctx.state.rd2:
             return RD2()
         elif ctx.state.rd1:
-            if rd1_already_done: # NOTE: we could not extract new state (RD2) and already have an outcome
+            if (
+                rd1_already_done
+            ):  # NOTE: we could not extract new state (RD2) and already have an outcome
                 print("RD1 accepted as final state.")
                 return Disposition(DispoType.RD1)
             return RD1()
@@ -173,16 +175,8 @@ class ChooseSubGraph(EmergencyNode):
         # we only need to switch the set of questions to go through
         match ctx.state.emergency_type:
             case EmergencyType.MEDICAL:
-                # sub_graph_result: GraphRunResult[EmergencyCall] = await run_graph(
-                #     graph_name="medical_sub_graph"
-                # )
-                #  medical_subgraph_finished: bool = true
-                # _ = ignore_empty_merger.merge(
-                #     ctx.state.__dict__, sub_graph_result.__dict__
-                # )
-
-                global emergency_questions
-                emergency_questions = QuestionIterator(LOCALE, "Key Questions")
+                ctx.state.phase = "Medical"
+                ctx.state._current_iterator = ctx.state.fifo()
 
                 global state_print_filter
                 state_print_filter = {
@@ -243,7 +237,7 @@ class RD1(EmergencyNode):
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> (
-    Annotated[RD2, Edge(label="Increase to RD2")]
+        Annotated[RD2, Edge(label="Increase to RD2")]
         | Annotated[Disposition, Edge(label="Use RD1")]
         | Annotated[AskCaller, Edge(label="Check for RD2")]
     ):
@@ -253,15 +247,13 @@ class RD1(EmergencyNode):
             print("Reached RD1")
             # print(f"already visited: {self.visited}")
 
-
         # TODO:
         rd2_booleans = [
             name
-            for name, field in ctx.state #.model_fields.items()
+            for name, field in ctx.state  # .model_fields.items()
             if type(field) is RD2_Boolean
         ]
-        debug(rd2_booleans)
-        # breakpoint()
+        # debug(rd2_booleans)
 
         if ctx.state.rd2 is Unknown:  # and not self.visited:
             # NOTE: this is a hack!
@@ -271,8 +263,6 @@ class RD1(EmergencyNode):
             print("Asking for RD2")
             # self.visited = True
             return AskCaller(self.question)
-
-
 
         # self.visited = True
         return RD2() if ctx.state.rd2 else Disposition(DispoType.RD1)
@@ -306,14 +296,6 @@ class TCPR(EmergencyNode):
         if not any([ctx.state.agonal_breathing, ctx.state.cardiac_arrest]):
             raise
         print("Patient needs T-CPR")
-
-        result: (
-            GraphRunResult[EmergencyCall, EmergencyCall] | None
-        ) = await tcpr_subgraph.run_graph(ctx.state, ctx.deps)
-        if result is not None:
-            _ = ignore_empty_merger.merge(ctx.state.__dict__, result.state.__dict__)
-        else:
-            raise TypeError
 
         if ctx.state.ems_arrived:
             return End(ctx.state)
@@ -352,6 +334,11 @@ class Disposition(EmergencyNode):
         # else:
         print("Starting Disposition")
         print(f"final state: {ctx.state.model_dump(exclude_none=True)}")
+
+        await tell_user(
+            "A Vehicle is on it's way to you. Please stand by.",
+            ctx.deps,
+        )
 
         return End[EmergencyCall](ctx.state)
 

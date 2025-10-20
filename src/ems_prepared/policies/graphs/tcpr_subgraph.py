@@ -2,27 +2,28 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterator
-from typing import override
+from typing import Any, override
 
 from pydantic.dataclasses import dataclass
-from pydantic_graph.graph import Graph, GraphRunResult
+from pydantic.main import BaseModel
+from pydantic_graph.graph import GraphRunResult
 from pydantic_graph.nodes import BaseNode, End, GraphRunContext
 from rich import print
 
+from ems_prepared.agents.variable_fill_agent import var_fill_task
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.policies.graphs.type_defs import EmergencyNode
+from ems_prepared.policies.graphs.utils import (
+    init_graph,
+    save_mermaid_graph,
+    save_state_json,
+)
+from ems_prepared.util.custom_deepmerge import ignore_empty_merger
+from ems_prepared.util.settings import LOCALE, Settings
 from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
 )
-from ems_prepared.agents.variable_fill_agent import var_fill_task
-from ems_prepared.policies.graphs.type_defs import EmergencyNode
-from ems_prepared.policies.graphs.utils import (
-    save_mermaid_graph,
-    save_state_json,
-    setup_file_persistence,
-)
-from ems_prepared.util.settings import LOCALE, Settings
-from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 
 instructions = {
     "en": [
@@ -211,11 +212,12 @@ class EMSArrived(EmergencyNode):
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> End[EmergencyCall]:
-        tell_user(
+        await tell_user(
             {
                 "en": "Please hand over to the paramedics",
                 "de": "Bitte übergeben Sie an die Einsatzkräfte",
-            }[LOCALE]
+            }[LOCALE],
+            ctx.deps,
         )
 
         return End(ctx.state)
@@ -231,49 +233,49 @@ class EMSArrived(EmergencyNode):
 
 
 async def run_graph(
-    state: EmergencyCall, deps: Settings
-) -> GraphRunResult[EmergencyCall, EmergencyCall] | None:
-    deps.log_dir.mkdir(parents=True, exist_ok=True)
-
-    graph = Graph[EmergencyCall, Settings, EmergencyCall](
-        nodes=[Instruct, ArtificialVentilation, ChestCompression, EMSArrived],
-    )
-
-    _ = asyncio.create_task(
-        save_mermaid_graph(
-            graph,
-            deps.log_dir / f"{deps.file_name}_mermaid",
-        )
-    )
-
-    persistence = setup_file_persistence(
-        graph, deps.log_dir / f"{deps.file_name}_persistence.json"
-    )
-
-    async with graph.iter(
-        Instruct(instruction=next(instruct_iterator)),
-        state=state,
+    init_state: EmergencyCall, deps: Settings = Settings(name="tcpr")
+) -> GraphRunResult[BaseModel, BaseModel] | None:
+    graph, persistence = await init_graph(
+        node_list=[Instruct, ArtificialVentilation, ChestCompression, EMSArrived],
+        # Instruct(instruction=next(instruct_iterator)), persistence=persistence, state=EmergencyCall()
+        init_node=Instruct(
+            "We will now start with CPR. Please follow my instructions carefully."
+        ),
         deps=deps,
-        persistence=persistence,
-    ) as run:
+        init_state=init_state,
+        prefix="tcpr_",
+    )
+
+    async with graph.iter_from_persistence(persistence=persistence, deps=deps) as run:
+        print(run.state)
+
         async for node in run:
             if isinstance(node, BaseNode):
                 print(f"Node: {node.get_node_id()}")  # type: ignore
             else:
                 print(node)
-    result: GraphRunResult[EmergencyCall, EmergencyCall] | None = run.result
-    if result is not None:
-        _ = asyncio.create_task(save_state_json(result, deps.log_dir / deps.file_name))
+    if run.result is not None:
+        _ = asyncio.create_task(save_state_json(run.result, deps.save_path))
+        _ = asyncio.create_task(
+            save_mermaid_graph(
+                graph,
+                deps.save_path,
+            )
+        )
+        _ = (deps.save_path / "deps.json").write_text(
+            data=deps.model_dump_json(indent=2), encoding="utf-8"
+        )
 
-    return result
+    return run.result
 
 
-async def main():
+async def main(deps=None, state=None):
     """Function to test the graph in isolation."""
 
-    state = EmergencyCall(cardiac_arrest=True)
-    deps = Settings(name="tcp_subgraph_only")
-    result = await run_graph(state, deps)
+    deps: Settings = deps or Settings(name="tcp_subgraph_only")
+    state: EmergencyCall = state or EmergencyCall(cardiac_arrest=True)
+
+    result = await run_graph(init_state=state, deps=deps)
     if result is not None:
         print("Graph finished with state:", result.state)
 
