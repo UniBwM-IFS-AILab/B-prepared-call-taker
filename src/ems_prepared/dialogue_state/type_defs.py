@@ -5,11 +5,9 @@ This module provides type aliases used throughout the state model.
 
 from __future__ import annotations
 
-from typing import TypeAlias
-from enum import Enum, StrEnum, auto
 from collections.abc import Iterable
-
-
+from enum import Enum, StrEnum, auto
+from typing import TypeAlias
 
 Unknown: TypeAlias = None
 # type Unknown = None  # this does not work
@@ -44,12 +42,14 @@ def tristate(values: Iterable[KnownBoolean]) -> KnownBoolean:
 
 
 class EmergencyType(StrEnum):
-    """Enumeration for different types of emergencies."""
+    """Enumeration for emergency types and dialogue phases."""
 
+    INTRO = auto()
     MEDICAL = auto()
+    # TCPR = auto()
     FIRE = auto()
-    NON_EMERGENCY = auto()
-    FIRE_MEDICAL = auto()
+    # FIRE_MEDICAL = auto()
+    # NON_EMERGENCY = auto()
 
 
 class DispoType(Enum):
@@ -57,9 +57,3 @@ class DispoType(Enum):
 
     RD1 = auto()  # Notfall
     RD2 = auto()  # Notarzteinsatz
-
-
-class KnownBoolean2(Enum):
-    YES = True
-    NO = False
-    UNKNOWN = None

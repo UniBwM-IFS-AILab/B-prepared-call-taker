@@ -6,6 +6,7 @@ from ems_prepared.dialogue_state.medical.base_models import (
     RD2_Boolean,
 )
 from ems_prepared.dialogue_state.type_defs import Unknown
+# TODO: There is no concrete ordering for these questions, we should pick appropriate ones based on the current context / dialogue history
 
 
 class Injury(KeyQuestionSymptom):
@@ -22,7 +23,16 @@ class Injury(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Vital Threat Injury",
-        description="Indicates if the injury is life threatening.",
+        description="""Indicates if the injury is life threatening. Examples of vital threats / additions:
+        - Impaired consciousness
+        - impaired breathing
+        - circulatory problems
+        - severe bleeding or severe pain for specific causes:
+            - fall from a height > 3m
+            - stuck or crushed
+            - high-speed trauma (e.g., car accident)
+            - penetrating injury (head, thorax, abdomen)
+        """,
     )
 
 
@@ -48,8 +58,7 @@ class Bleeding(KeyQuestionSymptom):
         title="Gynecological Bleeding",
         description="Indicates if the patient is currently experiencing gynecological bleeding (bleeding from the female reproductive tract).",
     )
-    # TODO: requirements: "Consciousness", "Breathing", "Circulatory", "severe pain",
-    epistaxis: RD2_Boolean = Field(
+    epistaxis: RD2_Boolean = Field(  # nosebleed
         default=None,
         examples=[True, False, Unknown],
         title="Epistaxis",
@@ -85,7 +94,7 @@ class ImminentChildbirth(KeyQuestionSymptom):
         description="Indicates if the patient is currently experiencing imminent childbirth (the baby is about to be born).",
     )
 
-    pregnancy_contraction_frequency_less_than_3min: RD2_Boolean = Field(
+    frequent_pregnancy_contraction: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Pregnancy Contraction Frequency < 3 min",
@@ -97,6 +106,12 @@ class ImminentChildbirth(KeyQuestionSymptom):
         title="Ongoing Delivery",
         description="Indicates if the patient is currently in the process of delivering the baby.",
     )
+    finisehd_delivery: RD2_Boolean = Field(
+        default=None,
+        examples=[True, False, Unknown],
+        title="Finished Delivery",
+        description="Indicates if the patient has just finished delivering the baby.",
+    )
     vaginal_bleeding: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
@@ -105,7 +120,7 @@ class ImminentChildbirth(KeyQuestionSymptom):
     )
 
 
-class Pain(KeyQuestionSymptom):
+class Pain(KeyQuestionSymptom):  # 5.5
     """Model representing a patient's pain status with various key questions."""
 
     severe_pain: RD1_Boolean = Field(
@@ -174,11 +189,23 @@ class Metabolic(KeyQuestionSymptom):
         title="Metabolic Disorder",
         description="Indicates if the patient is currently experiencing a metabolic disorder (a condition that affects the body's metabolism).",
     )
-    diabetic: RD2_Boolean = Field(
+    diabetic: RD1_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Diabetic",
         description="Indicates if the patient is currently experiencing diabetes (a metabolic disorder characterized by high blood sugar levels).",
+    )
+    noticable_coldness: RD1_Boolean = Field(
+        default=None,
+        examples=[True, False, Unknown],
+        title="Noticable Coldness",
+        description="Indicates if the patient is currently experiencing noticeable coldness (a sensation of being unusually cold)",
+    )
+    noticable_heat: RD1_Boolean = Field(
+        default=None,
+        examples=[True, False, Unknown],
+        title="Noticable Heat",
+        description="Indicates if the patient is currently experiencing noticeable heat (a sensation of being hot).",
     )
 
     metabolic_decompensation: RD2_Boolean = Field(
@@ -187,17 +214,17 @@ class Metabolic(KeyQuestionSymptom):
         title="Metabolic Decompensation",
         description="Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder).",
     )
-    hyperthermia: RD2_Boolean = Field(
+    yperthermia: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Hyperthermia",
-        description="Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature).",
+        description="Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature) with potentially vital threat.",
     )
     hypothermia: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Hypothermia",
-        description="Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature).",
+        description="Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature) with potentially vital threat.",
     )
 
 
@@ -205,3 +232,7 @@ class AdditionalQuestions(
     Metabolic, Psychiatric, Pain, ImminentChildbirth, Poisoning, Bleeding, Injury
 ):
     """Model representing additional key questions for a patient's condition."""
+
+    # TODO: What to do if all is false?
+    # TODO: probably hand over to real human dispatcher in a case such as this
+    # Entscheidung nach individueller situationsbedingter Einschätzung des Disponenten: Überprüfung anderer rettungsdienstlicher Indikationen (z.B. RD 2 Sonderlage, RD 1, Krankentransport, RD 3 ff., MANV) oder Überprüfung der Abgabe an andere Vermittlungszentralen (z.B. Ärztlicher ereitschaftsdienst)""

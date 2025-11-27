@@ -10,6 +10,7 @@ from ems_prepared.dialogue_state.medical.base_models import (
 from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
 
+# TODO: maybe merge this with Breathing
 class TeleCpr(BaseModel):
     """Model representing a patient's CPR status with various key questions."""
 
@@ -19,17 +20,14 @@ class TeleCpr(BaseModel):
         title="Cardiac Arrest",
         description="Indicates if the patient is currently experiencing cardiac arrest.",
     )
-    agonal_breathing: CPR_Boolean = Field(
-        default=None,
-        examples=[True, False, Unknown],
-        title="Agonal Breathing",
-        description="Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns).",
-    )
+
     ems_arrived: KnownBoolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Emergency Medical Services (EMS) Arrived",
         description="Indicates if an someone from EMS, such as an Ambulance or a doctor arrived at the location of the emergency.",
+        # exclude=True,
+        # repr=False,
     )
 
     @property
@@ -42,6 +40,7 @@ class TeleCpr(BaseModel):
             if field.annotation is CPR_Boolean
         }
 
+    # TODO: need to implement conciousness (patient needs to be unconcious and also have agonal or no breathing)
     @computed_field(
         title="CPR Needed",
         description="Indicates if CPR is needed based on the symptoms.",

@@ -1,27 +1,31 @@
-from collections import deque
-
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.dialogue_state.type_defs import EmergencyType
+from ems_prepared.dialogue_state.question_state import QuestionCatalog
 
 
-class MetaState(BaseModel):
-    pass
+class GraphState(BaseModel):
+    """Base class for graph state, combining question catalog and medical emergency details."""
 
-    subgraphs: deque[EmergencyType] = deque[EmergencyType](set[EmergencyType](), 3)
-
-    symptoms = EmergencyCall()
-
-    @computed_field
-    @property
-    def current_subgraph(self):
-        return self.subgraphs[0]
+    questions: QuestionCatalog = QuestionCatalog()
+    call_state: EmergencyCall = EmergencyCall()
 
 
-    initialization = ...
-    fire = ...
-    other = ...
+# class MetaState(BaseModel):
+#     pass
 
-    # optionally include additional instructions
-    questions: list[str | tuple[str, str]]
+#     subgraphs: deque[EmergencyType] = deque[EmergencyType](set[EmergencyType](), 3)
+
+#     symptoms: EmergencyCall = EmergencyCall()
+
+#     @computed_field
+#     @property
+#     def current_subgraph(self):
+#         return self.subgraphs[0]
+
+#     initialization = ...
+#     fire = ...
+#     other = ...
+
+#     # optionally include additional instructions
+#     questions: list[str | tuple[str, str]]

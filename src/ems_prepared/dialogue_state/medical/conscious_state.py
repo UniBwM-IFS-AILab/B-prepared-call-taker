@@ -21,7 +21,8 @@ class Consciousness(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Normal Responsiveness",
-        description="Indicates if the patient is currently unresponsive.",
+        description="Indicates if the patient is currently unresponsive unlike normal.",
+        # Reagiert er / sie jetzt normal (wie sonst auch), wenn Sie ihn / sie ansprechen“
     )
 
     unconscious: RD2_Boolean = Field(

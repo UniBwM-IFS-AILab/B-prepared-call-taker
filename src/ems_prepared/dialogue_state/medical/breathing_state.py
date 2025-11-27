@@ -7,6 +7,7 @@ This module defines:
 from pydantic import Field
 
 from ems_prepared.dialogue_state.medical.base_models import (
+    CPR_Boolean,
     KeyQuestionSymptom,
     RD1_Boolean,
     RD2_Boolean,
@@ -78,9 +79,16 @@ class Breathing(KeyQuestionSymptom):
         title="Tachypnea",
         description="Indicates if the patient is currently experiencing tachypnea (abnormally rapid breathing).",
     )
-    apnea: RD2_Boolean = Field(
+
+    apnea: CPR_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Apnea",
         description="Indicates if the patient is currently experiencing apnea (temporary cessation of breathing).",
+    )
+    agonal_respiration: CPR_Boolean = Field(  # German: Schnappatmung
+        default=None,
+        examples=[True, False, Unknown],
+        title="Agonal Breathing",
+        description="Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns).",
     )

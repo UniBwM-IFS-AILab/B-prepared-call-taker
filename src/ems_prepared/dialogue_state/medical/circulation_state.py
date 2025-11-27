@@ -11,7 +11,7 @@ from ems_prepared.dialogue_state.type_defs import Unknown
 class Circulation(KeyQuestionSymptom):
     """Model representing a patient's circulation status with various key questions."""
 
-    chest_discomfort: RD1_Boolean = Field(
+    acute_chest_discomfort: RD1_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Chest Discomfort",
@@ -89,7 +89,7 @@ class Circulation(KeyQuestionSymptom):
         title="Allergic Reaction",
         description="Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance).",
     )
-    anaphylaxis: RD2_Boolean = Field(
+    known_anaphylaxis: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Anaphylaxis",

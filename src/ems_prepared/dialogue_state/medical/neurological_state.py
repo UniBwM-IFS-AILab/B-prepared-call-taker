@@ -11,19 +11,19 @@ from ems_prepared.dialogue_state.type_defs import Unknown
 class Neurological(KeyQuestionSymptom):
     """Model representing a patient's neurological status with various key questions."""
 
-    acute_motor_deficit: RD1_Boolean = Field(
+    acute_paralysis: RD1_Boolean = Field(  # 4.1
         default=None,
         examples=[True, False, Unknown],
         title="Acute Motor Deficit",
         description="Indicates if the patient is currently experiencing an acute motor deficit (loss of movement or weakness in a limb).",
     )
-    acute_speech_disorder: RD1_Boolean = Field(
+    acute_speech_disorder: RD1_Boolean = Field(  # 4.2
         default=None,
         examples=[True, False, Unknown],
         title="Acute Speech Disorder",
         description="Indicates if the patient is currently experiencing an acute speech disorder (difficulty speaking or understanding speech).",
     )
-    acute_speech_comprehension_disorder: RD1_Boolean = Field(
+    acute_speech_comprehension_disorder: RD1_Boolean = Field(  # 4.2
         default=None,
         examples=[True, False, Unknown],
         title="Acute Speech Comprehension Disorder",
@@ -33,13 +33,13 @@ class Neurological(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Acute Visual Disturbance",
-        description="Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision).",
+        description="Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision). E.g. Blindness, double vision, visual field defects.",
     )
-    acute_headache: RD1_Boolean = Field(
+    acute_severe_headache: RD1_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Acute Headache",
-        description="Indicates if the patient is currently experiencing an acute headache (sudden and severe headache).",
+        description="Indicates if the patient is currently experiencing an acute strong headache (unprecedented and severe headache).",
     )
     acute_hemisensory_loss: RD1_Boolean = Field(
         default=None,
@@ -53,6 +53,12 @@ class Neurological(KeyQuestionSymptom):
         title="Acute Vertigo with Fall",
         description="Indicates if the patient is currently experiencing acute vertigo with a fall (sudden dizziness leading to a fall).",
     )
+    seizure: RD1_Boolean = Field(
+        default=None,
+        examples=[True, False, Unknown],
+        title="Seizure",
+        description="Indicates if the patient is currently experiencing a seizure (sudden, uncontrolled electrical disturbance in the brain).",
+    )
 
     # TODO: encode requiement that consciousness is not normal
     neurological_deficits: RD2_Boolean = Field(
@@ -61,7 +67,7 @@ class Neurological(KeyQuestionSymptom):
         title="Neurological Deficits",
         description="Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system).",
     )
-    ongoing_seizure: RD2_Boolean = Field(
+    prolonged_deadly_seizure: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Ongoing Seizures",
