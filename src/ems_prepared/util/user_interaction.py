@@ -10,24 +10,27 @@ from typing import TypeVar
 
 import fastapi as fapi
 from fastapi.exceptions import WebSocketException
+from pydantic_ai.agent import Agent
+from pydantic_ai.run import AgentRunResult
 from pydantic_graph import GraphRunContext
-from rich.pretty import pprint
+from rich import print
 from rich.prompt import Prompt
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.settings import InputMode, Settings
 
 T = TypeVar("T")
 
 
-async def prompt_user(question: str, deps: Settings) -> str | None:
+async def prompt_user(question: str, deps: Settings) -> str:
     """Prompt the user for input in the given mode."""
     match deps.call_origin:
         case InputMode.CLI:
             # return input(question)
             return Prompt.ask(question)  # blocking read
         case InputMode.API:
-            pprint(question)
+            print(question)
             if deps.websocket is not None:
                 await deps.websocket.send_text(question)
                 message = await deps.websocket.receive_text()
@@ -40,20 +43,22 @@ async def prompt_user(question: str, deps: Settings) -> str | None:
 
         case InputMode.TEST:
             pass
-    return None
+            raise NotImplementedError("Test input mode not implemented yet.")
+        case _:
+            raise ValueError(f"Unknown input mode: {deps.call_origin}")
 
 
+@DeprecationWarning
 async def tell_user(message: str, deps: Settings) -> None:
     """Tell the user in the given mode."""
     match deps.call_origin:
         case InputMode.CLI:
-            pprint(message)
+            print(message)
         case InputMode.API:
-            pprint(message)
+            print(message)
             if deps.websocket is not None:
                 return await deps.websocket.send_text(message)
 
-            pass  # TODO write fastapi server and send request from here to the client (ask prakash about bi-directional requests)
         case InputMode.TEST:
             pass  # handle differently if it makes sense
 
