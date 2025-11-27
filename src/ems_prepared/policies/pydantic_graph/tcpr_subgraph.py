@@ -12,8 +12,8 @@ from rich import print
 
 from ems_prepared.agents.variable_fill_agent import var_fill_task
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.policies.graphs.type_defs import EmergencyNode
-from ems_prepared.policies.graphs.utils import (
+from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
+from ems_prepared.policies.pydantic_graph.utils import (
     init_graph,
     save_mermaid_graph,
     save_state_json,
@@ -27,15 +27,17 @@ from ems_prepared.util.user_interaction import (
 
 instructions = {
     "en": [
-        "An ambulance is on its way to you, please let me know once it is here. \n"
+        "Please let me know once the Ambulance is here. \n"
+        "We will now start with CPR. Please follow my instructions carefully."
+        # "We have to perform CPR now. \n"
         "Please follow the instructions, confirm once you finished. \n"
-        "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?"
+        # "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?"
         "Kneel beside the patient's chest so that your knees are next to each other at chest level."
-        "Expose the patient's upper body.",
-        "Place the heel of one hand on the middle of the patient's bony chest, i.e., on the lower half of the sternum—clearly above the pit of the stomach."
-        "Place the heel of your second hand on the back of your first hand.",
+        # "Expose the patient's upper body.",
+        # "Place the heel of one hand on the middle of the patient's bony chest, i.e., on the lower half of the sternum—clearly above the pit of the stomach."
+        # "Place the heel of your second hand on the back of your first hand.",
         "Lean over the patient so that you can push straight down with your arms extended.",
-        "Now keep pressing firmly, at least 5 cm deep, alternating between deep compressions and complete release—going all the way down and all the way up without losing contact with the chest.",
+        "Perform 30 chest compressions. Alternate between deep compressions, at least 5 cm deep, and complete release without losing contact with the chest.",
     ],
     "de": [
         "Ein Krankenwagen ist auf dem Weg zu Ihnen, bitte geben Sie mir Bescheid sobald er eintrifft."
@@ -60,7 +62,7 @@ questions = {
     ],
 }
 
-# TODO: find a solution to use LOCAL from deps.locate (need to move inside the graph somehow)
+# TODO: move to state
 instruct_iterator: Iterator[str] = iter(instructions[LOCALE])
 ask_iterator: Iterator[str] = iter(questions[LOCALE])
 
@@ -122,10 +124,7 @@ async def instruct_user(
     instruction: str,
     next_node: EmergencyNode,
 ) -> EMSArrived | EmergencyNode | None:
-    # TODO generalized verions
     parse_result = await converse_with_user(instruction, ctx, var_fill_task)
-
-    # TODO: insert timer to check if at least some minimum time is past (maybe only use if InputMode.REQUEST, where we can assume an interactive application on the other side)
 
     if type(parse_result) is EmergencyCall:
         _ = ignore_empty_merger.merge(ctx.state.__dict__, parse_result.__dict__)
@@ -195,7 +194,7 @@ class ChestCompression(BaseNode[EmergencyCall, Settings]):
 ###
 
 
-@dataclass  # TODO
+@dataclass
 class AEDArrived(EmergencyNode):
     @override
     async def run(
@@ -234,13 +233,11 @@ class EMSArrived(EmergencyNode):
 
 async def run_graph(
     init_state: EmergencyCall, deps: Settings = Settings(name="tcpr")
-) -> GraphRunResult[BaseModel, BaseModel] | None:
+) -> GraphRunResult[EmergencyCall, EmergencyCall] | None:
     graph, persistence = await init_graph(
         node_list=[Instruct, ArtificialVentilation, ChestCompression, EMSArrived],
-        # Instruct(instruction=next(instruct_iterator)), persistence=persistence, state=EmergencyCall()
-        init_node=Instruct(
-            "We will now start with CPR. Please follow my instructions carefully."
-        ),
+        # Instruct(), persistence=persistence, state=EmergencyCall()
+        init_node=Instruct(next(instruct_iterator)),
         deps=deps,
         init_state=init_state,
         prefix="tcpr_",
@@ -251,7 +248,7 @@ async def run_graph(
 
         async for node in run:
             if isinstance(node, BaseNode):
-                print(f"Node: {node.get_node_id()}")  # type: ignore
+                print(f"[Node] {node.get_node_id()}")  # type: ignore
             else:
                 print(node)
     if run.result is not None:

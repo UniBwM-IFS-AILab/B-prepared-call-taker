@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.policies.graphs.emergency_main_graph import (
+from ems_prepared.policies.pydantic_graph.emergency_main_graph import (
     run_graph as run_graph,
 )
 from ems_prepared.util.settings import InputMode, Settings
@@ -52,7 +52,8 @@ async def websocket_endpoint(
     try:
         deps = Settings(
             name="WebSocketUser",
-            user_id=UUID(int=0),
+            # user_id=UUID(int=0),
+            user_id=uuid4(),
             # session_id=UUID(int=0),
             session_id=uuid4(),
             websocket=websocket,
@@ -62,7 +63,7 @@ async def websocket_endpoint(
 
         debug(deps)
 
-        await resume_session(deps.user_id, deps.session_id)
+        # await resume_session(deps.user_id, deps.session_id)
         await run_graph(
             deps=deps, init_state=EmergencyCall()
         )  # init_state is only used when NOT resuming the graph

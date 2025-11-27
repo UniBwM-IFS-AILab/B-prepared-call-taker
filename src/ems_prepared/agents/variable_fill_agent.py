@@ -1,14 +1,19 @@
 # from google.genai.types import HarmBlockThreshold, HarmCategory
 
 
+from typing import Literal
+
 from pydantic_ai.agent import Agent, AgentRunResult
+from pydantic_ai.models.fallback import FallbackModel
+from pydantic_ai.output import PromptedOutput
 from pydantic_graph import GraphRunContext
 from rich import print
 
 from ems_prepared.agents.reusable_prompts import calltaker_role
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.models.google_models import build_gemini_flash_model
-from ems_prepared.models.openai_models import build_gpt4o_model
+from ems_prepared.models.github_models import (
+    build_github_gpt_41_mini_model,
+)
 from ems_prepared.models.system_prompt import system_prompt
 from ems_prepared.util.settings import Settings
 
@@ -64,9 +69,9 @@ async def var_fill_task(
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
-    result: AgentRunResult[EmergencyCall | bool | str] = await var_fill_agent.run(
-        user_prompt=agent_task
-    )
+    result: AgentRunResult[
+        EmergencyCall | Literal[True] | str
+    ] = await var_fill_agent.run(user_prompt=agent_task)
 
     print(result.usage())
 
@@ -74,11 +79,20 @@ async def var_fill_task(
 
 
 var_fill_agent = Agent(
-    build_gemini_flash_model(),
-    output_type=[EmergencyCall, str, bool],
-    system_prompt=state_fill_prompt.full_prompt,  # noqa: E501
+    FallbackModel(
+        build_github_gpt_41_mini_model(),
+        # build_gemini_flash_model(),
+        # build_gemini_pro_model(),
+    ),
+    output_type=PromptedOutput(
+        outputs=[EmergencyCall, Literal[True], str],
+        name="Structured Output if possible",
+        description="The extracted state or confirmation as boolean. If extraction is not possible, return a string with further instructions.",
+        template="Follow the schema: {schema}",
+    ),
+    deps_type=Settings,
+    system_prompt=(state_fill_prompt.full_prompt),
 )
-
 
 if __name__ == "__main__":
     state = EmergencyCall()
