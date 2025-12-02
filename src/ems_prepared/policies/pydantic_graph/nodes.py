@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import json
 import logging
 from typing import Annotated, Any, override
 
@@ -31,6 +30,25 @@ from ems_prepared.util.settings import Locale, Settings
 state_print_filter = {"patient_symptoms"}
 
 
+class MessageNode(EmergencyNode):
+    """Base class for nodes that emit informative messages to the caller.
+
+    Subclasses MUST provide a `messages` mapping keyed by `Locale` (type: dict[Locale, str]).
+    Declaring the attribute here improves static typing and makes intent explicit.
+    """
+
+    messages: dict[Locale, str]
+
+
+class QuestionNode(EmergencyNode):
+    """Base class for nodes that ask a question and expect a response.
+
+    Subclasses MUST provide a `question` attribute (type: str).
+    """
+
+    question: str
+
+
 @dataclass
 class Start(EmergencyNode):
     """Node representing the start of the Graph."""
@@ -44,7 +62,7 @@ class Start(EmergencyNode):
 
 
 @dataclass
-class Greeting(EmergencyNode):
+class Greeting(MessageNode):
     """Node representing the greeting step in the emergency call workflow.
 
     Initiates the conversation and greets the caller.
@@ -121,7 +139,8 @@ class ChooseQuestion(EmergencyNode):
 
 
 @dataclass
-class AskCaller(EmergencyNode):
+@dataclass
+class AskCaller(QuestionNode):
     """Generic node for asking questions in the emergency call workflow."""
 
     question: str
@@ -431,7 +450,7 @@ class HighUrgency(EmergencyNode):
 
 
 @dataclass
-class Disposition(EmergencyNode):
+class Disposition(MessageNode):
     """_summary_
 
     Args:

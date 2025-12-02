@@ -32,6 +32,8 @@ from ems_prepared.policies.pydantic_graph.nodes import (
     Greeting,
     HighUrgency,
     MergeState,
+    MessageNode,
+    QuestionNode,
     Start,
 )
 from ems_prepared.policies.pydantic_graph.utils import (
@@ -197,11 +199,11 @@ async def run_graph(
         while not isinstance(node := await graph_run.next(node), End):
             logger.debug(f"[Node] {node.get_node_id()}")
 
-            if hasattr(node, "question") and type(node.question) is str:
+            if isinstance(node, QuestionNode):
                 logger.debug(str(node))
                 return node
 
-            elif hasattr(node, "messages") and type(node.messages) is dict:
+            elif isinstance(node, MessageNode):
                 return node
 
     if isinstance(node, End):
