@@ -95,7 +95,18 @@ _parser.add_argument(
     choices=["graph", "agent"],
     help="Policy to use: 'graph' for pydantic_graph (default) or 'agent' for LLM-only agent.",
 )
+_parser.add_argument(
+    "--debug",
+    action="store_true",
+    help="Show additional session debug information in the UI.",
+)
 _args, _ = _parser.parse_known_args()
+
+
+def debug_enabled() -> bool:
+    """Determine whether debug visuals should be shown."""
+    env_debug = os.getenv("GRADIO_DEBUG", "") == "1"
+    return _args.debug or env_debug
 
 
 def get_scenario_directory() -> Path:
@@ -164,7 +175,9 @@ async def init_session():
 def list_md_files() -> list[str]:
     """Return available Markdown filenames (base names)."""
     scenario_dir = get_scenario_directory()
-    return sorted(p.name for p in scenario_dir.glob("*.md"))
+    return sorted(
+        p.name for p in scenario_dir.glob("*.md") if not p.name.startswith("_")
+    )
 
 
 def read_md(filename: str | None) -> str:
@@ -175,6 +188,16 @@ def read_md(filename: str | None) -> str:
     if not path.exists():
         return f"### File not found: `{filename}`"
     return path.read_text(encoding="utf-8")
+
+
+def construct_scenario_desc(filename: str | None) -> str:
+    """Merge the shared instructions with the selected scenario content."""
+    scenario_dir = get_scenario_directory()
+    instructions_path = scenario_dir / "_Instructions.md"
+    instructions = read_md("_Instructions.md") if instructions_path.exists() else ""
+
+    scenario_content = read_md(filename)
+    return f"{instructions}\n\n{scenario_content}" if instructions else scenario_content
 
 
 async def invoke_graph(graph, deps, msg: str | None):
@@ -250,31 +273,23 @@ async def invoke_agent(
     # Update agent_history in place by extending with new messages
     agent_history.extend(result.new_messages())
 
-    # Process results in a loop until we get a string question or completion
-    while isinstance(result.output, EmergencyCall):
-        # Process state update using shared helper
-        process_state_update(state, result.output, deps, node_name="AgentLoop")
+    # Process any remaining state update (when both state and question are present)
+    if result.output.state is not None:
+        process_state_update(state, result.output.state, deps)
 
-        # Check for completion using shared helper
+        # Check for completion after processing final state
         if check_completion(state):
             logger.info("Outcome reached")
             yield End(data=state)
             return
 
-        # State was updated but no question yet - need to prompt agent for next question
-        result = await agent.run(
-            user_prompt=f"current state: {state}\nAsk the Caller for the next logical symptom.",
-            message_history=agent_history,
-        )
-        agent_history.extend(result.new_messages())
-
-    # At this point, result.output must be a string (question from operator)
-    if isinstance(result.output, str):
+    # At this point, result.output.next_question should have the operator's question
+    if result.output.next_question is not None:
         deps.messages_logger.info(
-            "", extra={"speaker": "operator", "msg_text": result.output}
+            "", extra={"speaker": "operator", "msg_text": result.output.next_question}
         )
-        logger.debug(result.output)
-        yield result.output
+        logger.debug(result.output.next_question)
+        yield result.output.next_question
 
 
 async def stream_message_to_history(
@@ -310,6 +325,7 @@ async def stream_policy_messages(
     history: list[ChatMessageDict | ChatMessage],
     policy,
     deps,
+    scenario_name: str | None = None,
     user_msg: str | None = None,
 ):
     """Stream messages from the policy generator into history.
@@ -318,6 +334,7 @@ async def stream_policy_messages(
         history: Current chat history
         policy: The policy to run
         deps: Settings/dependencies
+        scenario_name: Selected scenario filename
         user_msg: User message to process (None for initial greeting)
 
     Yields:
@@ -333,6 +350,17 @@ async def stream_policy_messages(
         async for item in async_generator:
             # Check if this is the final result
             if isinstance(item, End):
+                deps.state_logger.info(
+                    {
+                        "session": {
+                            "policy": _args.policy,
+                            "scenario": scenario_name or "unspecified",
+                        }
+                    },
+                    extra={"event": "metadata"},
+                )
+                flush_logger(deps.state_logger)
+
                 # Stream completion message
                 async for updated_history in stream_message_to_history(
                     history, COMPLETION_MESSAGE
@@ -361,7 +389,11 @@ async def stream_policy_messages(
 
 
 async def bot_respond(
-    history: list[ChatMessageDict | ChatMessage], policy, deps, user_msg: str
+    history: list[ChatMessageDict | ChatMessage],
+    policy,
+    deps,
+    user_msg: str,
+    scenario_name: str | None = None,
 ):
     """Stream responses from policy as messages are emitted.
 
@@ -370,6 +402,7 @@ async def bot_respond(
         policy: The policy to run
         deps: Settings/dependencies
         user_msg: The user's message to process
+        scenario_name: Selected scenario filename
     """
     # Skip if message is empty (happens when message to user_submit was empty)
     if not user_msg or not user_msg.strip():
@@ -378,7 +411,11 @@ async def bot_respond(
 
     # Stream messages using the helper
     async for updated_history in stream_policy_messages(
-        history, policy, deps, user_msg
+        history=history,
+        policy=policy,
+        deps=deps,
+        scenario_name=scenario_name,
+        user_msg=user_msg,
     ):
         yield updated_history
 
@@ -432,12 +469,13 @@ def handle_conversation_end(history: list[ChatMessageDict]):
         return enable_input()
 
 
-async def init_or_reset_session(old_deps=None, old_policy=None):
+async def init_or_reset_session(old_deps=None, old_policy=None, scenario_name=None):
     """Initialize or reset the session (unified handler for load and reset).
 
     Args:
         old_deps: Current dependencies (None on initial load, existing deps on reset)
         old_policy: Current policy (None on initial load, tuple/graph on reset)
+        scenario_name: Selected scenario filename from the dropdown
 
     Returns session state, markdown files, and empty chatbot history.
     Greeting messages will be streamed separately via .then() chaining.
@@ -455,8 +493,16 @@ async def init_or_reset_session(old_deps=None, old_policy=None):
     try:
         policy, deps = await init_session()
 
-        # Format session info
-        session_info = f"**User ID:** `{deps.user_id}`  \n**Session ID:** `{deps.session_id}`  \n**Policy:** `{_args.policy}`"
+        # Format session info (visible only in debug mode)
+        session_info = gr.update(
+            value=(
+                f"**User ID:** `{deps.user_id}`  \n"
+                f"**Session ID:** `{deps.session_id}`  \n"
+                f"**Policy:** `{_args.policy}`  \n"
+                f"**Scenario:** `{scenario_name or 'None selected'}`"
+            ),
+            visible=debug_enabled(),
+        )
 
         # Return empty history - messages will be streamed separately
         return (
@@ -484,7 +530,14 @@ async def init_or_reset_session(old_deps=None, old_policy=None):
 
 
 def trigger_greeting(
-    trigger_event, chatbot, policy_state, deps_state, input_box, send, reset
+    trigger_event,
+    chatbot,
+    policy_state,
+    deps_state,
+    input_box,
+    send,
+    reset,
+    scenario_component,
 ):
     """Setup the chain of events for initialization (load or reset).
 
@@ -505,7 +558,7 @@ def trigger_greeting(
         queue=False,
     ).then(
         stream_policy_messages,
-        inputs=[chatbot, policy_state, deps_state],
+        inputs=[chatbot, policy_state, deps_state, scenario_component],
         outputs=[chatbot],
     )
     # Enable inputs after streaming completes
@@ -529,7 +582,11 @@ def trigger_greeting(
 demo = gr.Blocks(
     title="Chatbot + Markdown Side Panel",
     fill_height=True,
-    css=".icon-button-wrapper.top-panel { display: none !important; })",  # hides the clear (trashbin) button in the chatwindow
+    css=(
+        ".icon-button-wrapper.top-panel { display: none !important; } "
+        "#scenario-view { font-size: 1.9rem !important; }"
+    ),  # hides the clear (trashbin) button in the chatwindow and bumps scenario text size
+    theme=gr.themes.Ocean(),
 )  # this is separate from with statement to work around bug with `gradio dev` (hot-reloading)
 with demo:
     gr.Markdown(
@@ -564,8 +621,9 @@ with demo:
                 send = gr.Button("Send", variant="primary", scale=1)
             reset = gr.Button("Reset session", variant="secondary")
             session_info_display = gr.Markdown(
-                "**User ID:** _loading..._  \n**Session ID:** _loading..._",
+                "**User ID:** _loading..._  \n**Session ID:** _loading..._  \n**Policy:** _loading..._  \n**Scenario:** _loading..._",
                 elem_id="session-info",
+                visible=debug_enabled(),
             )
 
         # --- Right column: Markdown reference ---
@@ -581,18 +639,14 @@ with demo:
                 allow_custom_value=False,
                 filterable=False,
             )
-            initial_content = (
-                read_md(initial_value)
-                if initial_value
-                else "### No Scenario Markdown files found"
-            )
-            md_view = gr.Markdown(initial_content, elem_id="md-view")
+            initial_content = construct_scenario_desc(initial_value)
+            md_view = gr.Markdown(initial_content, elem_id="scenario-view")
 
     # Initialize session and UI on load or reset - unified event chain
     init_event = gr.on(
         triggers=[demo.load, reset.click, md_picker.change],
         fn=init_or_reset_session,
-        inputs=[deps_state, policy_state],
+        inputs=[deps_state, policy_state, md_picker],
         outputs=[
             chatbot,
             policy_state,
@@ -604,11 +658,18 @@ with demo:
         queue=False,
     )
     trigger_greeting(
-        init_event, chatbot, policy_state, deps_state, input_box, send, reset
+        init_event,
+        chatbot,
+        policy_state,
+        deps_state,
+        input_box,
+        send,
+        reset,
+        md_picker,
     )
 
     # Load Markdown content when scenario selection changes
-    md_picker.change(read_md, inputs=md_picker, outputs=md_view)
+    md_picker.change(construct_scenario_desc, inputs=md_picker, outputs=md_view)
 
     submit_event = gr.on(
         triggers=[input_box.submit, send.click],
@@ -623,7 +684,7 @@ with demo:
 
     bot_event = submit_event.then(
         bot_respond,
-        inputs=[chatbot, policy_state, deps_state, user_msg_state],
+        inputs=[chatbot, policy_state, deps_state, user_msg_state, md_picker],
         outputs=[chatbot],
     )
     bot_event.success(
@@ -643,5 +704,5 @@ with demo:
         queue=False,
     )
 
-    # Use the queue for scalability
-    demo.queue(default_concurrency_limit=16).launch(pwa=True)
+# Use the queue for scalability
+demo.queue(default_concurrency_limit=16).launch(pwa=True)

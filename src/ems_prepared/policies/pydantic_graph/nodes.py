@@ -176,9 +176,13 @@ class ExtractState(EmergencyNode):
                 exclude_none=True, exclude={"questions", "current_position"}
             )
         )
-        log_message = f'"question": {json.dumps(self.question)}, "response": {json.dumps(self.response)}, "result": {json.dumps(result_data)}'
         ctx.deps.state_logger.info(
-            log_message, extra={"node": "ExtractState", "event": "extraction"}
+            {
+                "question": self.question,
+                "response": self.response,
+                "result": result_data,
+            },
+            extra={"event": "extraction"},
         )
 
         return EvaluateAgentOutput(run_result=parse_result)
@@ -238,9 +242,9 @@ class MergeState(EmergencyNode):
 
         # Log the merged state as JSON
         state_data = ctx.state.model_dump(exclude_none=True, exclude={"questions"})
-        log_message = f'"state": {json.dumps(state_data)}'
         ctx.deps.state_logger.info(
-            log_message, extra={"node": "EvaluateState", "event": "state_merged"}
+            {"state": state_data},
+            extra={"event": "state_merged"},
         )
 
         if (
@@ -405,9 +409,9 @@ class TCPR(EmergencyNode):
 
         # Log the state update after changing emergency_type
         state_data = ctx.state.model_dump(exclude_none=True, exclude={"questions"})
-        log_message = f'"state": {json.dumps(state_data)}'
         ctx.deps.state_logger.info(
-            log_message, extra={"node": "TCPR", "event": "emergency_type_set"}
+            {"state": state_data},
+            extra={"event": "emergency_type_set"},
         )
 
         if ctx.state.call_state.ems_arrived:

@@ -4,9 +4,21 @@ Clean implementation using custom Formatter classes to handle extra fields.
 Each logger writes to its own file with no stdout pollution.
 """
 
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Mapping, TypedDict
+
+
+class StateLogEntry(TypedDict, total=False):
+    timestamp: str
+    event: str
+    state: dict[str, Any]
+    question: str
+    response: str
+    result: Any
+    session: dict[str, Any]
 
 
 def flush_logger(logger: logging.Logger) -> None:
@@ -53,17 +65,18 @@ def setup_console_logging(level: int = logging.INFO) -> None:
 
 
 class StateFormatter(logging.Formatter):
-    """Formats state changes as JSONL with node, event, and message content."""
+    """Formats state changes as JSONL with timestamp, event, and payload content."""
 
     def format(self, record):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # Extract extra fields with defaults
-        node = getattr(record, "node", "unknown")
         event = getattr(record, "event", "unknown")
-        # The message contains the JSON content
-        msg = record.getMessage()
 
-        return f'{{"timestamp": "{timestamp}", "node": "{node}", "event": "{event}", {msg}}}'
+        if not isinstance(record.msg, Mapping):
+            raise TypeError("state_logger expects a mapping payload")
+
+        entry: StateLogEntry = {"timestamp": timestamp, "event": event}
+        entry.update(record.msg)
+        return json.dumps(entry, default=str, ensure_ascii=True)
 
 
 class MessageFormatter(logging.Formatter):

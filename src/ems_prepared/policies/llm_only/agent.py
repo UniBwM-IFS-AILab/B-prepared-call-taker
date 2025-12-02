@@ -117,7 +117,6 @@ def process_state_update(
     state: EmergencyCall,
     new_state: EmergencyCall,
     deps: Settings,
-    node_name: str = "AgentLoop",
 ) -> None:
     """Process a state update by merging and logging.
 
@@ -125,7 +124,6 @@ def process_state_update(
         state: Current state to merge into (modified in place)
         new_state: New state to merge from
         deps: Settings with loggers
-        node_name: Name of the node for logging
     """
     # Merge new state into existing state
     _ = ignore_empty_merger.merge(state.__dict__, new_state.__dict__)
@@ -133,8 +131,8 @@ def process_state_update(
     # Log state change
     state_data = state.model_dump(exclude_none=True)
     deps.state_logger.info(
-        f'"state": {json.dumps(state_data)}',
-        extra={"node": node_name, "event": "extraction"},
+        {"state": state_data},
+        extra={"event": "extraction"},
     )
     logger.debug(state_data)
 
@@ -231,7 +229,7 @@ async def main():
                 f"AgentRunResult: {result.output.state.model_dump(exclude_none=True)}"
             )
             new_state = result.output.state
-            process_state_update(state, new_state, deps, node_name="LLMLoop")
+            process_state_update(state, new_state, deps)
 
             if check_completion(state):
                 print("Outcome reached")
