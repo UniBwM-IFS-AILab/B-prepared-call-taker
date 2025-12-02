@@ -1,10 +1,11 @@
-[[tools.bun]]
-version = "1.2.23"
-backend = "core:bun"
+[[tools.ollama]]
+version = "0.12.6"
+backend = "aqua:ollama/ollama"
 
-[tools.bun.platforms.windows-x64]
-checksum = "blake3:d5d731d0ef85bddc104da00b563d2bfefe6dfe8685c409bde4f0dbc4222799ec"
-size = 41633830
+[tools.ollama.platforms.windows-x64]
+checksum = "sha256:7babe953b7a1f31d1335b3b4d3549568e06ee894730b679c99f286a9f8eda6d0"
+size = 1908912120
+url = "https://github.com/ollama/ollama/releases/download/v0.12.6/ollama-windows-amd64.zip"
 
 [[tools.pre-commit]]
 version = "4.3.0"

@@ -13,24 +13,28 @@ wheels/
 .pixi
 *.egg-info
 
-# contain secretes
+# secretes
 .envrc
 .env
 .env.json
+.gradio/certificate.pem
 
 # logs
 logs/*
 
-# get rid of .keep files except specific ones
+# get rid of .keep files
 .keep
-!logs/.keep
 
 # irrelevant
 context/
 _old/
 undefined/
 
-#
+# settings
 .vscode/
 .zed/
+
+# Caches
+__marimo__/
+*.drawio.bkp
 typings/
