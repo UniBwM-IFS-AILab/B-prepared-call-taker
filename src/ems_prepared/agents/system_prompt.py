@@ -13,4 +13,6 @@ class system_prompt:
     @property
     def full_prompt(self) -> str:
         """Concatenation of the parts of the prompt."""
-        return "\n".join(value for _, value in asdict(self).items() if type(value) is str)
+        return "\n".join(
+            value for _, value in asdict(self).items() if type(value) is str
+        )

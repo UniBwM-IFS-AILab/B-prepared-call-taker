@@ -10,11 +10,9 @@ from pydantic_graph import GraphRunContext
 from rich import print
 
 from ems_prepared.agents.reusable_prompts import calltaker_role
+from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.models.github_models import (
-    build_github_gpt_41_mini_model,
-)
-from ems_prepared.models.system_prompt import system_prompt
+from ems_prepared.util.models import build_models
 from ems_prepared.util.settings import Settings
 
 state_fill_prompt: system_prompt = system_prompt(
@@ -80,9 +78,9 @@ async def var_fill_task(
 
 var_fill_agent = Agent(
     FallbackModel(
-        build_github_gpt_41_mini_model(),
-        # build_gemini_flash_model(),
-        # build_gemini_pro_model(),
+        *build_models(
+            "github:gpt-4.1-mini",
+        )
     ),
     output_type=PromptedOutput(
         outputs=[EmergencyCall, Literal[True], str],

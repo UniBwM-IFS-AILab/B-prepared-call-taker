@@ -16,16 +16,11 @@ from pydantic_core import to_jsonable_python
 from rich import print
 
 from ems_prepared.agents.reusable_prompts import calltaker_role
+from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.models.github_models import build_github_gpt_41_mini_model
-from ems_prepared.models.google_models import (
-    build_gemini_flash_model,
-    build_gemini_pro_model,
-)
-from ems_prepared.models.openai_models import build_gpt4o_model
-from ems_prepared.models.system_prompt import system_prompt
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.logger import flush_logger
+from ems_prepared.util.models import build_models
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
@@ -102,9 +97,11 @@ def build_emergency_agent() -> Agent[None, DialogueOutput]:
 
     agent = Agent(
         model=FallbackModel(
-            build_github_gpt_41_mini_model(),
-            build_gemini_flash_model(),
-            build_gemini_pro_model(),
+            *build_models(
+                "github:gpt-4.1-mini",
+                "google-gla:gemini-2.5-flash",
+                "google-gla:gemini-2.5-pro",
+            )
         ),
         output_type=DialogueOutput,
         system_prompt=prompt.full_prompt,

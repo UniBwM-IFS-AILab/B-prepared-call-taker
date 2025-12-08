@@ -11,15 +11,11 @@ from pydantic_graph import GraphRunContext
 from rich import print
 
 from ems_prepared.agents.reusable_prompts import calltaker_role
+from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.dialogue_state.type_defs import EmergencyType
-from ems_prepared.models.github_models import (
-    build_github_gpt_5_model,
-    build_github_gpt_41_mini_model,
-    build_github_gpt_41_nano_model,
-)
-from ems_prepared.models.system_prompt import system_prompt
+from ems_prepared.util.models import build_models
 from ems_prepared.util.settings import Settings
 
 state_fill_prompt = system_prompt(
@@ -114,12 +110,15 @@ def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
 
     return input
 
+
 model = FallbackModel(
-    build_github_gpt_5_model(),
-    build_github_gpt_41_mini_model(),
-    build_github_gpt_41_nano_model(),
-    # build_gemini_flash_model(),
-    # build_gemini_pro_model(),
+    *build_models(
+        "github:gpt-5",
+        "github:gpt-4.1-mini",
+        "github:gpt-4.1-nano",
+        "google-gla:gemini-2.5-flash",
+        "google-gla:gemini-2.5-pro",
+    )
 )
 
 state_fill_agent = Agent(
