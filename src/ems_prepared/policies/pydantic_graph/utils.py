@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Any, TypeVar
 
 from pydantic import BaseModel
-from pydantic_graph.graph import Graph, GraphRunResult
-from pydantic_graph.nodes import BaseNode, StateT
+from pydantic_graph.graph import Graph
+from pydantic_graph.nodes import BaseNode
 from pydantic_graph.persistence.file import FileStatePersistence
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
@@ -29,17 +29,16 @@ def save_mermaid_graph(
 
 
 def save_state_json(
-    result: GraphRunResult[Any, StateT],
+    state: BaseModel,
     save_path: Path,
 ) -> None:
     """Save final state and schema to JSON files."""
     # log final state
-    state: BaseModel = result.state
     json_content = state.model_dump_json(indent=2)
     _ = (save_path / "final_state.json").write_text(data=json_content, encoding="utf-8")
 
     # log state model schema
-    schema_content = result.state.model_json_schema()
+    schema_content = state.model_json_schema()
     formatted_schema_content = json.dumps(schema_content, indent=2)
     _ = (save_path / "state_schema.json").write_text(
         formatted_schema_content, encoding="utf-8"

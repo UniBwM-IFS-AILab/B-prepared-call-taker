@@ -1,7 +1,6 @@
 """Module for asynchronous operations in the emergency call workflow."""
 
 import asyncio
-import logging
 from typing import Any
 from uuid import UUID
 
@@ -9,8 +8,7 @@ from uuid import UUID
 from loguru import logger
 from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph, GraphRunResult
-from pydantic_graph.nodes import End, StateT
-from pydantic_graph.persistence import BaseStatePersistence
+from pydantic_graph.nodes import End
 from pydantic_graph.persistence.file import FileStatePersistence
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
@@ -41,7 +39,7 @@ from ems_prepared.policies.pydantic_graph.utils import (
     save_state_json,
 )
 from ems_prepared.util.helpers import async_wrapper
-from ems_prepared.util.logger import flush_logger, setup_console_logging
+from ems_prepared.util.logger import flush_logger
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
@@ -86,7 +84,9 @@ async def debug_cli(deps: Settings | None = None):
 
     if len(sys.argv) > 1:
         logger.info("Clearing old run...")
-        await clear_old_run(user_id)
+        # experiment_name will be picked up from EXPERIMENT_NAME env var if set
+        experiment_name = deps.experiment_name if deps else None
+        await clear_old_run(user_id, experiment_name=experiment_name)
 
     deps = deps or Settings(
         name="emergency_call", user_id=user_id, session_id=session_id, emit=async_print
@@ -101,6 +101,7 @@ async def loop_graph(deps: Settings):
     save_mermaid_graph(graph, deps.save_path)
 
     answer: str | None = None
+    result = None
     while not isinstance(result := await run_graph(graph, deps, answer), End):
         answer = None
 
@@ -214,17 +215,17 @@ async def run_graph(
         flush_logger(deps.messages_logger)
         flush_logger(deps.state_logger)
 
-        save_run(graph, graph_run, deps)
+        save_graph_run_results(graph, graph_run, deps)
         return node
 
 
-def save_run(graph, graph_run, deps):
-    """Save graph run results and state to disk.
+def save_graph_run_results(graph, graph_run, deps):
+    """Save graph run results, state, and mermaid diagram to disk.
 
     Note: Logging should be completed before calling this function.
     """
     if graph_run.result is not None:
-        save_state_json(graph_run.result, deps.save_path)
+        save_state_json(graph_run.result.state, deps.save_path)
         save_mermaid_graph(graph, deps.save_path)
         (deps.save_path / "deps.json").write_text(
             data=deps.model_dump_json(indent=2), encoding="utf-8"

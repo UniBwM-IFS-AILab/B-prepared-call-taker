@@ -3,10 +3,8 @@
 # pyright: strict
 import asyncio
 import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 from loguru import logger
 from pydantic.main import BaseModel
@@ -15,9 +13,9 @@ from pydantic_ai.models.fallback import FallbackModel
 from pydantic_core import to_jsonable_python
 from rich import print
 
-from ems_prepared.agents.reusable_prompts import calltaker_role
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.policies.pydantic_graph.utils import save_state_json
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.logger import flush_logger
 from ems_prepared.util.models import build_models
@@ -149,28 +147,23 @@ def check_completion(state: EmergencyCall) -> bool:
     return any([state.rd2, state.cpr_needed, state.time_critical])
 
 
-def save_results(
+def save_agent_run_results(
     state: EmergencyCall,
     message_history: list,
     deps: Settings,
 ) -> None:
-    """Save the final state and message history to JSON files.
+    """Save the final state, schema, and message history to JSON files.
 
     Args:
         state: Final emergency call state
         message_history: Complete message history
         deps: Settings with save_path
     """
-    messages_file_path = Path(f"{deps.save_path}_messages.json")
-    os.makedirs(deps.save_path, exist_ok=True)
-    messages_json: dict[str, str] = to_jsonable_python(message_history)
-    _ = messages_file_path.write_text(json.dumps(messages_json), encoding="utf-8")
+    prompts_file_path = Path(deps.save_path / "prompts.json")
+    prompts_json: dict[str, str] = to_jsonable_python(message_history)
+    _ = prompts_file_path.write_text(json.dumps(prompts_json), encoding="utf-8")
 
-    state_file_path = Path(f"{deps.save_path}_final_state.json")
-    _ = state_file_path.write_text(
-        state.model_dump_json(indent=2),
-        encoding="utf-8",
-    )
+    save_state_json(state, deps.save_path)
 
 
 async def talk_to_user(
@@ -196,7 +189,7 @@ async def talk_to_user(
                 "", extra={"speaker": "caller", "msg_text": user_response}
             )
 
-        result = await agent.run(
+        result: AgentRunResult[DialogueOutput] = await agent.run(
             user_prompt=user_response,
             message_history=result.all_messages(),
         )
@@ -237,7 +230,7 @@ async def main():
     flush_logger(deps.state_logger)
 
     # Save results to files
-    save_results(state, result.all_messages(), deps)
+    save_agent_run_results(state, result.all_messages(), deps)
 
 
 if __name__ == "__main__":

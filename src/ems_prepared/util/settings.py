@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from enum import Enum, auto
 from functools import cached_property
@@ -30,6 +31,8 @@ class Locale(str, Enum):
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(populate_by_name=True)
+
     # Logging
     name: str
     timestamp: str = Field(
@@ -37,11 +40,32 @@ class Settings(BaseSettings):
     )
     user_id: UUID = Field(default_factory=uuid4)
     session_id: UUID = Field(default_factory=uuid4)
+    experiment_name: str = Field(
+        default="_sessions",
+        description="Optional experiment/run name to group logs into a subdirectory. "
+        "When provided, logs are saved to logs/{experiment_name}/{user_id}/{session_id}/. "
+        "Can also be set via EXPERIMENT_NAME environment variable.",
+        validation_alias="EXPERIMENT_NAME",
+    )
+    scenario_name: str | None = Field(
+        default=None,
+        description="Selected scenario filename for logging purposes.",
+    )
+    policy_name: str | None = Field(
+        default=None,
+        description="Resolved policy name ('graph' or 'agent') for this session.",
+    )
 
     @property
     def save_path(self) -> Path:
-        save_path: Path = Path("logs") / self.user_id.hex / self.session_id.hex
+        # Use experiment_name if provided, otherwise use "_sessions" to keep logs organized
+        experiment_dir = self.experiment_name if self.experiment_name else "_sessions"
+        save_path: Path = (
+            Path("logs") / experiment_dir / self.user_id.hex / self.session_id.hex
+        )
         save_path.mkdir(parents=True, exist_ok=True)
+        os.makedirs(save_path, exist_ok=True)
+
         return save_path
 
     websocket: WebSocket | None = Field(default=None, repr=False)  # exclude=True,
