@@ -36,6 +36,7 @@ state_fill_prompt = system_prompt(
         "Ask the user for more information if you can't extract new values from the Answer compared to the current state."
         "Also ask for specification if you are unsure if a variable should be set or not"
         "Also ask further if the answer does not provide enough information to fill the variable fully."
+        "Verify if the user answered the question you asked. If not, ask the question again."
     ),
 )
 
@@ -75,7 +76,8 @@ async def state_fill_task(
 
     try:
         result: AgentRunResult[EmergencyCall | str] = await state_fill_agent.run(
-            user_prompt=agent_task, deps=ctx.deps
+            agent_task,
+            deps=ctx.deps,  # type: ignore
         )
     except Exception as e:
         print("Error during state_fill_agent.run:")
@@ -114,6 +116,7 @@ def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
 model = FallbackModel(
     *build_models(
         "github:gpt-5",
+        "github:gpt-5-mini",
         "github:gpt-4.1-mini",
         "github:gpt-4.1-nano",
         "google-gla:gemini-2.5-flash",
@@ -147,12 +150,14 @@ if __name__ == "__main__":
     deps = Settings(name="state_fill_agent_main", emit=print)
 
     result = state_fill_agent.run_sync(
-        user_prompt=prompt.format(state=state), deps=deps
+        user_prompt=prompt.format(state=state),
+        deps=deps,  # type: ignore
     )
     print(result)
     state2 = result.output
     result2 = state_fill_agent.run_sync(
-        user_prompt=prompt.format(state=state2), deps=deps
+        user_prompt=prompt.format(state=state2),
+        deps=deps,  # type: ignore
     )
     print(result2)
 

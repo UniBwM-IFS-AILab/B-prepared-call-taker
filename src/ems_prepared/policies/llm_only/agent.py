@@ -52,6 +52,7 @@ def build_emergency_agent() -> Agent[None, DialogueOutput]:
         ),
         task=(
             "You receive a phone call from a caller who wants to report an emergency. "
+            "First, present an appropiate greeting. "
             "Begin determining the basic information about the emergency. "
             "Ask clear, focused questions to extract only the information needed to fill the variables defined in the State schema. "
             "The State schema describes all fields you are allowed to care about (personalia and RD1/RD2-related variables). "
@@ -60,6 +61,7 @@ def build_emergency_agent() -> Agent[None, DialogueOutput]:
             "The emergency outcome and dispatch decisions will be determined automatically by other systems. "
             "This is a time-critical situation, so keep the conversation efficient and to the point. "
             "Your goal is to figure out what the emergency is and capture it in the State, not to give advice or instructions on how to deal with it."
+            "Help the user by providing instructions if he asks for assistance."
         ),
         rules=(
             "Whenever possible, update the State representing the emergency call using only information explicitly provided by the caller. "
@@ -96,6 +98,8 @@ def build_emergency_agent() -> Agent[None, DialogueOutput]:
     agent = Agent(
         model=FallbackModel(
             *build_models(
+                "github:gpt-5.1",
+                "github:gpt-5.1-mini",
                 "github:gpt-4.1-mini",
                 "google-gla:gemini-2.5-flash",
                 "google-gla:gemini-2.5-pro",
