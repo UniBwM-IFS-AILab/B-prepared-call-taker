@@ -5,38 +5,37 @@ from typing import Literal
 
 from deepdiff import DeepDiff
 from pydantic_ai.agent import Agent, AgentRunResult
+from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.fallback import FallbackModel
-from pydantic_ai.output import PromptedOutput
+from pydantic_ai.output import NativeOutput, PromptedOutput
 from pydantic_graph import GraphRunContext
 from rich import print
 
-from ems_prepared.agents.reusable_prompts import calltaker_role
-from ems_prepared.agents.system_prompt import system_prompt
+from ems_prepared.agents.reusable_prompts import (
+    BASE_SYSTEM_PROMPT,
+    extend_system_prompt,
+)
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.dialogue_state.type_defs import EmergencyType
-from ems_prepared.util.models import build_models
+from ems_prepared.util.models import build_fallback_agent
 from ems_prepared.util.settings import Settings
 
-state_fill_prompt = system_prompt(
-    role=calltaker_role,
+state_fill_prompt = extend_system_prompt(
+    BASE_SYSTEM_PROMPT,
     task=(
-        "You receive a user provided Answer to a question about the situation"
-        "Extract Values from the Answer to fit the variables defined in the State."
+        "You receive a user-provided answer to a question about the situation. "
+        "Extract values from the answer that fit the variables defined in the model."
     ),
     rules=(
-        "Only ask one question at a time."
-        "Only return Json as a string according to the schema, unless you can't extract new values from the Answer compared to the current state. Only then, ask the user for more information"
-        "When you cannot extract new data, you are not allowed to ask for specific fields directly."
-        "None signifies unknown values"
-        "Return only a valid JSON object that satisfies the schema above. Do not include any additional keys or explanatory text."
-        "If the user's message contains a value for any field, copy that value into the JSON. Leave a field null only when the user truly did not supply it."
+        "When you can extract new information, return ONLY a valid JSON object matching the output schema (no extra text, no additional keys).\n"
+        "If you cannot extract any new values compared to the current state, then ask the user for more information instead of returning JSON.\n"
+        "When you cannot extract new data, you are not allowed to ask for specific fields directly; ask a single open follow-up question.\n"
+        "Use null/None represents unknown values; if the user does not know the anser, return empy JSON."
+        "Never ask the exact same question twice in a row"
     ),
     decisions=(
-        "Ask the user for more information if you can't extract new values from the Answer compared to the current state."
-        "Also ask for specification if you are unsure if a variable should be set or not"
-        "Also ask further if the answer does not provide enough information to fill the variable fully."
-        "Verify if the user answered the question you asked. If not, ask the question again."
+        "Verify whether the user answered the question you asked; if not, ask the same question again."
     ),
 )
 
@@ -65,20 +64,36 @@ async def state_fill_task(
 
     """
     agent_task: str = (
-        f"Question: {prompt}"
-        #
-        f"Answer: {user_response}"
-        #
-        # f"State: {ctx.state.call_state}"
+        f"Try to extract structured information from the user's answer."
+        "\n"
+        f"Decide if you need no more questions you need to ask."
+        "\n"
+        f"Only use the following language: {ctx.deps.locale.value}"
+        "\n"
+        f"Last question from agent: {prompt} "
+        "\n"  #
+        f"Answer from caller: {user_response} "
+        # "\n"
+        f"Current State: {ctx.state.call_state.model_dump(exclude_none=True)}"
         # f"State: {state.model_dump_json(indent=2)}"
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
     try:
-        result: AgentRunResult[EmergencyCall | str] = await state_fill_agent.run(
+        result: AgentRunResult[EmergencyCall | str] = await state_fill_agent.run(  # type: ignore
             agent_task,
             deps=ctx.deps,  # type: ignore
+            # message_history=ctx.state.message_history,
         )
+
+        # collect history but don't use it here
+        ctx.state.message_history.extend(
+            result.new_messages()
+        )  #  ctx.state.message_history.extend(result.new_messages())
+
+        from devtools import debug
+
+        debug(ctx.state.message_history[-1])
     except Exception as e:
         print("Error during state_fill_agent.run:")
         print(e)
@@ -113,30 +128,34 @@ def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
     return input
 
 
-model = FallbackModel(
-    *build_models(
-        "github:gpt-5",
-        "github:gpt-5-mini",
-        "github:gpt-4.1-mini",
-        "github:gpt-4.1-nano",
-        "google-gla:gemini-2.5-flash",
-        "google-gla:gemini-2.5-pro",
-    )
-)
-
-state_fill_agent = Agent(
-    model,
-    output_type=PromptedOutput([EmergencyCall, str]),
-    # output_type=[EmergencyCall, str],
-    deps_type=Settings,
+state_fill_agent = build_fallback_agent(
+    output_type=([EmergencyCall, str]),
     system_prompt=(state_fill_prompt.full_prompt),
 )
 
-emergency_type_agent = Agent(
-    model,
-    output_type=PromptedOutput([Literal[EmergencyType.MEDICAL, EmergencyType.FIRE]]),
-    deps_type=Settings,
+emergency_type_agent = build_fallback_agent(
+    output_type=[Literal[EmergencyType.MEDICAL, EmergencyType.FIRE]],
     system_prompt=(state_fill_prompt.full_prompt),
+)
+
+enough_info_prompt = extend_system_prompt(
+    BASE_SYSTEM_PROMPT,
+    task=(
+        "Decide if enough information has been gathered based on the current state to make a final decision. "
+        "Return ONLY a JSON boolean: true if enough info is gathered, false otherwise."
+    ),
+    rules=(
+        "You must return a bare JSON boolean (true/false), no extra keys, no text. "
+        "Evaluate the completeness of key fields like patient_symptoms, location, and outcomes."
+    ),
+    decisions=(
+        "Return true if the state is sufficient for disposition without more questions; otherwise false."
+    ),
+)
+
+enough_info_agent = build_fallback_agent(
+    output_type=bool,
+    system_prompt=(enough_info_prompt.full_prompt),
 )
 
 if __name__ == "__main__":
@@ -149,14 +168,13 @@ if __name__ == "__main__":
     )
     deps = Settings(name="state_fill_agent_main", emit=print)
 
-    result = state_fill_agent.run_sync(
+    result = state_fill_agent.run_sync(  # type: ignore
         user_prompt=prompt.format(state=state),
         deps=deps,  # type: ignore
     )
     print(result)
     state2 = result.output
-    result2 = state_fill_agent.run_sync(
-        user_prompt=prompt.format(state=state2),
+    result2 = state_fill_agent.run_sync(  # type: ignore        user_prompt=prompt.format(state=state2),
         deps=deps,  # type: ignore
     )
     print(result2)
