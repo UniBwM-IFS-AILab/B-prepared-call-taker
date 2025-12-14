@@ -38,7 +38,7 @@ def tristate(values: Iterable[KnownBoolean]) -> KnownBoolean:
         # at least one None, nothing True yet
         return None
 
-    return reduce(tri_combine, values, None)
+    return reduce(tri_combine, values, False)
 
 
 class EmergencyType(StrEnum):

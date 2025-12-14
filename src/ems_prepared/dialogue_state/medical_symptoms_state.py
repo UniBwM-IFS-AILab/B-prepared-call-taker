@@ -78,7 +78,13 @@ class MedicalEmergency(
     @property
     def rd1(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd1_symptoms."""
-        return tristate(self.rd1_symptoms)
+        return tristate(
+            self.rd1_symptoms.union(
+                self.rd2_symptoms,
+                self.immediate_disposition_symptoms,
+                self.cpr_symptoms,
+            )
+        )
 
     @computed_field(description="")  # type: ignore[prop-decorator]
     @property

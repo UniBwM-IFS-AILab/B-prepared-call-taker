@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from pydantic.fields import Field
+from pydantic_ai.messages import ModelMessage
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.question_state import QuestionCatalog
@@ -9,6 +11,7 @@ class GraphState(BaseModel):
 
     questions: QuestionCatalog = QuestionCatalog()
     call_state: EmergencyCall = EmergencyCall()
+    message_history: list[ModelMessage] = Field(default_factory=list)
 
 
 # class MetaState(BaseModel):

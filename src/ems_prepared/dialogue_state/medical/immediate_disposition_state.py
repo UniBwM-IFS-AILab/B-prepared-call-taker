@@ -7,34 +7,46 @@ from ems_prepared.dialogue_state.medical.base_models import (
 )
 from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
+type TimeCritical_Boolean = KnownBoolean
+
 
 class ImmediateDisposition(KeyQuestionSymptom):
     """Model representing a patient's immediate disposition with various key questions."""
 
-    cyanosis: KnownBoolean = Field(
+    cyanosis: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Cyanosis",
         description="Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin).",
     )
-    suffocation: KnownBoolean = Field(
+    suffocation: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Suffocation",
         description="Indicates if the patient is currently experiencing suffocation (inability to breathe).",
     )
-    severe_accident: KnownBoolean = Field(
+    severe_accident: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Severe Accident",
         description="Indicates if the patient is currently involved in a severe accident.",
     )
-    severe_injury: KnownBoolean = Field(
+    severe_injury: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Severe Injury",
         description="Indicates if the patient is currently experiencing a severe injury.",
     )
+
+    @property
+    def immediate_disposition_symptoms(self) -> set[TimeCritical_Boolean]:
+        """Returns the list of symptoms for immediate disposition."""
+        return {
+            # this will compute a set of respective values, meaning len will be 3 at most
+            getattr(self, name)
+            for name, field in type(self).model_fields.items()
+            if field.annotation is TimeCritical_Boolean
+        }
 
     @computed_field(
         title="Urgency Needed",
@@ -47,10 +59,5 @@ class ImmediateDisposition(KeyQuestionSymptom):
         LT-Drs. 17/11351:
         „Um Menschenleben zu retten, ist (…) unverzügliche Erste Hilfe vor allem beim Herz-Kreislaufstillstand, beim Verschlucken von Fremd-körpern, bei Verbrennungen oder bei schweren Blutungen sinnvoll und notwendig.“
         """
-        symptoms: list = [
-            self.cyanosis,
-            self.suffocation,
-            self.severe_accident,
-            self.severe_injury,
-        ]
-        return tristate(symptoms)
+
+        return tristate(self.immediate_disposition_symptoms)

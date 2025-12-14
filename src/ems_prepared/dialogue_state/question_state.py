@@ -16,8 +16,8 @@ class QuestionCatalog(BaseModel):
                 "What has just happened acutely?",
             ],
             EmergencyType.MEDICAL: [
-                "Is he / she getting enough air now?",
-                "Is he / she reacting normally now (as usual) when you speak to him / her?",
+                "Is the patient getting enough air now?",
+                "Is the patient reacting normally now (as usual) when you speak to them?",
                 "Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?",
                 "Is there an acute circulatory problem?",
                 "Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?",

@@ -26,8 +26,8 @@ class TeleCpr(BaseModel):
         examples=[True, False, Unknown],
         title="Emergency Medical Services (EMS) Arrived",
         description="Indicates if an someone from EMS, such as an Ambulance or a doctor arrived at the location of the emergency.",
-        # exclude=True,
-        # repr=False,
+        exclude=True,
+        repr=False,
     )
 
     @property

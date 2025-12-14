@@ -214,7 +214,7 @@ class Metabolic(KeyQuestionSymptom):
         title="Metabolic Decompensation",
         description="Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder).",
     )
-    yperthermia: RD2_Boolean = Field(
+    hyperthermia: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Hyperthermia",
