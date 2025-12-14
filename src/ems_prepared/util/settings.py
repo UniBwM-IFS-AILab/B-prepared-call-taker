@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Awaitable, Callable
 from uuid import UUID, uuid4
 
+from loguru import logger
 from pydantic import computed_field
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,8 +27,8 @@ class InputMode(Enum):
 
 
 class Locale(str, Enum):
-    EN = "en"
-    DE = "de"
+    EN = "english"
+    DE = "german"
 
 
 class Settings(BaseSettings):
@@ -104,3 +105,15 @@ class Settings(BaseSettings):
         Created on first access and cached for the lifetime of the Settings instance.
         """
         return setup_state_logger(self.save_path)
+
+    def model_post_init(self, __context) -> None:
+        """Initialize file logging with loguru after model creation."""
+        log_file = self.save_path / "stdout.log"
+        logger.add(
+            log_file,
+            # level="DEBUG",
+            enqueue=True,
+            backtrace=True,
+            diagnose=True,
+            # format="{time} | {level} | {message}",
+        )
