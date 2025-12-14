@@ -11,10 +11,12 @@ from loguru import logger
 from parso.tree import BaseNode
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
+from pydantic_ai._run_context import AgentDepsT
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 
 from ems_prepared.agents.state_fill_agent import (
     emergency_type_agent,
+    enough_info_agent,
     response_cleanup,
     state_fill_agent,
     state_fill_task,
@@ -217,17 +219,18 @@ class EvaluateAgentOutput(EmergencyNode):
     ) -> (
         Annotated[AskCaller, Edge(label="Agent asks clarifying question")]
         | Annotated[MergeState, Edge(label="New State detected")]
-        | Annotated[Disposition, Edge(label="Trigger w/ RD1, no RD2 symptoms detected")]
+        # | Annotated[Disposition, Edge(label="Trigger w/ RD1, no RD2 symptoms detected")]
     ):
         if isinstance(self.run_result, EmergencyCall):
             logger.info("Model returned new data")
 
             return MergeState(self.run_result)
 
-        elif ctx.state.call_state.rd1:
-            # FIXME: this prevents multi-turn clarifying questions
-            logger.info("Rd1 is already true and we could not extract extra info")
-            return Disposition(DispoType.RD1)
+        # elif ctx.state.call_state.rd1:
+        # elif ctx.state.call_state.no_more_questions_needed:
+        #     # FIXME: this prevents multi-turn clarifying questions
+        #     logger.info("Rd1 is already true and we could not extract extra info")
+        #     return Disposition(DispoType.RD1)
 
         # elif isinstance(self.run_result, str):
         else:
@@ -245,8 +248,9 @@ class MergeState(EmergencyNode):
     ) -> (
         Annotated[EvaluateState, Edge(label="New State merged")]
         | Annotated[Disposition, Edge(label="Accept RD1 as final")]
-    ):  # tracking varaible set before merge to see if rd1 was already true
-        rd1_already_done = True if ctx.state.call_state.rd1 else False
+    ):
+        # tracking varaible set before merge to see if rd1 was already true
+        # rd1_already_done = True if ctx.state.call_state.rd1 else False
 
         logger.debug(
             f"Old State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
@@ -266,11 +270,11 @@ class MergeState(EmergencyNode):
             extra={"event": "state_merged"},
         )
 
-        if (
-            rd1_already_done
-        ):  # NOTE: we could not extract new state (RD2) and already have an outcome
-            logger.info("RD1 accepted as final state.")
-            return Disposition(DispoType.RD1)
+        # if (
+        #     rd1_already_done
+        # ):  # NOTE: we could not extract new state (RD2) and already have an outcome
+        #     logger.info("RD1 accepted as final state.")
+        #     return Disposition(DispoType.RD1)
 
         return EvaluateState()
 
@@ -281,11 +285,9 @@ class EvaluateState(EmergencyNode):
     async def run(
         self, ctx: GraphRunContext[GraphState, Settings]
     ) -> (
-        Annotated[ChooseQuestion, Edge(label="No Outcome yet")]
-        | RD2
-        | RD1
-        | TCPR
-        | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
+        Annotated[ChooseQuestion, Edge(label="No Outcome yet")] | RD2 | RD1 | TCPR
+        # | Disposition
+        # | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
     ):
         logger.debug(
             f"Evaluate State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
@@ -294,12 +296,13 @@ class EvaluateState(EmergencyNode):
         if ctx.state.call_state.cpr_needed:
             # needs to take precedence over RD2 because cpr_needed implies RD2
             return TCPR()
-        elif ctx.state.call_state.time_critical:
-            return HighUrgency()
+        # elif ctx.state.call_state.time_critical:
+        #     return HighUrgency()
         elif ctx.state.call_state.rd2:
             return RD2()
         elif ctx.state.call_state.rd1:
             return RD1()
+
         else:
             return ChooseQuestion()
 
@@ -316,47 +319,20 @@ class ChooseSubGraph(EmergencyNode):
             EvaluateAgentOutput, Edge(label="Force-update emergency type in state")
         ]
     ):
-        logger.debug(f"Emergency type: {ctx.state.call_state.emergency_type}")
-        # match ctx.state.call_state.emergency_type:
-        #     case EmergencyType.MEDICAL:
-        #         ctx.state.call_state.emergency_type = EmergencyType.MEDICAL
-
-        #     case EmergencyType.FIRE:
-        #         pass
-        #     # case EmergencyType.FIRE_MEDICAL:
-        #     #     pass
-        #     # case EmergencyType.NON_EMERGENCY:
-        #     #     pass
-        #     case _:
-        # TODO: deduplicate this code
         logger.info("Forcing Agent to decide the Emergency type...")
 
-        result = await emergency_type_agent.run(
+        result = await emergency_type_agent.run(  # type: ignore
             user_prompt=(
                 "Fill out the Emergency Type based on the current state"
                 f"State: {ctx.state}"
             ),
-            deps=ctx.deps,  # type: ignore # No clue why this is a type issue
+            deps=ctx.deps,  # type: ignore
+            # message_history=ctx.state.message_history,
         )
         logger.debug(f"Result type: {type(result.output)}")
+        logger.debug(f"Emergency type: {result.output}")
 
-        # cleaned = response_cleanup(result.output)
-
-        # if isinstance(cleaned, EmergencyCall):
-        #     if cleaned.emergency_type is None:
-        #         raise Exception("Could not determine emergency type")
-        #     print(
-        #         f"Detected Emergency Type: {cleaned.model_dump(include={'emergency_type'})}"
-        #     )
-        # elif isinstance(cleaned, EmergencyType):
-        #     print(f"Detected Emergency Type: {cleaned}")
-        #     ctx.state.call_state.emergency_type = cleaned
-
-        # FIXME: this causes an endless loop if the agent cannot decide on a type
         return EvaluateAgentOutput(EmergencyCall(emergency_type=result.output))
-
-        # Chosen a new question set, resetting to zero
-        # return ChooseQuestion()
 
 
 @dataclass
@@ -364,8 +340,8 @@ class RD1(EmergencyNode):
     """ """
 
     questions = {
-        "de": "Können Sie die Symptome genauer beschreiben?",
-        "en": "Can you describe the symptoms with more detail?",
+        Locale.DE: "Können Sie die Symptome genauer beschreiben?",
+        Locale.EN: "Can you describe the symptoms with more detail?",
     }
 
     @override
@@ -376,23 +352,41 @@ class RD1(EmergencyNode):
         Annotated[RD2, Edge(label="Increase to RD2")]
         | Annotated[Disposition, Edge(label="Use RD1")]
         | Annotated[AskCaller, Edge(label="Check for RD2")]
+        | Annotated[EvaluateAgentOutput, Edge(label="Evaluate agent output")]
     ):
         if ctx.state.call_state.rd1 is not True:
             raise
         else:
             logger.info("Reached RD1")
-            # logger.debug(f"already visited: {self.visited}")
 
-        # rd2_booleans = [
-        #     name
-        #     for name, field in ctx.state  # .model_fields.items()
-        #     if type(field) is RD2_Boolean
-        # ]
-        # logger.debug(rd2_booleans)
-
-        if ctx.state.call_state.rd2 is Unknown:  # and not self.visited:
+        # Ask at least one time for RD2
+        if ctx.state.call_state.enough_information_gathered is None:
+            ctx.state.call_state.enough_information_gathered = False
             logger.info("Asking for RD2")
             return AskCaller(self.questions[ctx.deps.locale])
+
+        # if RD2 is unkown, decide if more question or go to RD1 if already done
+        if ctx.state.call_state.rd2 is None:
+            if ctx.state.call_state.enough_information_gathered:
+                logger.info("No more questions needed, accepting RD1")
+                return Disposition(DispoType.RD1)
+
+            elif not ctx.state.call_state.enough_information_gathered:
+                logger.info("Forcing Agent to decide if enough information gathered...")
+
+                result = await enough_info_agent.run(  # type: ignore
+                    user_prompt=(
+                        "Decide if enough information has been gathered based on the current state"
+                        f"State: {ctx.state}"
+                    ),
+                    deps=ctx.deps,  # type: ignore
+                    message_history=ctx.state.message_history,
+                )
+                logger.debug(f"Enough info result: {result.output}")
+
+                return EvaluateAgentOutput(
+                    EmergencyCall(enough_information_gathered=result.output)
+                )
 
         # self.visited = True
         return RD2() if ctx.state.call_state.rd2 else Disposition(DispoType.RD1)
