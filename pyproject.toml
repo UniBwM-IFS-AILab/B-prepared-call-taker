@@ -7,7 +7,7 @@ version = "0.1.0"
 dependencies = [
   "deepmerge>=2.0",
   "fastapi>=0.116.1",
-  "gradio>=5.47.2",
+  "gradio>=6.1.0",
   "langgraph>=1.0.3",
   "loguru>=0.7.3",
   "numpy>=2.3.1",
@@ -46,7 +46,7 @@ dev = [
   "odfpy>=1.4.1",
   "marimo>=0.17.7",
   "streamlit>=1.51.0",
-  "gradio>=5.47.2",
+  "gradio>=6.0.0",
 ]
 experiment = ["pydantic-ai-examples>=0.2.18"]
 lsp = [

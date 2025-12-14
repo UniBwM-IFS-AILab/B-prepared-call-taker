@@ -1,60 +1,38 @@
 [[tools.ollama]]
 version = "0.12.6"
 backend = "aqua:ollama/ollama"
-
-[tools.ollama.platforms.windows-x64]
-checksum = "sha256:7babe953b7a1f31d1335b3b4d3549568e06ee894730b679c99f286a9f8eda6d0"
-size = 1908912120
-url = "https://github.com/ollama/ollama/releases/download/v0.12.6/ollama-windows-amd64.zip"
+"platforms.windows-x64" = { checksum = "sha256:7babe953b7a1f31d1335b3b4d3549568e06ee894730b679c99f286a9f8eda6d0", url = "https://github.com/ollama/ollama/releases/download/v0.12.6/ollama-windows-amd64.zip"}
 
 [[tools.pre-commit]]
 version = "4.3.0"
 backend = "aqua:pre-commit/pre-commit"
-
-[tools.pre-commit.platforms.windows-x64]
-checksum = "sha256:f1d50b97e9ca9167aceb76c14e90b07cde8b6789bc199d5005cfd817a718878c"
-size = 8268268
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.3.0/pre-commit-4.3.0.pyz"
+"platforms.windows-x64" = { checksum = "sha256:f1d50b97e9ca9167aceb76c14e90b07cde8b6789bc199d5005cfd817a718878c", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.3.0/pre-commit-4.3.0.pyz"}
 
 [[tools.ruff]]
 version = "0.13.2"
 backend = "aqua:astral-sh/ruff"
-
-[tools.ruff.platforms.windows-x64]
-checksum = "sha256:dea59c3440e59e4dbfa17ec8e51c10fb6f7586650cf30aad8dd8674ee4cb3f3c"
-size = 12931987
-url = "https://github.com/astral-sh/ruff/releases/download/0.13.2/ruff-x86_64-pc-windows-msvc.zip"
+"platforms.windows-x64" = { checksum = "sha256:dea59c3440e59e4dbfa17ec8e51c10fb6f7586650cf30aad8dd8674ee4cb3f3c", url = "https://github.com/astral-sh/ruff/releases/download/0.13.2/ruff-x86_64-pc-windows-msvc.zip"}
 
 [[tools.sops]]
 version = "3.11.0"
 backend = "aqua:getsops/sops"
-
-[tools.sops.platforms.windows-x64]
-checksum = "sha256:f3d74d83006954f0d8cf770ad7e5380504270ded5a62f33eb2548ce5461af3b3"
-size = 47596032
-url = "https://github.com/getsops/sops/releases/download/v3.11.0/sops-v3.11.0.amd64.exe"
+"platforms.windows-x64" = { checksum = "sha256:f3d74d83006954f0d8cf770ad7e5380504270ded5a62f33eb2548ce5461af3b3", url = "https://github.com/getsops/sops/releases/download/v3.11.0/sops-v3.11.0.amd64.exe"}
 
 [[tools.ttyd]]
 version = "1.7.7"
 backend = "aqua:tsl0922/ttyd"
-
-[tools.ttyd.platforms.windows-x64]
-checksum = "blake3:df05a650c384310511ba1dddd85a9d8d43d3de187d3c3396b15797da542d5ae9"
-size = 1409024
-url = "https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.win32.exe"
+"platforms.windows-x64" = { checksum = "blake3:df05a650c384310511ba1dddd85a9d8d43d3de187d3c3396b15797da542d5ae9", url = "https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.win32.exe"}
 
 [[tools."ubi:graphviz/graphviz"]]
 version = "13.0.1"
 backend = "ubi:graphviz/graphviz[exe=dot,matching=win64,provider=gitlab]"
 
-[tools."ubi:graphviz/graphviz".platforms."windows-x64-dot-win64-dot.exe"]
-checksum = "blake3:bf132d46b64939ebe8dcd169e6dee47fcc126477a58ff3dde0cfc618db0c4098"
+[tools."ubi:graphviz/graphviz".options]
+exe = "dot"
+matching = "win64"
+provider = "gitlab"
 
 [[tools.uv]]
 version = "0.8.22"
 backend = "aqua:astral-sh/uv"
-
-[tools.uv.platforms.windows-x64]
-checksum = "sha256:5049375aa2a5162f132b2c1cb992e25d42d47d934cab8c174dbe6f60973dcc12"
-size = 20716936
-url = "https://github.com/astral-sh/uv/releases/download/0.8.22/uv-x86_64-pc-windows-msvc.zip"
+"platforms.windows-x64" = { checksum = "sha256:5049375aa2a5162f132b2c1cb992e25d42d47d934cab8c174dbe6f60973dcc12", url = "https://github.com/astral-sh/uv/releases/download/0.8.22/uv-x86_64-pc-windows-msvc.zip"}

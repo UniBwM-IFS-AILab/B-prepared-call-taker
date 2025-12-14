@@ -63,11 +63,11 @@ run = "streamlit run {{config_root}}/src/ems_prepared/adapters/streamlit_app.py"
 
 
 [tasks.gradio]
-run = "uv run {{config_root}}/src/ems_prepared/adapters/gradio_app.py --docs-dir ./docs/scenarios"
+run = "uv run {{config_root}}/src/ems_prepared/adapters/gradio/app.py --docs-dir ./docs/scenarios"
 
 [tasks.gradio_dev]
 env = { GRADIO_DEBUG = "1" }
-run = "uv run gradio {{config_root}}/src/ems_prepared/adapters/gradio_app.py"
+run = "uv run gradio {{config_root}}/src/ems_prepared/adapters/gradio/app.py"
 
 [tools."ubi:graphviz/graphviz"]
 version = "13.0.1"
