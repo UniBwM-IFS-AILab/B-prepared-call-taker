@@ -20,24 +20,26 @@ Environment variables:
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
 
+from httpx import AsyncClient, HTTPStatusError
+from loguru import logger
+from pydantic_ai.agent import Agent
 from pydantic_ai.models import Model, infer_model
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.retries import AsyncTenacityTransport, RetryConfig, wait_retry_after
 from pydantic_ai.settings import ModelSettings
-
-if TYPE_CHECKING:
-    pass
-
+from tenacity import retry_if_exception_type, stop_after_attempt, wait_exponential
 
 # Custom provider prefixes that need special handling
 _OLLAMA_LOCAL_PREFIX = "ollama-local:"
 _OPENWEBUI_PREFIX = "openwebui:"
 
 
-def _build_ollama_local_model(model_name: str, settings: ModelSettings | None) -> Model:
+def _build_ollama_local_model(
+    model_name: str, settings: ModelSettings | None = None
+) -> Model:
     """Build a model using a local Ollama instance.
 
     Uses OLLAMA_LOCAL_BASE_URL env var, defaulting to http://localhost:11434/v1
@@ -47,7 +49,9 @@ def _build_ollama_local_model(model_name: str, settings: ModelSettings | None) -
     return OpenAIChatModel(model_name=model_name, provider=provider, settings=settings)
 
 
-def _build_openwebui_model(model_name: str, settings: ModelSettings | None) -> Model:
+def _build_openwebui_model(
+    model_name: str, settings: ModelSettings | None = None
+) -> Model:
     """Build a model using OpenWebUI as the provider.
 
     Requires OPENWEBUI_URI and OPENWEBUI_API_KEY env vars.
@@ -58,9 +62,39 @@ def _build_openwebui_model(model_name: str, settings: ModelSettings | None) -> M
     return OpenAIChatModel(model_name=model_name, provider=provider, settings=settings)
 
 
+def create_retrying_client():
+    """Create a client with smart retry handling for multiple error types."""
+
+    def should_retry_status(response):
+        """Raise exceptions for retryable HTTP status codes."""
+
+        if response.status_code in (429, 502, 503, 504):
+            logger.warning(
+                f"Request failed with status {response.status_code}, retrying..."
+            )
+
+            response.raise_for_status()  # This will raise HTTPStatusError
+
+    transport = AsyncTenacityTransport(
+        config=RetryConfig(
+            # Retry on HTTP errors and connection issues
+            retry=retry_if_exception_type((HTTPStatusError, ConnectionError)),
+            # Smart waiting: respects Retry-After headers, falls back to exponential backoff
+            wait=wait_retry_after(
+                fallback_strategy=wait_exponential(multiplier=1, max=60), max_wait=300
+            ),
+            # Stop after 5 attempts
+            stop=stop_after_attempt(5),
+            # Re-raise the last exception if all retries fail
+            reraise=True,
+        ),
+        validate_response=should_retry_status,
+    )
+    return AsyncClient(transport=transport)
+
+
 def build_models(
     *names: str,
-    settings: ModelSettings | None = None,
 ) -> tuple[Model, ...]:
     """Create multiple Model instances from provider:model name strings.
 
@@ -80,22 +114,100 @@ def build_models(
         ...     "google-gla:gemini-2.5-flash",
         ... ))
     """
-    if settings is None:
-        settings = ModelSettings(temperature=0)
 
     models: list[Model] = []
     for name in names:
         if name.startswith(_OLLAMA_LOCAL_PREFIX):
             model_name = name[len(_OLLAMA_LOCAL_PREFIX) :]
-            models.append(_build_ollama_local_model(model_name, settings))
+            models.append(
+                _build_ollama_local_model(
+                    model_name,  # settings
+                )
+            )
         elif name.startswith(_OPENWEBUI_PREFIX):
             model_name = name[len(_OPENWEBUI_PREFIX) :]
-            models.append(_build_openwebui_model(model_name, settings))
+            models.append(
+                _build_openwebui_model(
+                    model_name,  # settings
+                )
+            )
         else:
-            # Use PydanticAI's native infer_model for standard providers
-            # This handles github:, ollama:, google-gla:, anthropic:, openai:, etc.
             model = infer_model(name)
-            # Note: infer_model doesn't accept settings directly, they're applied at agent level
             models.append(model)
 
     return tuple(models)
+
+
+def get_default_settings(overrides: dict[str, object] | None = None) -> ModelSettings:
+    """Get default ModelSettings with optional overrides.
+
+    Args:
+        overrides: Dictionary of settings to override the defaults.
+
+    Returns:
+        ModelSettings instance with applied overrides.
+    """
+    default_settings = ModelSettings(temperature=0)
+    if overrides:
+        for key, value in overrides.items():
+            setattr(default_settings, key, value)
+    return default_settings
+
+
+def get_default_models(
+    overrides: list[str] | None = None, extras: list[str] | None = None
+) -> tuple[Model, ...]:
+    """Get default models with optional overrides and extras.
+
+    Args:
+        overrides: List of provider:model strings to use instead of defaults.
+        extras: List of additional provider:model strings to include.
+
+    Returns:
+        Tuple of Model instances.
+    """
+    if overrides is not None:
+        model_names = overrides
+    else:
+        model_names = [
+            # TODO: implement ModelRetry from PydanticAI, gemini causes this to crash due to http errors: 429, 503, ...
+            "github:gpt-5-mini",
+            "openai:gpt-5-mini",
+            # "groq:llama-3.3-70b-versatile",
+            # "cerebras:gpt-oss-120b",
+            # "google-gla:gemini-2.5-flash",
+            # "google-gla:gemini-2.5-pro",
+            # "ollama-local:deepseek-r1:8b",
+            # "ollama-local:deepseek-r1:14b",
+            # "ollama-local:qwen3",
+            # "ollama-local:phi4-reasoning:14b",
+            # "ollama-local:phi4:14b",
+            # "groq:gpt-oss-20b",
+            # "openrouter:openai/gpt-oss-20b:free",
+        ]
+    if extras:
+        model_names.extend(extras)
+    return build_models(*model_names)
+
+
+def build_fallback_agent(
+    model_overrides=None,
+    model_extras=None,
+    setting_overrides=None,
+    **kwargs,
+) -> Agent:
+    """Build a FallbackModel agent with default models and settings.
+
+    Args:
+        **kwargs: Additional keyword arguments to pass to the Agent constructor.
+
+    Returns:
+        An Agent instance using a FallbackModel with default models.
+    """
+    from pydantic_ai.models.fallback import FallbackModel
+
+    default_models = get_default_models(overrides=model_overrides, extras=model_extras)
+    fallback_model = FallbackModel(*default_models)
+
+    settings: ModelSettings = get_default_settings(overrides=setting_overrides)
+    return Agent(model=fallback_model, model_settings=settings, **kwargs)
