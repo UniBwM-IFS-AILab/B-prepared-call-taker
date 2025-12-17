@@ -1,9 +1,12 @@
+import logging
 from pydantic import BaseModel
 from pydantic.fields import Field
 from pydantic_ai.messages import ModelMessage
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.question_state import QuestionCatalog
+
+logger = logging.getLogger(__name__)
 
 
 class GraphState(BaseModel):

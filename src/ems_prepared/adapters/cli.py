@@ -3,9 +3,10 @@
 import argparse
 import os
 import random
+import logging
 from dataclasses import dataclass
 
-from loguru import logger
+logger = logging.getLogger(__name__)
 
 # Available policies for random selection
 AVAILABLE_POLICIES = ["graph", "agent"]

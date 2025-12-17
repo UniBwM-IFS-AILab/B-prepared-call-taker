@@ -6,8 +6,8 @@ including caller information, location, emergency type, and medical details.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Annotated, TypeVar
+import logging
+from typing import TypeVar
 
 from pydantic import Field
 from pydantic.functional_validators import model_validator
@@ -17,6 +17,7 @@ from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString, Un
 
 T = TypeVar("T")
 _SENTINEL = object()
+logger = logging.getLogger(__name__)
 
 
 # @dataclass

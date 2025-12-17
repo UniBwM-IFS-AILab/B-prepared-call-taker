@@ -3,6 +3,8 @@
 # pyright: strict
 import asyncio
 import json
+import logging
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
@@ -33,18 +35,7 @@ from ems_prepared.util.models import (
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
-# TODO: use ModelRetry from PydanticAI for better reliability for http errors
-
-# TODO: Make model explicit to return End-state
-# RD1_TRIGGERED: bool = False
-
-
-NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
-
-
-class DialogueOutput(BaseModel):
-    state: EmergencyCall  # | None
-    next_question: NonEmptyStr
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -200,7 +191,7 @@ def process_state_update(
         new_state: New state to merge from
         deps: Settings with loggers
     """
-    logger.debug(f"New State:\t{new_state.model_dump(exclude_none=True)}")
+    deps.logger.debug(f"New State:\t{new_state.model_dump(exclude_none=True)}")
 
     # Merge new state into existing state
     _ = ignore_empty_merger.merge(state.__dict__, new_state.__dict__)
@@ -211,7 +202,7 @@ def process_state_update(
         {"state": state_data},
         extra={"event": "state_merged"},
     )
-    logger.debug(f"Merged State:\t{state_data}")
+    deps.logger.debug(f"Merged State:\t{state_data}")
 
 
 def check_completion(state: EmergencyCall) -> bool:
@@ -231,7 +222,7 @@ def check_completion(state: EmergencyCall) -> bool:
         return True
 
     if state.rd1:
-        logger.info("reached RD1")
+        (deps.logger if deps else logger).info("reached RD1")
 
     return any([state.rd2, state.cpr_needed])  # , state.time_critical
 
@@ -292,7 +283,7 @@ async def talk_to_user(
     # Log provider/model info when available
     response_obj = extract_last_model_response(new_result, captured_messages)
     if response_obj:
-        logger.info(
+        deps.logger.info(
             f"provider={response_obj.provider_name} model={response_obj.model_name}"
         )
 

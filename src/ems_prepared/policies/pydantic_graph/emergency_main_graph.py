@@ -91,7 +91,8 @@ async def debug_cli(deps: Settings | None = None):
     deps = deps or Settings(
         name="emergency_call", user_id=user_id, session_id=session_id, emit=async_print
     )
-    logger.info(f"log dir: {deps.save_path}")
+    deps.logger.info(f"{user_id} / {session_id}")
+    deps.logger.info(f"log dir: {deps.save_path}")
     await loop_graph(deps)
 
 
@@ -105,14 +106,14 @@ async def loop_graph(deps: Settings):
     while not isinstance(result := await run_graph(graph, deps, answer), End):
         answer = None
 
-        logger.debug(f"Graph returned {type(result)}")
+        deps.logger.debug(f"Graph returned {type(result)}")
 
         if hasattr(result, "question") and isinstance(result.question, str):
-            logger.debug(f"Prompting user: {result.question}")
+            deps.logger.debug(f"Prompting user: {result.question}")
             answer = await prompt_user(result.question, deps=deps)
 
         elif hasattr(result, "messages") and type(result.messages) is dict:
-            logger.debug("Emitting message to user.")
+            deps.logger.debug("Emitting message to user.")
             await async_wrapper(
                 deps.emit(
                     f"Message: {result.messages.get(deps.locale, 'No message for this locale.')}"
@@ -123,7 +124,7 @@ async def loop_graph(deps: Settings):
                 "Unhandled graph result type. Graph should not have exited."
             )
 
-    logger.info("Graph ended")
+    deps.logger.info("Graph ended")
     return result
 
 
@@ -138,11 +139,11 @@ async def resume_from_persistence(
         persistence.set_graph_types(graph)
 
     if snapshot := await persistence.load_next():
-        logger.info("Resuming from persisted graph state...")
-        logger.info(f"[Node] {snapshot.node.get_node_id()}")
+        deps.logger.info("Resuming from persisted graph state...")
+        deps.logger.info(f"[Node] {snapshot.node.get_node_id()}")
 
         state: GraphState = snapshot.state
-        logger.debug(
+        deps.logger.debug(
             f"Resumed State:\t{state.call_state.model_dump(exclude_none=True)}"
         )
 
@@ -150,7 +151,7 @@ async def resume_from_persistence(
             snapshot.node
         )
     else:
-        logger.info("Initializing new graph run...")
+        deps.logger.info("Initializing new graph run...")
 
         state = GraphState()
         node = Start()
@@ -179,7 +180,7 @@ async def run_graph(
         node = ExtractState(node.question, answer)
 
     if isinstance(node, End):
-        logger.info("Graph already finished.")
+        deps.logger.info("Graph already finished.")
 
         # FIXME: adopt new logic for TCPR subgraph
         # if graph_run.result is not None and graph_run.result.state.cpr_needed:
@@ -198,10 +199,10 @@ async def run_graph(
         persistence=persistence, deps=deps
     ) as graph_run:
         while not isinstance(node := await graph_run.next(node), End):
-            logger.debug(f"[Node] {node.get_node_id()}")
+            deps.logger.debug(f"[Node] {node.get_node_id()}")
 
             if isinstance(node, QuestionNode):
-                logger.debug(str(node))
+                deps.logger.debug(str(node))
                 return node
 
             elif isinstance(node, MessageNode):

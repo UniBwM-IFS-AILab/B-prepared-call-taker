@@ -106,14 +106,10 @@ class Settings(BaseSettings):
         """
         return setup_state_logger(self.save_path)
 
-    def model_post_init(self, __context) -> None:
-        """Initialize file logging with loguru after model creation."""
-        log_file = self.save_path / "stdout.log"
-        logger.add(
-            log_file,
-            # level="DEBUG",
-            enqueue=True,
-            backtrace=True,
-            diagnose=True,
-            # format="{time} | {level} | {message}",
+    @cached_property
+    def logger(self) -> logging.Logger:
+        """Per-session logger that logs to console and `stdout.log`."""
+        return setup_session_logger(
+            save_path=self.save_path,
+            session_id=self.session_id.hex,
         )

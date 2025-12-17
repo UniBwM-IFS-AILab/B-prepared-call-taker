@@ -155,7 +155,7 @@ class AskCaller(QuestionNode):
         """Ask the user. THIS NODE WILL NEVER BE EXECTUED WHEN USING PERSISTENCE."""
 
         # response: str = await prompt_user(self.question, deps=ctx.deps)
-        logger.debug("ran node AskCaller")
+        ctx.deps.logger.debug("ran node AskCaller")
         raise Exception(
             "AskCaller node should not be executed directly when using persistence."
         )
@@ -234,7 +234,9 @@ class EvaluateAgentOutput(EmergencyNode):
 
         # elif isinstance(self.run_result, str):
         else:
-            logger.info("Model could not extract new data, likely asking for more info")
+            ctx.deps.logger.info(
+                "No new Data extracted, asking clarifying question (probably)"
+            )
             return AskCaller(question=self.run_result)
 
 
@@ -249,17 +251,17 @@ class MergeState(EmergencyNode):
         Annotated[EvaluateState, Edge(label="New State merged")]
         | Annotated[Disposition, Edge(label="Accept RD1 as final")]
     ):
-        # tracking varaible set before merge to see if rd1 was already true
-        # rd1_already_done = True if ctx.state.call_state.rd1 else False
-
-        logger.debug(
+        ctx.deps.logger.debug(
             f"Old State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
-        logger.debug(f"New State:\t{self.new_state.model_dump(exclude_none=True)}")
+        ctx.deps.logger.debug(
+            f"New State:\t{self.new_state.model_dump(exclude_none=True)}"
+        )
+
         ignore_empty_merger.merge(
             ctx.state.call_state.__dict__, self.new_state.__dict__
         )
-        logger.debug(
+        ctx.deps.logger.debug(
             f"Merged State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
 
@@ -289,7 +291,7 @@ class EvaluateState(EmergencyNode):
         # | Disposition
         # | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
     ):
-        logger.debug(
+        ctx.deps.logger.debug(
             f"Evaluate State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
 
@@ -327,10 +329,10 @@ class ChooseSubGraph(EmergencyNode):
                 f"State: {ctx.state}"
             ),
             deps=ctx.deps,  # type: ignore
-            # message_history=ctx.state.message_history,
+            message_history=ctx.state.message_history,
         )
-        logger.debug(f"Result type: {type(result.output)}")
-        logger.debug(f"Emergency type: {result.output}")
+        ctx.deps.logger.debug(f"Result type: {type(result.output)}")
+        ctx.deps.logger.debug(f"Emergency type: {result.output}")
 
         return EvaluateAgentOutput(EmergencyCall(emergency_type=result.output))
 
@@ -357,7 +359,7 @@ class RD1(EmergencyNode):
         if ctx.state.call_state.rd1 is not True:
             raise
         else:
-            logger.info("Reached RD1")
+            ctx.deps.logger.info("Reached RD1")
 
         # Ask at least one time for RD2
         if ctx.state.call_state.enough_information_gathered is None:
@@ -463,7 +465,7 @@ class Disposition(MessageNode):
         ctx: GraphRunContext[GraphState, Settings],
     ) -> End[EmergencyCall]:
         # TODO: ask for number of persons
-        logger.info(
+        ctx.deps.logger.info(
             f"final state: {ctx.state.call_state.model_dump(exclude_none=True, exclude={'questions'})}"
         )
 

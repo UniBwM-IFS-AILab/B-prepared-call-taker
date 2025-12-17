@@ -15,7 +15,6 @@ from uuid import UUID, uuid4
 
 import gradio as gr
 from gradio import ChatMessage
-from loguru import logger
 from pydantic_graph.graph import Graph
 from pydantic_graph.nodes import End
 
@@ -109,7 +108,7 @@ async def cleanup_session(policy, deps: Settings | None) -> None:
         flush_logger(deps.messages_logger)
         flush_logger(deps.state_logger)
     except Exception as e:
-        logger.warning(f"Could not save/flush session: {e}")
+        deps.logger.warning(f"Could not save/flush session: {e}")
         gr.Warning(f"Session cleanup issue: {str(e)}", duration=3)
 
 
@@ -156,7 +155,7 @@ async def init_session(
         policy = await build_graph()
 
     gr.Info(f"Session initialized: {str(deps.session_id)}", duration=3)
-    logger.warning(
+    deps.logger.warning(
         f"Session initialized: {str(deps.session_id)}, {str(deps.user_id)}, {policy_setting}"
     )
     return policy, deps
@@ -274,7 +273,7 @@ async def invoke_graph(graph, deps: Settings, msg: str | None):
             # Continue the loop to run graph again
         else:
             # Unexpected result type - log and break
-            logger.warning(
+            deps.logger.warning(
                 f"Unexpected result type from run_graph: {type(result).__name__}"
             )
             break
@@ -308,22 +307,16 @@ async def invoke_agent(
 
     # Run the agent and capture any provider messages
     result, captured_messages = await run_agent_with_capture(agent, agent_history, msg)
-    logger.info(f"agent_history_len={len(agent_history)} usage={result.usage()}")
+    deps.logger.info(f"agent_history_len={len(agent_history)} usage={result.usage()}")
 
     # Log provider/model information when available
     response = extract_last_model_response(result, captured_messages)
     if response:
-        logger.info(f"provider={response.provider_name} model={response.model_name}")
+        deps.logger.info(
+            f"provider={response.provider_name} model={response.model_name}"
+        )
     else:
-        logger.warning("No ModelResponse found for this run.")
-
-    # Debug print of resulting state (kept from previous behavior)
-    try:
-        from devtools import debug
-
-        debug(result.output.state.model_dump(exclude_none=True))
-    except Exception:
-        pass
+        deps.logger.warning("No ModelResponse found for this run.")
 
     # Update history, merge state, and get next action
     is_complete, next_question = update_history_and_merge_state(
@@ -331,26 +324,26 @@ async def invoke_agent(
     )
 
     if is_complete:
-        logger.info("Outcome reached")
+        deps.logger.info("Outcome reached")
         try:
             save_agent_run_results(state, agent_history, deps)
             flush_logger(deps.messages_logger)
             flush_logger(deps.state_logger)
         except Exception as e:
-            logger.warning(f"Could not save/flush session on completion: {e}")
+            deps.logger.warning(f"Could not save/flush session on completion: {e}")
         yield End(data=state)
         return
 
     # Yield the operator's question (or an error if missing)
     if not next_question or not str(next_question).strip():
-        logger.error(
+        deps.logger.error(
             "Agent returned neither completion nor next_question. "
             f"state={result.output.state!r}, next_question={next_question!r}, "
             f"len(agent_history)={len(agent_history)}"
         )
-        logger.error("Full agent result: %r", result)
+        deps.logger.error("Full agent result: %r", result)
         yield "❌ Internal error: agent returned no next question. Please reset the session."
         return
 
-    logger.debug(next_question)
+    deps.logger.debug(next_question)
     yield next_question

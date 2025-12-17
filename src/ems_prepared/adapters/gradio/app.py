@@ -5,13 +5,15 @@ For reusable logic, see the `core` module.
 """
 
 import asyncio
+import logging
+import os
+import time
 from uuid import UUID
 
 import gradio as gr
+import requests
 from gradio import ChatMessage
-from loguru import logger
-from pydantic_graph.graph import Graph
-from pydantic_graph.nodes import End
+from pydantic_graph.graph import End, Graph
 
 from ems_prepared.adapters.cli import args
 from ems_prepared.adapters.gradio.core import (
@@ -35,6 +37,8 @@ from ems_prepared.util.settings import Settings
 
 # TODO: add retry button, so that we can repeat a reuqest if all models throw an exception due to overload
 # TODO: FIXME: currently, gr.error does not (always?) enable the reset button
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Streaming Helpers
@@ -105,11 +109,12 @@ async def stream_policy_messages(
                 },
                 extra={"event": "metadata"},
             )
+        if user_msg:
+            deps.logger.info(f"User message: {user_msg}")
 
         streamed_any = False
         async for item in async_generator:
             streamed_any = True
-            logger.debug(f"Streaming item: {item}")
             if isinstance(item, End):
                 # Stream completion message
                 async for updated_history in stream_message_to_history(
@@ -117,15 +122,18 @@ async def stream_policy_messages(
                 ):
                     yield updated_history
                 flush_logger(deps.state_logger)
+                flush_logger(deps.messages_logger)
                 break
             elif isinstance(item, str):
+                deps.logger.debug(f"Streaming message: {item}")
+
                 # Stream the message (either emitted message or question)
                 async for updated_history in stream_message_to_history(
                     history, ChatMessage(role="assistant", content=item)
                 ):
                     yield updated_history
         if not streamed_any:
-            logger.error(
+            deps.logger.error(
                 "Policy async_generator produced no items. "
                 f"len(history)={len(history)}, policy_type={type(policy).__name__}"
             )
@@ -133,15 +141,17 @@ async def stream_policy_messages(
         import traceback
 
         error_msg = str(e)
-        logger.error(f"Error streaming messages: {error_msg}\n{traceback.format_exc()}")
+        deps.logger.error(
+            f"Error streaming messages: {error_msg}\n{traceback.format_exc()}"
+        )
         history.append(
             ChatMessage(
                 role="assistant",
-                content=f"❌ **Fatal Error**\n\n{error_msg}\n\nPlease click 'Reset session' to recover.",
+                content="❌ **Fatal Error**\n\nPlease click 'Reset session' to recover.",  # {error_msg}\n\n
             )
         )
+        gr.Error(error_msg, duration=None)
         yield history
-        raise gr.Error(error_msg, duration=None)
 
 
 async def bot_respond(
@@ -406,7 +416,9 @@ with demo:
         selected_scenario = scenario_name
         if args.random_scenario:
             selected_scenario = get_random_scenario()
-            logger.info(f"Random scenario selection: chose '{selected_scenario}'")
+            (old_deps.logger if old_deps else logger).info(
+                f"Random scenario selection: chose '{selected_scenario}'"
+            )
 
         # Parse stored user_id
         user_id: UUID | None = None
@@ -637,6 +649,12 @@ with demo:
         on_response_complete,
         inputs=[chatbot],
         outputs=[input_box, send, reset, md_picker, next_step_2],
+    ).failure(
+        lambda: (
+            *set_input_interactive(False),
+            *set_controls_interactive(True),
+        ),
+        outputs=[input_box, send, reset, md_picker],
     )
 
     # ==========================================================================
@@ -690,7 +708,7 @@ with demo:
             metadata["feedback"] = feedback.strip()
 
         save_survey_responses(deps.save_path, response_dict, metadata)
-        logger.info(f"Survey saved for session {deps.session_id}")
+        deps.logger.info(f"Survey saved for session {deps.session_id}")
 
         # Disable radios, feedback, and submit, show thanks and next step button
         return (
@@ -745,9 +763,28 @@ with demo:
     )
 
 
+def notify_share_url(share_url: str) -> None:
+    """Post the new share URL to Slack via incoming webhook."""
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        logger.warning("SLACK_WEBHOOK_URL not set; skipping Slack notification")
+        return
+
+    payload = {"text": f"New *Emergency Call Simulator* URL:\n{share_url}"}
+
+    try:
+        resp = requests.post(webhook_url, json=payload, timeout=5)
+        resp.raise_for_status()
+        logger.info("Posted share URL to Slack")
+    except requests.RequestException:
+        logger.exception("Failed posting share URL to Slack")
+
+
 if __name__ == "__main__":
+    # TODO: use load / unload events to manage session lifecycle, can reset trigger the same logic? [maybe we can deal with the server not being reachable anymore? don't throw any errors in that case]
+
     # Use the queue for scalability
-    demo.queue(default_concurrency_limit=16).launch(
+    app, local_url, share_url = demo.queue(default_concurrency_limit=16).launch(
         pwa=True,
         share=True,
         css="""
@@ -779,6 +816,21 @@ if __name__ == "__main__":
             }
         """,
         footer_links=["settings"],
-        debug=True,
+        debug=args.debug,
+        inbrowser=args.debug,
         show_error=True,
+        prevent_thread_lock=True,
+        # favicon_path:
     )
+
+    logger.info("Gradio local URL: %s", local_url)
+    logger.info("Gradio share URL: %s", share_url)
+    if share_url:
+        notify_share_url(share_url)
+    else:
+        logger.warning("No share URL returned from Gradio")
+    try:
+        while True:
+            time.sleep(3600)
+    except KeyboardInterrupt:
+        pass
