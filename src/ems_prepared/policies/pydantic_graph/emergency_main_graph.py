@@ -4,7 +4,6 @@ import asyncio
 from typing import Any
 from uuid import UUID
 
-# logger = logging.getLogger(__name__)
 from loguru import logger
 from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph, GraphRunResult
@@ -40,12 +39,9 @@ from ems_prepared.policies.pydantic_graph.utils import (
 )
 from ems_prepared.util.helpers import async_wrapper
 from ems_prepared.util.logger import flush_logger
+from ems_prepared.util.save_utils import save_message_history_json
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
-
-
-async def async_print(msg: str):
-    logger.info(msg)
 
 
 async def build_graph():
@@ -75,21 +71,13 @@ async def build_graph():
 
 async def debug_cli(deps: Settings | None = None):
     """Main function for cli debug usage."""
-    import sys
 
     # use 0 as the user id for tests
     session_id = UUID(int=0)
     user_id = UUID(int=0)
-    logger.info(f"{user_id} / {session_id}")
-
-    if len(sys.argv) > 1:
-        logger.info("Clearing old run...")
-        # experiment_name will be picked up from EXPERIMENT_NAME env var if set
-        experiment_name = deps.experiment_name if deps else None
-        await clear_old_run(user_id, experiment_name=experiment_name)
 
     deps = deps or Settings(
-        name="emergency_call", user_id=user_id, session_id=session_id, emit=async_print
+        name="emergency_call", user_id=user_id, session_id=session_id
     )
     deps.logger.info(f"{user_id} / {session_id}")
     deps.logger.info(f"log dir: {deps.save_path}")
@@ -116,7 +104,8 @@ async def loop_graph(deps: Settings):
             deps.logger.debug("Emitting message to user.")
             await async_wrapper(
                 deps.emit(
-                    f"Message: {result.messages.get(deps.locale, 'No message for this locale.')}"
+                    deps,
+                    f"Message: {result.messages.get(deps.locale, 'No message for this locale.')}",
                 )
             )
         else:
@@ -210,7 +199,10 @@ async def run_graph(
 
     if isinstance(node, End):
         await async_wrapper(
-            graph_run.deps.emit("The emergency call has been processed.")
+            graph_run.deps.emit(
+                deps,
+                "The emergency call has been processed.",
+            )
         )
         # Flush log handlers before saving
         flush_logger(deps.messages_logger)
@@ -226,10 +218,14 @@ def save_graph_run_results(graph, graph_run, deps):
     Note: Logging should be completed before calling this function.
     """
     if graph_run.result is not None:
-        save_state_json(graph_run.result.state, deps.save_path)
+        save_state_json(graph_run.result.state.call_state, deps.save_path)
         save_mermaid_graph(graph, deps.save_path)
         (deps.save_path / "deps.json").write_text(
             data=deps.model_dump_json(indent=2), encoding="utf-8"
+        )
+        # Save message history
+        save_message_history_json(
+            graph_run.result.state.message_history, deps.save_path
         )
 
 

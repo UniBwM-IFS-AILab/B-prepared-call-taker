@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import logging
 import os
 from datetime import datetime
 from enum import Enum, auto
@@ -6,13 +9,18 @@ from pathlib import Path
 from typing import Awaitable, Callable
 from uuid import UUID, uuid4
 
-from loguru import logger
 from pydantic import computed_field
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.websockets import WebSocket
 
-from ems_prepared.util.logger import setup_messages_logger, setup_state_logger
+from ems_prepared.util.logger import (
+    setup_messages_logger,
+    setup_session_logger,
+    setup_state_logger,
+)
+
+type MaybeAwaitable = Awaitable[None] | None
 
 
 class InputMode(Enum):
@@ -46,7 +54,6 @@ class Settings(BaseSettings):
         description="Optional experiment/run name to group logs into a subdirectory. "
         "When provided, logs are saved to logs/{experiment_name}/{user_id}/{session_id}/. "
         "Can also be set via EXPERIMENT_NAME environment variable.",
-        validation_alias="EXPERIMENT_NAME",
     )
     scenario_name: str | None = Field(
         default=None,
@@ -84,8 +91,12 @@ class Settings(BaseSettings):
     # Runtime
     locale: Locale = Locale.EN
     call_origin: InputMode = Field(default=InputMode.CLI, frozen=True)
-    emit: Callable[[str], Awaitable[None]] | Callable[[str], None] = Field(
-        exclude=True, repr=False, default=print
+
+    async def async_print(self, msg: str):
+        self.logger.info(msg)
+
+    emit: Callable[[Settings, str], MaybeAwaitable] = Field(  # type: ignore
+        exclude=True, repr=False, default=async_print
     )
 
     @cached_property

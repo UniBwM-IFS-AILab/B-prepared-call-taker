@@ -638,7 +638,9 @@ with demo:
         )
         return (
             *set_input_interactive(not is_complete),
-            gr.update(visible=not is_complete),  # Hide reset when complete
+            gr.update(
+                visible=not is_complete, interactive=not is_complete
+            ),  # Hide reset when complete
             gr.update(
                 interactive=args.picker_interactive if not is_complete else False
             ),  # md_picker
