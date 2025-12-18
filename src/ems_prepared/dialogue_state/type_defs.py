@@ -11,12 +11,12 @@ from typing import TypeAlias
 
 Unknown: TypeAlias = None
 # type Unknown = None  # this does not work
-
 # Unknown = NewType("Unknown", tp=None)
 
 type KnownBoolean = Unknown | bool
 # KnownBoolean: TypeAlias = Unknown | bool
 type KnownString = str | Unknown
+
 
 # todo maybe move these elswhere
 type RD1_Boolean = KnownBoolean
@@ -38,7 +38,7 @@ def tristate(values: Iterable[KnownBoolean]) -> KnownBoolean:
         # at least one None, nothing True yet
         return None
 
-    return reduce(tri_combine, values, False)
+    return reduce(tri_combine, values, False)  # type: ignore
 
 
 class EmergencyType(StrEnum):
@@ -46,8 +46,9 @@ class EmergencyType(StrEnum):
 
     INTRO = auto()
     MEDICAL = auto()
-    # TCPR = auto()
     FIRE = auto()
+
+    # TCPR = auto()
     # FIRE_MEDICAL = auto()
     # NON_EMERGENCY = auto()
 

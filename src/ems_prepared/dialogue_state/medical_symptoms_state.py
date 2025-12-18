@@ -74,7 +74,7 @@ class MedicalEmergency(
         }
 
     # computed fields are not shown to pydantic_ai agents when enforcing strutured output using output_type
-    @computed_field  # type: ignore[prop-decorator]
+    @computed_field
     @property
     def rd1(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd1_symptoms."""
@@ -86,7 +86,7 @@ class MedicalEmergency(
             )
         )
 
-    @computed_field(description="")  # type: ignore[prop-decorator]
+    @computed_field
     @property
     def rd2(self) -> SkipJsonSchema[KnownBoolean]:
         """Returns the count of symptoms in rd2_symptoms."""

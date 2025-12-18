@@ -65,7 +65,7 @@ class Neurological(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Neurological Deficits",
-        description="Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system).",
+        description="Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system). Should only be true if consciousness is not normal.",
     )
     prolonged_deadly_seizure: RD2_Boolean = Field(
         default=None,

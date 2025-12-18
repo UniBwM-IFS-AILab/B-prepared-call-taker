@@ -21,7 +21,7 @@ class TeleCpr(BaseModel):
         description="Indicates if the patient is currently experiencing cardiac arrest.",
     )
 
-    ems_arrived: KnownBoolean = Field(
+    ems_arrived: SkipJsonSchema[KnownBoolean] = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Emergency Medical Services (EMS) Arrived",

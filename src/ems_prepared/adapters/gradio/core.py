@@ -150,7 +150,7 @@ async def init_session(
     if policy_setting == "agent":
         agent = build_emergency_agent()
         state = EmergencyCall()
-        policy = AgentPolicy(agent=agent, state=state, history=[])
+        policy = AgentPolicy(agent=agent, state=state, history=[], deps=deps)
     else:
         policy = await build_graph()
 
@@ -306,7 +306,12 @@ async def invoke_agent(
         raise ValueError("Agent is not initialized.")
 
     # Run the agent and capture any provider messages
-    result, captured_messages = await run_agent_with_capture(agent, agent_history, msg)
+    result, captured_messages = await run_agent_with_capture(
+        agent,
+        agent_history,
+        msg,
+        instructions=f"Only use the following language: {deps.locale.value}.\n",
+    )
     deps.logger.info(f"agent_history_len={len(agent_history)} usage={result.usage()}")
 
     # Log provider/model information when available

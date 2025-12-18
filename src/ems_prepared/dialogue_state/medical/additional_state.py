@@ -6,6 +6,7 @@ from ems_prepared.dialogue_state.medical.base_models import (
     RD2_Boolean,
 )
 from ems_prepared.dialogue_state.type_defs import Unknown
+
 # TODO: There is no concrete ordering for these questions, we should pick appropriate ones based on the current context / dialogue history
 
 
@@ -153,10 +154,10 @@ class Pain(KeyQuestionSymptom):  # 5.5
 class Psychiatric(KeyQuestionSymptom):
     """Model representing a patient's psychiatric status with various key questions."""
 
-    psychiatric_behaviour: RD1_Boolean = Field(
+    mental_health_issue: RD1_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
-        title="Acute Psychiatric Disorder",
+        title="Acute Issues with Mental Health",
         description="Indicates if the patient is currently experiencing an acute psychiatric disorder (sudden onset of mental health issues).",
     )
 

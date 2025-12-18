@@ -54,7 +54,10 @@ class EmergencyCall(MedicalEmergency):
     situation_description: KnownString = Field(
         default=None,
         title="Situation Description",
-        description="Description of what just happened. The reason for calling the emergency line.",
+        description=(
+            "Description of what just happened. The reason for calling the emergency line. \n"
+            "This should only be filled once."
+        ),
     )
 
     # function property to check if all rd1 and r2 symptoms are False (not None / Unknown)
