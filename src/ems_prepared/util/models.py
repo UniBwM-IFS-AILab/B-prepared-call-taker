@@ -244,11 +244,11 @@ def get_default_models(
         model_names = overrides
     else:
         model_names = [
-            # "github:gpt-5",
             "google-gla:gemini-2.5-flash",  # https://aistudio.google.com/api-keys
             # "google-gla:gemini-2.5-pro",
             # "google-gla:gemini-3-flash-preview",
             # "google-gla:gemini-3-pro-preview",
+            # "github:gpt-5",
             # "openai:gpt-5",
             # "github:gpt-5-mini",
             # "openai:gpt-5-mini",
