@@ -2,28 +2,24 @@
 
 from __future__ import annotations
 
-import inspect
-import logging
-from typing import Annotated, Any, override
+from typing import Annotated, override
 
-# logger = logging.getLogger(__name__)
-from loguru import logger
-from parso.tree import BaseNode
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from pydantic_ai._run_context import AgentDepsT
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 
+from ems_prepared.agents.emergency_type_agent import emergency_type_agent
+from ems_prepared.agents.enough_info_agent import enough_info_agent
 from ems_prepared.agents.state_fill_agent import (
-    emergency_type_agent,
-    enough_info_agent,
-    response_cleanup,
-    state_fill_agent,
     state_fill_task,
 )
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
-from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType, Unknown
+from ems_prepared.dialogue_state.structured_output import (
+    NonEmptyEmergencyCall,
+    NonEmptyStr,
+)
+from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType
 from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.helpers import async_wrapper
@@ -84,7 +80,7 @@ class Greeting(MessageNode):
 
         message = self.messages[ctx.deps.locale]
         # asyncio.create_task(tell_user(self.messages[ctx.deps.locale], ctx.deps))
-        await async_wrapper(ctx.deps.emit(message))
+        await async_wrapper(ctx.deps.emit(ctx.deps, message))
         ctx.deps.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": message}
         )
@@ -136,7 +132,7 @@ class ChooseQuestion(EmergencyNode):
 
             return AskCaller(question=next_question)
         except IndexError:
-            logger.debug("No more questions in current set")
+            ctx.deps.logger.debug("No more questions in current set")
             return ChooseSubGraph()
 
 
@@ -185,7 +181,7 @@ class ExtractState(EmergencyNode):
             "", extra={"speaker": "caller", "msg_text": self.response}
         )
 
-        parse_result: EmergencyCall | str = await state_fill_task(
+        parse_result: NonEmptyEmergencyCall | NonEmptyStr = await state_fill_task(
             self.question, self.response, ctx
         )
 
@@ -211,7 +207,7 @@ class ExtractState(EmergencyNode):
 
 @dataclass
 class EvaluateAgentOutput(EmergencyNode):
-    run_result: EmergencyCall | str
+    run_result: NonEmptyEmergencyCall | NonEmptyStr
 
     @override
     async def run(
@@ -222,7 +218,10 @@ class EvaluateAgentOutput(EmergencyNode):
         # | Annotated[Disposition, Edge(label="Trigger w/ RD1, no RD2 symptoms detected")]
     ):
         if isinstance(self.run_result, EmergencyCall):
-            logger.info("Model returned new data")
+            ctx.deps.logger.info("Model returned new data")
+            ctx.deps.logger.debug(
+                f"New extracted state: {self.run_result.model_dump(exclude_none=True)}"
+            )
 
             return MergeState(self.run_result)
 
@@ -240,16 +239,17 @@ class EvaluateAgentOutput(EmergencyNode):
             return AskCaller(question=self.run_result)
 
 
+# TODO: this can use merge_state from agent.py
 @dataclass
 class MergeState(EmergencyNode):
-    new_state: EmergencyCall
+    new_state: NonEmptyEmergencyCall
 
     @override
     async def run(
         self, ctx: GraphRunContext[GraphState, Settings]
     ) -> (
         Annotated[EvaluateState, Edge(label="New State merged")]
-        | Annotated[Disposition, Edge(label="Accept RD1 as final")]
+        # | Annotated[Disposition, Edge(label="Accept RD1 as final")]
     ):
         ctx.deps.logger.debug(
             f"Old State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
@@ -265,18 +265,10 @@ class MergeState(EmergencyNode):
             f"Merged State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
 
-        # Log the merged state as JSON
-        state_data = ctx.state.model_dump(exclude_none=True, exclude={"questions"})
         ctx.deps.state_logger.info(
-            {"state": state_data},
+            {"state": ctx.state.model_dump(exclude_none=True, exclude={"questions"})},
             extra={"event": "state_merged"},
         )
-
-        # if (
-        #     rd1_already_done
-        # ):  # NOTE: we could not extract new state (RD2) and already have an outcome
-        #     logger.info("RD1 accepted as final state.")
-        #     return Disposition(DispoType.RD1)
 
         return EvaluateState()
 
@@ -321,7 +313,7 @@ class ChooseSubGraph(EmergencyNode):
             EvaluateAgentOutput, Edge(label="Force-update emergency type in state")
         ]
     ):
-        logger.info("Forcing Agent to decide the Emergency type...")
+        ctx.deps.logger.info("Forcing Agent to decide the Emergency type...")
 
         result = await emergency_type_agent.run(  # type: ignore
             user_prompt=(
@@ -342,8 +334,8 @@ class RD1(EmergencyNode):
     """ """
 
     questions = {
-        Locale.DE: "Können Sie die Symptome genauer beschreiben?",
-        Locale.EN: "Can you describe the symptoms with more detail?",
+        Locale.DE: "Können Sie die Situation genauer beschreiben?",
+        Locale.EN: "Can you describe the situation with more detail?",
     }
 
     @override
@@ -354,7 +346,8 @@ class RD1(EmergencyNode):
         Annotated[RD2, Edge(label="Increase to RD2")]
         | Annotated[Disposition, Edge(label="Use RD1")]
         | Annotated[AskCaller, Edge(label="Check for RD2")]
-        | Annotated[EvaluateAgentOutput, Edge(label="Evaluate agent output")]
+        # | Annotated[EvaluateAgentOutput, Edge(label="Evaluate agent output")]
+        | Annotated[EvaluateState, Edge(label="Evaluate state")]
     ):
         if ctx.state.call_state.rd1 is not True:
             raise
@@ -362,33 +355,50 @@ class RD1(EmergencyNode):
             ctx.deps.logger.info("Reached RD1")
 
         # Ask at least one time for RD2
-        if ctx.state.call_state.enough_information_gathered is None:
-            ctx.state.call_state.enough_information_gathered = False
-            logger.info("Asking for RD2")
+        if ctx.state.enough_information_gathered is None:
+            ctx.state.enough_information_gathered = False
+            ctx.deps.logger.info("Asking static question for RD2")
             return AskCaller(self.questions[ctx.deps.locale])
 
         # if RD2 is unkown, decide if more question or go to RD1 if already done
         if ctx.state.call_state.rd2 is None:
-            if ctx.state.call_state.enough_information_gathered:
-                logger.info("No more questions needed, accepting RD1")
+            if ctx.state.enough_information_gathered:
+                ctx.deps.logger.info("No more questions needed, accepting RD1")
                 return Disposition(DispoType.RD1)
 
-            elif not ctx.state.call_state.enough_information_gathered:
-                logger.info("Forcing Agent to decide if enough information gathered...")
+            elif not ctx.state.enough_information_gathered:
+                ctx.deps.logger.info(
+                    "Forcing Agent to decide if enough information gathered..."
+                )
 
                 result = await enough_info_agent.run(  # type: ignore
                     user_prompt=(
-                        "Decide if enough information has been gathered based on the current state"
-                        f"State: {ctx.state}"
+                        f"Current State: {ctx.state.call_state.model_dump(exclude_none=True)}\n"
+                    ),
+                    instructions=(
+                        "Based on the current state and previous messages, decide if enough information has been gathered to make a disposition. \n "
+                        "If not enough information has been gathered, respond with a question that asks for more information. \n "
                     ),
                     deps=ctx.deps,  # type: ignore
                     message_history=ctx.state.message_history,
                 )
-                logger.debug(f"Enough info result: {result.output}")
+                ctx.state.message_history.extend(result.new_messages())
+                ctx.deps.logger.debug(f"Enough info result (raw): {result.output!r}")
 
-                return EvaluateAgentOutput(
-                    EmergencyCall(enough_information_gathered=result.output)
-                )
+                if result.output.enough_information_gathered:
+                    ctx.deps.logger.info("Enough information gathered, accepting RD1")
+                    ctx.state.enough_information_gathered = (
+                        result.output.enough_information_gathered
+                    )
+                    return EvaluateState()
+                    # return EvaluateAgentOutput(
+                    #     EmergencyCall(
+                    #         enough_information_gathered=result.output.enough_information_gathered,
+                    #     )
+                    # )
+
+                ctx.deps.logger.info("Asking contextual question for more info")
+                return AskCaller(question=result.output.next_question)
 
         # self.visited = True
         return RD2() if ctx.state.call_state.rd2 else Disposition(DispoType.RD1)
@@ -470,7 +480,7 @@ class Disposition(MessageNode):
         )
 
         message = self.messages[ctx.deps.locale]
-        await async_wrapper(ctx.deps.emit(message))
+        await async_wrapper(ctx.deps.emit(ctx.deps, message))
         ctx.deps.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": message}
         )
