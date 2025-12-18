@@ -9,14 +9,12 @@ from pydantic_ai.output import PromptedOutput
 from pydantic_graph import GraphRunContext
 from rich import print
 
-from ems_prepared.agents.reusable_prompts import calltaker_role
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.util.models import build_models
 from ems_prepared.util.settings import Settings
 
 state_fill_prompt: system_prompt = system_prompt(
-    role=calltaker_role,
     task=(
         "You receive a user provided Answer to a question about the situation"
         "Determine if the caller confirms their current instruction or needs further assistance."
@@ -27,7 +25,7 @@ state_fill_prompt: system_prompt = system_prompt(
         "If the Caller provides information that might map to a variable in the State, return the new state as json."
     ),
     decisions=(
-        "Also ask the caller to specify if you are unsure if a variable should be set or not."
+        "Also ask the caller to specify when you are unsure if a variable should be set or not."
         "Also ask further if the answer does not provide enough information to fill the variable fully."
         "Confirmations can be any affirmation including okay and ready"
     ),
@@ -89,7 +87,7 @@ var_fill_agent = Agent(
         template="Follow the schema: {schema}",
     ),
     deps_type=Settings,
-    system_prompt=(state_fill_prompt.full_prompt),
+    instructions=(state_fill_prompt.full_prompt),
 )
 
 if __name__ == "__main__":

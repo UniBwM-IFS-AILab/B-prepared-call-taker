@@ -1,23 +1,26 @@
-# from google.genai.types import HarmBlockThreshold, HarmCategory
+from typing import Sequence
 
-
-from typing import Literal
-
-from deepdiff import DeepDiff
-from pydantic_ai.agent import Agent, AgentRunResult
-from pydantic_ai.messages import ModelMessage
-from pydantic_ai.models.fallback import FallbackModel
-from pydantic_ai.output import NativeOutput, PromptedOutput
+from argcomplete.io import debug
+from attr.filters import exclude
+from deepdiff.diff import DeepDiff
+from pydantic_ai.agent import AgentRunResult
+from pydantic_ai.messages import (
+    ModelMessage,
+)
 from pydantic_graph import GraphRunContext
 from rich import print
 
+from ems_prepared.agents.history_processors import remove_before_extracion_processor
 from ems_prepared.agents.reusable_prompts import (
     BASE_SYSTEM_PROMPT,
     extend_system_prompt,
 )
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
-from ems_prepared.dialogue_state.type_defs import EmergencyType
+from ems_prepared.dialogue_state.structured_output import (
+    NonEmptyEmergencyCall,
+    NonEmptyStr,
+)
 from ems_prepared.util.models import build_fallback_agent
 from ems_prepared.util.settings import Settings
 
@@ -28,135 +31,83 @@ state_fill_prompt = extend_system_prompt(
         "Extract values from the answer that fit the variables defined in the model."
     ),
     rules=(
-        "When you can extract new information, return ONLY a valid JSON object matching the output schema (no extra text, no additional keys).\n"
-        "If you cannot extract any new values compared to the current state, then ask the user for more information instead of returning JSON.\n"
+        "Never invent or guess values. Only set fields when the user explicitly provided the information or it follows unambiguously.\n"
+        # "When you can extract new information, return ONLY a valid JSON object matching the output schema (no extra text, no additional keys).\n"
+        "If you cannot extract any new values, ask a single open follow-up question ONLY if it is likely to enable extracting new state.\n"
+        # "If you cannot extract any new values compared to the current state, ask a single open follow-up question ONLY if it is likely to enable extracting new state.\n"
         "When you cannot extract new data, you are not allowed to ask for specific fields directly; ask a single open follow-up question.\n"
-        "Use null/None represents unknown values; if the user does not know the anser, return empy JSON."
-        "Never ask the exact same question twice in a row"
+        "Use null/None for unknown values.\n"
+        # "If message history is provided, do not repeat any follow-up question already present there (even if paraphrased); if you cannot think of a meaningfully new follow-up question, return empty JSON {}.\n"
+        "Never ask the exact same question twice in a row."
     ),
     decisions=(
-        "Verify whether the user answered the question you asked; if not, ask the same question again."
+        "Verify whether the caller answered the last question; if not, you may re-ask it once. "
+        "If message history is provided and you already asked that question (or a close paraphrase), "
+        # "do not repeat it and instead ask a meaningfully different open question or extract state if possible."
     ),
+)
+
+
+state_fill_agent = build_fallback_agent(
+    output_type=[NonEmptyEmergencyCall, NonEmptyStr],  # DialogueOutput
+    instructions=state_fill_prompt.full_prompt,
+)
+contextual_question_agent = build_fallback_agent(
+    output_type=NonEmptyStr,  # DialogueOutput
+    instructions=BASE_SYSTEM_PROMPT.full_prompt,
+    history_processors=[remove_before_extracion_processor],
 )
 
 
 async def state_fill_task(
-    # agent: Agent[str, EmergencyCall],
-    prompt: str,
+    question: str,
     user_response: str,
     ctx: GraphRunContext[GraphState, Settings],
-) -> EmergencyCall | str:
-    """Extract structured information from a user's response using AI.
+) -> NonEmptyEmergencyCall | NonEmptyStr:
+    """Extract structured information from a user's response using AI."""
 
-    Parameters
-    ----------
-    prompt : str
-        The question that was asked to the user.
-    response : str
-        The user's response to the question.
-    state : EmergencyCall
-        The current state of the emergency call.
+    # agent_task: str = (
+    #     "Try to extract structured information from the user's answer.\n"
+    #     "Decide if you need any more questions you need to ask.\n"
+    #     f"Only use the following language: {ctx.deps.locale.value}.\n"
+    #     f"Last question from you: {question}.\n"
+    #     f"Answer from caller: {user_response}.\n"
+    # )
+    agent_task: dict = {
+        "user_prompt": (
+            f"Last question from you: {question}.\n"
+            f"Answer from caller: {user_response}.\n"
+        ),
+        "instructions": (
+            "Try to extract structured information from the user's answer.\n"
+            "Decide if you need any more questions you need to ask.\n"
+            f"Only use the following language: {ctx.deps.locale.value}.\n"
+        ),
+    }
 
-    Returns
-    -------
-    EmergencyCall
-        The merged state with extracted information.
-
-    """
-    agent_task: str = (
-        f"Try to extract structured information from the user's answer."
-        "\n"
-        f"Decide if you need no more questions you need to ask."
-        "\n"
-        f"Only use the following language: {ctx.deps.locale.value}"
-        "\n"
-        f"Last question from agent: {prompt} "
-        "\n"  #
-        f"Answer from caller: {user_response} "
-        # "\n"
-        f"Current State: {ctx.state.call_state.model_dump(exclude_none=True)}"
-        # f"State: {state.model_dump_json(indent=2)}"
-        # f"Schema: {state.model_json_schema(mode='serialization')}"
+    # message_history: Sequence[ModelMessage] | None = ctx.state.message_history
+    result: AgentRunResult[
+        NonEmptyEmergencyCall | NonEmptyStr
+    ] = await state_fill_agent.run(  # type: ignore
+        **agent_task,
+        deps=ctx.deps,  # type: ignore
     )
-
-    try:
-        result: AgentRunResult[EmergencyCall | str] = await state_fill_agent.run(  # type: ignore
-            agent_task,
+    if isinstance(result.output, str):  # message_history is None and
+        ctx.deps.logger.info(
+            f"Retrying with full message history, current result {result.output}"
+        )
+        result: AgentRunResult[NonEmptyStr] = await contextual_question_agent.run(  # type: ignore
+            **agent_task,
             deps=ctx.deps,  # type: ignore
-            # message_history=ctx.state.message_history,
+            message_history=ctx.state.message_history,
         )
 
-        # collect history but don't use it here
-        ctx.state.message_history.extend(
-            result.new_messages()
-        )  #  ctx.state.message_history.extend(result.new_messages())
+    debug(result.output.model_dump(exclude_none=True)) if isinstance(
+        result.output, EmergencyCall
+    ) else debug(result.output)
+    ctx.state.message_history.extend(result.new_messages())
+    return result.output
 
-        from devtools import debug
-
-        debug(ctx.state.message_history[-1])
-    except Exception as e:
-        print("Error during state_fill_agent.run:")
-        print(e)
-        raise e
-
-    cleaned = response_cleanup(result.output)
-
-    return cleaned
-
-
-def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
-    """Apply various fixes to strings returned by LLMs."""
-    if isinstance(input, str):
-        # Case: LLM returns markdown codeblock instead of strucured data / code
-        if input.startswith("```") and input.endswith("```"):
-            print("deteced Markdown codeblock in Agent response")
-
-            input = input.removeprefix("```")
-            input = input.removesuffix("```")
-
-            if input.startswith("json"):
-                input = input.removeprefix("json")
-
-        # input = input[input.find("\n") + 1 :  input.rfind("\n")]
-
-        # try to produce String at the end of methods
-        try:
-            return EmergencyCall.model_validate_json(input)
-        except Exception as _:
-            return input
-
-    return input
-
-
-state_fill_agent = build_fallback_agent(
-    output_type=([EmergencyCall, str]),
-    system_prompt=(state_fill_prompt.full_prompt),
-)
-
-emergency_type_agent = build_fallback_agent(
-    output_type=[Literal[EmergencyType.MEDICAL, EmergencyType.FIRE]],
-    system_prompt=(state_fill_prompt.full_prompt),
-)
-
-enough_info_prompt = extend_system_prompt(
-    BASE_SYSTEM_PROMPT,
-    task=(
-        "Decide if enough information has been gathered based on the current state to make a final decision. "
-        "Return ONLY a JSON boolean: true if enough info is gathered, false otherwise."
-    ),
-    rules=(
-        "You must return a bare JSON boolean (true/false), no extra keys, no text. "
-        "Evaluate the completeness of key fields like patient_symptoms, location, and outcomes."
-    ),
-    decisions=(
-        "Return true if the state is sufficient for disposition without more questions; otherwise false."
-    ),
-)
-
-enough_info_agent = build_fallback_agent(
-    output_type=bool,
-    system_prompt=(enough_info_prompt.full_prompt),
-)
 
 if __name__ == "__main__":
     state = EmergencyCall()
