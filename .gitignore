@@ -16,7 +16,7 @@ wheels/
 # secretes
 .envrc
 .env
-.env.json
+*env.json
 .gradio/certificate.pem
 
 # logs

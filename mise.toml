@@ -1,6 +1,6 @@
 [settings]
-python.uv_venv_auto = true
 experimental = true
+python.uv_venv_auto = true
 idiomatic_version_file_enable_tools = ["python"]
 windows_shim_mode = 'symlink'
 
@@ -12,8 +12,9 @@ ttyd = "latest"
 pre-commit = "latest"
 ollama = "latest"
 
+
 [env]
-_.file = ".env.json"
+_.file = [".env.json", "env.json"]
 AGE_PUBLIC_KEY = "age194dj36ngpzv4rg9pzkmxed6l2gr894de47d370qp28ln7eku440s8l6j63"
 EDITOR = 'code'
 # TODO: check if this causes bugs on linux, do we need the else branch?
@@ -63,11 +64,12 @@ run = "streamlit run {{config_root}}/src/ems_prepared/adapters/streamlit_app.py"
 
 
 [tasks.gradio]
-run = "uv run {{config_root}}/src/ems_prepared/adapters/gradio/app.py --docs-dir ./docs/scenarios"
+# env = { SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/XXX/YYY/ZZZ" }
+run = "uv run --no-sync {{config_root}}/src/ems_prepared/adapters/gradio/app.py --docs-dir ./docs/scenarios"
 
 [tasks.gradio_dev]
 env = { GRADIO_DEBUG = "1" }
-run = "uv run gradio {{config_root}}/src/ems_prepared/adapters/gradio/app.py"
+run = "uv run --no-sync gradio {{config_root}}/src/ems_prepared/adapters/gradio/app.py"
 
 [tools."ubi:graphviz/graphviz"]
 version = "13.0.1"
