@@ -1,37 +1,33 @@
 """Agent representing an LLM-Driven loop for variable extraction and outcome determination."""
 
-# pyright: strict
+from __future__ import annotations
+
 import asyncio
-import json
-import logging
 import logging
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Annotated
 
-from loguru import logger
-from pydantic.main import BaseModel
-from pydantic.types import StringConstraints
 from pydantic_ai._agent_graph import capture_run_messages
 from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.messages import ModelMessage, ModelResponse
-
-# removed unused imports
-from pydantic_core import to_jsonable_python  # type: ignore
 from rich import print
 
+from ems_prepared.agents.history_processors import remove_before_extracion_processor
 from ems_prepared.agents.reusable_prompts import (
     BASE_SYSTEM_PROMPT,
     extend_system_prompt,
 )
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.dialogue_state.structured_output import DialogueOutput
 from ems_prepared.policies.pydantic_graph.utils import save_state_json
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.logger import flush_logger
 from ems_prepared.util.models import (
     build_fallback_agent,
 )
+
+# removed unused imports
+from ems_prepared.util.save_utils import save_message_history_json
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
@@ -42,12 +38,13 @@ logger = logging.getLogger(__name__)
 class AgentPolicy:
     """Container for agent policy state."""
 
-    agent: Agent[None, DialogueOutput]
+    agent: Agent[Settings, DialogueOutput]
     state: EmergencyCall
     history: list[ModelMessage]
+    deps: Settings
 
 
-def build_emergency_agent() -> Agent[None, DialogueOutput]:
+def build_emergency_agent(deps: Settings) -> Agent[Settings, DialogueOutput]:
     """Build and return the emergency call agent with configured system prompt.
 
     Returns:
@@ -57,35 +54,38 @@ def build_emergency_agent() -> Agent[None, DialogueOutput]:
     prompt: system_prompt = extend_system_prompt(
         BASE_SYSTEM_PROMPT,
         task=(
-            "You receive a phone call from a caller who wants to report an emergency. "
-            "First, present an appropriate greeting. "
-            "Begin determining the basic information about the emergency. "
-            "The outcome and dispatch decisions are determined automatically by other systems. "
+            "You receive a phone call from a caller who wants to report an emergency. \n"
+            "First, present an appropriate greeting. \n"
+            "Then, begin determining the basic information about the emergency. \n"
+            "The outcome and dispatch decisions are determined automatically by other systems. \n"
             "This is time-critical, so keep the conversation efficient and to the point."
         ),
         rules=(
             "Only ask questions that help you fill personalia or RD1-related variables; do not ask about anything outside of the schema.\n"
-            "Before RD1 is true, you may not ask any questions that target RD2 symptoms or RD2-level detail.\n"
+            "You may not ask any questions that target RD2 symptoms directly.\n"
             "When speaking to the caller, never mention the words 'RD1', 'RD2', 'schema', 'JSON', or 'State'; these are internal concepts."
+            "only when at least one outcome is true, decide if you have enough information or need to ask further quesitons."
         ),
         decisions=(
             "Use the provided schema to understand which fields belong to personalia and which correspond to RD1 and RD2.\n"
             "Continue asking targeted questions only as needed to determine and fill RD1-related variables.\n"
             "Only AFTER RD1 is true are you allowed to ask for more details in a single generic and open question.\n"
             "Do not mention RD2 or any RD2 symptom names directly in this question.\n"
-            "Do not ask any additional new questions specifically targeting RD2 symptoms after this generic question."
+            "Do not ask any additional new questions specifically targeting RD2 symptoms after this generic question.\n"
         ),
     )
 
     agent = build_fallback_agent(
         output_type=DialogueOutput,
         system_prompt=prompt.full_prompt,
+        # history_processors=[remove_before_extracion_processor],
+        instructions=f"Only use the following language: {deps.locale.value}.\n",
     )
     return agent  # type: ignore
 
 
 async def run_agent_with_capture(
-    agent: Agent[None, DialogueOutput],
+    agent: Agent[Settings, DialogueOutput],
     agent_history: list[ModelMessage],
     user_prompt: str | None,
 ) -> tuple[AgentRunResult[DialogueOutput], list]:
@@ -99,13 +99,22 @@ async def run_agent_with_capture(
     Returns:
         Tuple of (AgentRunResult, captured_messages_list)
     """
+
+    logger.debug(f"{len(agent_history)} messages in history")
+    # from devtools import debug
+
+    # debug(agent_history[-4:])
     with capture_run_messages() as captured_messages:
         if user_prompt is None:
-            result = await agent.run(message_history=agent_history, user_prompt="")  # type: ignore
+            result = await agent.run(
+                user_prompt="",
+                message_history=agent_history,
+            )
         else:
             result = await agent.run(
-                user_prompt=user_prompt, message_history=agent_history
-            )  # type: ignore
+                user_prompt=user_prompt,
+                message_history=agent_history,
+            )
 
     return result, list(captured_messages)
 
@@ -127,49 +136,49 @@ def extract_last_model_response(
 def update_history_and_merge_state(
     agent_history: list[ModelMessage],
     result: AgentRunResult[DialogueOutput],
-    state: EmergencyCall,
+    current_state: EmergencyCall,
     deps: Settings,
     caller_msg: str | None = None,
 ) -> tuple[bool, str | None]:
-    """Extend agent_history, merge result state into current state, log operator/question, and return (is_complete, next_question).
-
-    Args:
-        agent_history: Mutable message history to extend (modified in place).
-        result: AgentRunResult returned from the agent run.
-        state: Current EmergencyCall to merge into.
-        deps: Settings for logging.
-        caller_msg: Optional caller message used for extraction logging.
-
-    Returns:
-        (is_complete: bool, next_question: str | None)
+    """Extend agent_history, merge result state into current state, log operator/question,
+    and return (is_complete, next_question).
     """
+
     # Extend history with new messages
     agent_history.extend(result.new_messages())
 
     # Merge any returned state
-    if result.output and getattr(result.output, "state", None) is not None:
-        process_state_update(state, result.output.state, deps)
+    new_state = result.output.state
+    if new_state is not None:
+        merge_state(current_state, new_state, deps)
 
     # Check completion
-    is_complete = check_completion(state)
-
+    is_complete = (
+        check_completion(current_state, deps=deps)
+        or result.output.enough_information_gathered
+    )
+    deps.logger.debug(
+        f"Completion check: {is_complete}, enough_info: {result.output.enough_information_gathered}, no outcomes: {current_state.no_outcomes}, rd2: {current_state.rd2}"
+    )
     if is_complete:
         deps.state_logger.info(
-            {"state": state.model_dump(exclude_none=True)}, extra={"event": "complete"}
+            {"state": current_state.model_dump(exclude_none=True)},
+            extra={"event": "complete"},
         )
         return True, None
 
-    # Log operator question
-    next_question = getattr(result.output, "next_question", None)
+    # Log operator question (may be None)
+    next_question = result.output.next_question
     deps.messages_logger.info(
-        "", extra={"speaker": "operator", "msg_text": next_question}
+        "",
+        extra={"speaker": "operator", "msg_text": next_question},
     )
 
     # Log extraction event if caller response present
-    if caller_msg is not None:
+    if caller_msg is not None and new_state is not None:
         deps.state_logger.info(
             {
-                "result": result.output.state.model_dump(exclude_none=True),
+                "result": new_state.model_dump(exclude_none=True),
                 "question": next_question,
                 "response": caller_msg,
             },
@@ -179,8 +188,8 @@ def update_history_and_merge_state(
     return False, next_question
 
 
-def process_state_update(
-    state: EmergencyCall,
+def merge_state(
+    current_state: EmergencyCall,
     new_state: EmergencyCall,
     deps: Settings,
 ) -> None:
@@ -191,13 +200,15 @@ def process_state_update(
         new_state: New state to merge from
         deps: Settings with loggers
     """
+
+    deps.logger.debug(f"Old State:\t{current_state.model_dump(exclude_none=True)}")
     deps.logger.debug(f"New State:\t{new_state.model_dump(exclude_none=True)}")
 
     # Merge new state into existing state
-    _ = ignore_empty_merger.merge(state.__dict__, new_state.__dict__)
+    _ = ignore_empty_merger.merge(current_state.__dict__, new_state.__dict__)
 
     # Log the merged state as JSON (same format as graph's MergeState node)
-    state_data = state.model_dump(exclude_none=True)
+    state_data = current_state.model_dump(exclude_none=True)
     deps.state_logger.info(
         {"state": state_data},
         extra={"event": "state_merged"},
@@ -205,7 +216,7 @@ def process_state_update(
     deps.logger.debug(f"Merged State:\t{state_data}")
 
 
-def check_completion(state: EmergencyCall) -> bool:
+def check_completion(state: EmergencyCall, deps: Settings | None = None) -> bool:
     """Check if the emergency call has reached a completion state.
 
     Args:
@@ -218,8 +229,8 @@ def check_completion(state: EmergencyCall) -> bool:
     if state.no_outcomes:
         return False
 
-    if state.enough_information_gathered:
-        return True
+    # if state.enough_information_gathered:
+    #     return True
 
     if state.rd1:
         (deps.logger if deps else logger).info("reached RD1")
@@ -239,17 +250,16 @@ def save_agent_run_results(
         message_history: Complete message history
         deps: Settings with save_path
     """
-    prompts_file_path = Path(deps.save_path / "prompts.json")
-    prompts_json: dict[str, str] = to_jsonable_python(message_history)
-    _ = prompts_file_path.write_text(json.dumps(prompts_json), encoding="utf-8")
+    save_message_history_json(message_history, deps.save_path)
 
     save_state_json(state, deps.save_path)
 
 
+# FIXME: Why does this get agent and result as input? Improve API?
 async def talk_to_user(
     state: EmergencyCall,
     result: AgentRunResult[DialogueOutput],
-    agent: Agent[None, DialogueOutput],
+    agent: Agent[Settings, DialogueOutput],
     deps: Settings,
 ) -> AgentRunResult[DialogueOutput]:
     """Talk to the user based on the agent's output type. Intended to be used without graphs with agents directly."""
@@ -277,8 +287,13 @@ async def talk_to_user(
     # Run the agent with capture using the accumulated messages from the previous run
     prev_messages = result.all_messages()
     new_result, captured_messages = await run_agent_with_capture(
-        agent, prev_messages, followup_prompt
+        agent,
+        prev_messages,
+        followup_prompt,
     )
+    from devtools import debug
+
+    debug(new_result)
 
     # Log provider/model info when available
     response_obj = extract_last_model_response(new_result, captured_messages)
@@ -298,13 +313,13 @@ async def talk_to_user(
 async def main():
     """Run the emergency call agent in CLI mode."""
     state = EmergencyCall()
-    agent = build_emergency_agent()
 
     deps = Settings(name="llm_loop")
+    agent = build_emergency_agent(deps)
 
     result: AgentRunResult[DialogueOutput] = await agent.run()
     while result := await talk_to_user(state, result, agent, deps=deps):
-        if check_completion(state):
+        if check_completion(state, deps=deps):
             print("Outcome reached")
             break
 

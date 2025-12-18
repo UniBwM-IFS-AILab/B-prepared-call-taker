@@ -148,7 +148,7 @@ async def init_session(
 
     policy: AgentPolicy | Graph[GraphState, Settings, EmergencyCall]
     if policy_setting == "agent":
-        agent = build_emergency_agent()
+        agent = build_emergency_agent(deps)
         state = EmergencyCall()
         policy = AgentPolicy(agent=agent, state=state, history=[], deps=deps)
     else:
@@ -310,7 +310,6 @@ async def invoke_agent(
         agent,
         agent_history,
         msg,
-        instructions=f"Only use the following language: {deps.locale.value}.\n",
     )
     deps.logger.info(f"agent_history_len={len(agent_history)} usage={result.usage()}")
 
