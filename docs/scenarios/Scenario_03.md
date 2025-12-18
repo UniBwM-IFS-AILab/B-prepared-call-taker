@@ -10,7 +10,7 @@ page: 20
 
 ## Situation Description
 
-- Your Wife has Chest pain
+- Your wife has chest pain
 - Breathing worsens this pain
 
 <!-- ## Additional Details -->

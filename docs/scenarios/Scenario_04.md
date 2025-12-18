@@ -15,4 +15,4 @@ page: 20
 
 <!-- ## Additional Details -->
 
-- There is no leg fracture.
+- Open fracture of leg.
