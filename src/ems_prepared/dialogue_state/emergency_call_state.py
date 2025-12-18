@@ -10,17 +10,16 @@ import logging
 from typing import TypeVar
 
 from pydantic import Field
-from pydantic.functional_validators import model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 from ems_prepared.dialogue_state.medical_symptoms_state import MedicalEmergency
-from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString, Unknown
+from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString
 
 T = TypeVar("T")
 _SENTINEL = object()
 logger = logging.getLogger(__name__)
 
 
-# @dataclass
 class EmergencyCall(MedicalEmergency):
     """Model representing an emergency call with essential details."""
 
@@ -40,17 +39,20 @@ class EmergencyCall(MedicalEmergency):
             "It must be precise enough so that is distinct within the area of the department that takes the call."
         ),
     )
-    emergency_type: EmergencyType | None = Field(
+    emergency_type: SkipJsonSchema[EmergencyType | None] = Field(
         default=None,
         examples=[
             EmergencyType.FIRE,
             EmergencyType.MEDICAL,
+            EmergencyType.INTRO,
             # EmergencyType.FIRE_MEDICAL,
             # EmergencyType.NON_EMERGENCY,
         ],
         title="Emergency Type",
         description="Type of emergency (e.g., medical, fire, non-emergency).",
+        # exclude=True,
     )
+
     situation_description: KnownString = Field(
         default=None,
         title="Situation Description",
@@ -77,23 +79,26 @@ class EmergencyCall(MedicalEmergency):
 
         return all(outcome is False for outcome in outcome_vars)
 
-    enough_information_gathered: Annotated[
-        bool | None,
-        Field(
-            description=(
-                "Set this to true only when you believe you have collected enough "
-                "information from the user to make a final decision about how to handle the case. "
-            )
-        ),
-    ] = None
 
-    @model_validator(mode="after")
-    def enforce_invariants(self) -> EmergencyCall:
-        if self.enough_information_gathered and not self.rd1:
-            # Option A: hard fail
-            # raise ValueError("ready_to_finalize can only be True when RD1 is True.")
+def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
+    """Apply various fixes to strings returned by LLMs."""
+    if isinstance(input, str):
+        # Case: LLM returns markdown codeblock instead of strucured data / code
+        if input.startswith("```") and input.endswith("```"):
+            print("deteced Markdown codeblock in Agent response")
 
-            # Option B: silently normalize (instead of raising)
-            self.enough_information_gathered = True
-            # object.__setattr__(self, "information_gathering_complete", False)
-        return self
+            input = input.removeprefix("```")
+            input = input.removesuffix("```")
+
+            if input.startswith("json"):
+                input = input.removeprefix("json")
+
+        # input = input[input.find("\n") + 1 :  input.rfind("\n")]
+
+        # try to produce String at the end of methods
+        try:
+            return EmergencyCall.model_validate_json(input)
+        except Exception as _:
+            return input
+
+    return input
