@@ -121,6 +121,13 @@ async def stream_policy_messages(
                     history, COMPLETION_MESSAGE
                 ):
                     yield updated_history
+                deps.messages_logger.info(
+                    "",
+                    extra={
+                        "speaker": "operator",
+                        "msg_text": COMPLETION_MESSAGE.content,
+                    },
+                )
                 flush_logger(deps.state_logger)
                 flush_logger(deps.messages_logger)
                 break
@@ -521,6 +528,16 @@ with demo:
         old_policy, old_deps: Settings | None, user_id: str, scenario_name: str | None
     ):
         """Reset session and prepare to return to confirmation step."""
+        if old_deps is None and old_policy is None:
+            # No active session at the time this event was triggered -> do nothing.
+            # This prevents stale picker events from wiping a newly started session.
+            return (
+                gr.skip(),  # policy_state
+                gr.skip(),  # deps_state
+                gr.skip(),  # chatbot
+                # ... gr.skip() for every survey/reset output you currently return ...
+                gr.skip(),  # session_info_display (already updated elsewhere)
+            )
         await cleanup_session(old_policy, old_deps)
         # Return state updates (walkthrough navigation is handled separately)
         # Returns: policy_state, deps_state, chatbot, then one update per survey radio,
@@ -548,7 +565,7 @@ with demo:
         )
 
     gr.on(
-        triggers=[reset.click, md_picker.input],
+        triggers=[reset.click],  # , md_picker.input
         fn=handle_reset,
         inputs=[policy_state, deps_state, user_id_state, md_picker],
         outputs=[
@@ -562,6 +579,7 @@ with demo:
             next_step_3,
             session_info_display,
         ],
+        queue=False,
     ).then(
         lambda: (
             gr.update(visible=True),
@@ -665,16 +683,19 @@ with demo:
 
     def check_all_answered(*values):
         """Enable submit button only when all survey questions are answered."""
-        all_answered = all(v is not None for v in values)
+        all_answered = all(value is not None for value in values)
         return gr.update(interactive=all_answered)
 
-    # Wire each radio's change event to validation
-    for radio in survey_radios:
-        radio.change(
-            check_all_answered,
-            inputs=survey_radios,
-            outputs=survey_submit,
-        )
+    gr.on(
+        triggers=[radio.change for radio in survey_radios],
+        fn=check_all_answered,
+        inputs=survey_radios,
+        outputs=survey_submit,
+        queue=False,  # dont compete with long chatbot events
+        trigger_mode="always_last",  # last interaction wins
+        concurrency_limit=1,  # avoid overlapping updates to same button
+        concurrency_id="survey_validation",
+    )
 
     def handle_survey_submit(deps: Settings | None, feedback: str, *responses):
         """Save survey responses and show thank-you message."""
@@ -788,7 +809,7 @@ if __name__ == "__main__":
     # Use the queue for scalability
     app, local_url, share_url = demo.queue(default_concurrency_limit=16).launch(
         pwa=True,
-        share=True,
+        share=not args.debug,
         css="""
             .icon-button-wrapper.top-panel { display: none !important; }
             #chat_walkthrough > div:first-child { display: none !important; }

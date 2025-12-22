@@ -311,6 +311,7 @@ async def invoke_agent(
         agent_history,
         msg,
     )
+    deps.messages_logger.info("", extra={"speaker": "caller", "msg_text": msg})
     deps.logger.info(f"agent_history_len={len(agent_history)} usage={result.usage()}")
 
     # Log provider/model information when available
