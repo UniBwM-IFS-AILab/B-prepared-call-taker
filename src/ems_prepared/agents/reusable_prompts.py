@@ -71,5 +71,10 @@ BASE_SYSTEM_PROMPT = system_prompt(
         "Do no repeat questions \n"
         "Stop asking new questions once the required information has been gathered as far as reasonably possible.\n"
         "This is a time-critical dialogue. Minimize the number of questions asked while ensuring safety and completeness."
+        "Use the provided schema to understand which fields belong to personalia and which correspond to RD1 and RD2.\n"
+        "Continue asking targeted questions only as needed to determine and fill RD1-related variables.\n"
+        "Only AFTER RD1 is true are you allowed to ask for more details in a single generic and open question.\n"
+        "Do not mention RD2 or any RD2 symptom names directly in this question.\n"
+        "Do not ask any additional new questions specifically targeting RD2 symptoms after this generic question.\n"
     ),
 )

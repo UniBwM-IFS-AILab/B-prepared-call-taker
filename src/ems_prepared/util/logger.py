@@ -8,10 +8,12 @@ import json
 import logging
 import sys
 from datetime import datetime
+from itertools import chain, zip_longest
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Set, TypedDict
 
 import rich.traceback
+from colorlog import ColoredFormatter
 from pydantic import BaseModel
 from rich.console import Console
 from rich.logging import RichHandler
@@ -130,22 +132,58 @@ def setup_session_logger(
     session_id: str,
     level: int = logging.DEBUG,
 ) -> logging.Logger:
+    """
+    Create a per-session logger that writes to `save_path / "stdout.log"`.
+
+    This function:
+    - creates a `FileHandler` that writes directly to the log file.
+    """
     log_path = save_path / "stdout.log"
 
+    # Create the session logger
     logger = logging.getLogger(f"ems.session.{session_id}")
     logger.setLevel(level)
-    logger.propagate = False
-    logger.handlers.clear()
+    logger.propagate = False  # Prevent propagation to the root logger
+    logger.handlers.clear()  # Clear existing handlers
 
-    console_handler = build_rich_console_handler()
+    format_dict = {
+        "%(asctime)s.%(msecs)03d\t": "",
+        "%(levelname)-8s\t": "%(log_color)s",
+        "[%(filename)s:%(funcName)s:%(lineno)d] ": "%(blue)s",
+        "%(message)s": "%(white)s",
+    }
+    format_plain = "".join(format_dict.keys())
+    format_color = "".join(map(lambda kv: kv[1] + kv[0], format_dict.items()))
+    datefmt = "%Y-%m-%d %H:%M:%S"
+
+    # Create and attach a file handler (plain formatter)
     file_handler = build_file_handler(log_path, level=level)
-
-    # Optional: add filters here
-    # console_handler.addFilter(PydanticSanitizingFilter(["message_history"]))
-    # file_handler.addFilter(PydanticSanitizingFilter(["message_history"]))
-
-    logger.addHandler(console_handler)
+    file_handler.setFormatter(logging.Formatter(format_plain, datefmt))
+    file_handler.addFilter(PydanticSanitizingFilter(["message_history"]))
     logger.addHandler(file_handler)
+
+    colored_formatter = ColoredFormatter(
+        fmt=format_color,
+        datefmt=datefmt,
+        reset=True,
+        log_colors={
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red,bg_white",
+        },
+        secondary_log_colors={},
+        style="%",
+    )
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(level)
+    # Color only when stdout is a tty to avoid ANSI escape codes in redirected output
+    stream_handler.setFormatter(colored_formatter)
+    stream_handler.addFilter(PydanticSanitizingFilter(["message_history"]))
+    logger.addHandler(stream_handler)
+    # Make warnings go through logging (so warnings.warn() -> 'py.warnings')
+    logging.captureWarnings(True)
 
     logger.info(f"Log Path: {save_path}")
     return logger
@@ -233,4 +271,4 @@ def setup_global_logging(level: int = logging.INFO) -> logging.Logger:
     return app_logger
 
 
-setup_global_logging()
+# setup_global_logging()
