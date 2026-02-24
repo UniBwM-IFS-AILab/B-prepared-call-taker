@@ -5,18 +5,23 @@ readme = "README.md"
 requires-python = ">=3.13"
 version = "0.1.0"
 dependencies = [
+  "colorlog>=6.10.1",
   "deepmerge>=2.0",
   "fastapi>=0.116.1",
   "gradio>=6.1.0",
   "langgraph>=1.0.3",
   "loguru>=0.7.3",
+  "marimo>=0.18.4",
   "numpy>=2.3.1",
   "pycountry>=24.6.1",
   "pydantic-ai>=0.4.3",
   "pydantic-settings>=2.10.1",
   "pyjson5>=1.6.9",
   "python-dotenv-vault>=0.7",
+  "pyzmq>=27.1.0",
   "rapidfuzz>=3.13.0",
+  "scipy>=1.16.3",
+  "seaborn>=0.13.2",
 ]
 
 [build-system]
@@ -35,16 +40,14 @@ dev = [
   "pre-commit>=4.2.0",
   "ptpython>=3.0.30",
   "pyrefly",
-  "ruff",
   "toml-sort>=0.24.2",
-  "ty",
   "deepdiff>=8.5.0",
   "loguru>=0.7.3",
   "pyright>=1.1.403",
   "mypy>=1.17.1",
   "pandas>=2.3.3",
   "odfpy>=1.4.1",
-  "marimo>=0.17.7",
+  "marimo[recommended]>=0.17.7",
   "streamlit>=1.51.0",
   "gradio>=6.0.0",
 ]

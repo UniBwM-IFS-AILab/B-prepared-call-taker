@@ -10,7 +10,7 @@ page: 26
 
 ## Situation Description
 
-- You Husband has fallen in the early morning.
+- Your Husband has fallen in the early morning.
 - He cannot walk anymore.
 - His right ankle has swollen greatly.
 

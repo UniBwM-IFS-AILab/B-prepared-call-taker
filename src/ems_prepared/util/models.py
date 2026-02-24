@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Any
 
 from httpx._client import AsyncClient
 from httpx._exceptions import HTTPStatusError
@@ -268,11 +269,11 @@ def get_default_models(
 
 
 def build_fallback_agent(
-    model_overrides=None,
-    model_extras=None,
-    setting_overrides=None,
-    **kwargs,
-) -> Agent:
+    model_overrides: list[str] | None = None,
+    model_extras: list[str] | None = None,
+    setting_overrides: dict[str, object] | None = None,
+    **kwargs: dict[str, None],
+) -> Agent[None, str]:
     """Build a FallbackModel agent with default models and settings.
 
     Args:

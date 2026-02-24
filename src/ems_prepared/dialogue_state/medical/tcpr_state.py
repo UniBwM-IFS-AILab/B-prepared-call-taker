@@ -4,13 +4,11 @@ from pydantic.json_schema import SkipJsonSchema
 
 from ems_prepared.dialogue_state.medical.base_models import (
     CPR_Boolean,
-    KeyQuestionSymptom,
     RD2_Boolean,
 )
 from ems_prepared.dialogue_state.type_defs import KnownBoolean, Unknown, tristate
 
 
-# TODO: maybe merge this with Breathing
 class TeleCpr(BaseModel):
     """Model representing a patient's CPR status with various key questions."""
 
@@ -18,7 +16,7 @@ class TeleCpr(BaseModel):
         default=None,
         examples=[True, False, Unknown],
         title="Cardiac Arrest",
-        description="Indicates if the patient is currently experiencing cardiac arrest.",
+        description="Indicates if the patient is currently experiencing cardiac arrest. [RD2][CPR]",
     )
 
     ems_arrived: SkipJsonSchema[KnownBoolean] = Field(
@@ -34,10 +32,9 @@ class TeleCpr(BaseModel):
     def cpr_symptoms(self) -> set[RD2_Boolean]:
         """Returns the list of symptoms for rd1."""
         return {
-            # field
             getattr(self, name)
-            for name, field in type(self).model_fields.items()
-            if field.annotation is CPR_Boolean
+            for name, field_info in type(self).model_fields.items()
+            if field_info.annotation is CPR_Boolean
         }
 
     # TODO: need to implement conciousness (patient needs to be unconcious and also have agonal or no breathing)

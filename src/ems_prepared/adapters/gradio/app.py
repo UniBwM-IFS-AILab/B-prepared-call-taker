@@ -470,10 +470,11 @@ with demo:
             logger.error(
                 f"Failed to initialize session: {error_msg}\n{traceback.format_exc()}"
             )
-            raise gr.Error(
+            gr.Error(
                 f"❌ **Fatal Error**\n\n{error_msg}\n\nPlease refresh the page.",
                 duration=None,
             )
+            raise
 
     confirm_event = (
         next_step_1.click(
@@ -712,25 +713,27 @@ with demo:
                 gr.update(visible=True),  # Show next_step_3 button
             )
 
-        response_dict = {
-            question.label: {
+        response = [
+            {
+                "label": question.label,
                 "category": question.category,
                 "question": question.text,
                 "score": score,
             }
             for question, score in zip(DEFAULT_SURVEY.questions, responses)
-        }
+        ]
 
         # Save with metadata and optional feedback
-        metadata = {
+        metadata: dict[str, str] = {
             "user_id": str(deps.user_id),
             "session_id": str(deps.session_id),
-            "scenario": deps.scenario_name,
+            "scenario": str(deps.scenario_name),
+            "policy": str(deps.policy_name),
         }
         if feedback and feedback.strip():
             metadata["feedback"] = feedback.strip()
 
-        save_survey_responses(deps.save_path, response_dict, metadata)
+        save_survey_responses(deps.save_path, response, metadata)
         deps.logger.info(f"Survey saved for session {deps.session_id}")
 
         # Disable radios, feedback, and submit, show thanks and next step button

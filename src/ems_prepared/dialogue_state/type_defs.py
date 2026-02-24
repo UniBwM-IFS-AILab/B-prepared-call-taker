@@ -7,20 +7,20 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from enum import Enum, StrEnum, auto
-from typing import TypeAlias
+from typing import Literal, NewType, TypeAlias
 
 Unknown: TypeAlias = None
-# type Unknown = None  # this does not work
-# Unknown = NewType("Unknown", tp=None)
+# type Unknown = Literal[None]
+# type Unknown = None
 
-type KnownBoolean = Unknown | bool
-# KnownBoolean: TypeAlias = Unknown | bool
+type Known[T] = T | Unknown
+
+type KnownBoolean = bool | Unknown
 type KnownString = str | Unknown
 
-
-# todo maybe move these elswhere
 type RD1_Boolean = KnownBoolean
-type RD2_Boolean = KnownBoolean
+# type RD2_Boolean = KnownBoolean
+type RD2_Boolean = RD1_Boolean
 type CPR_Boolean = RD2_Boolean
 type Urgency_Boolean = RD2_Boolean
 

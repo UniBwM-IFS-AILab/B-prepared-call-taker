@@ -17,29 +17,29 @@ class ImmediateDisposition(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Cyanosis",
-        description="Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin).",
+        description="Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin). [RD2][Immediate]",
     )
     suffocation: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Suffocation",
-        description="Indicates if the patient is currently experiencing suffocation (inability to breathe).",
+        description="Indicates if the patient is currently experiencing suffocation (inability to breathe). [RD2][Immediate]",
     )
     severe_accident: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Severe Accident",
-        description="Indicates if the patient is currently involved in a severe accident.",
+        description="Indicates if the patient is currently involved in a severe accident. [RD2][Immediate]",
     )
     severe_injury: TimeCritical_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Severe Injury",
-        description="Indicates if the patient is currently experiencing a severe injury.",
+        description="Indicates if the patient is currently experiencing a severe injury. [RD2][Immediate]",
     )
 
     @property
-    def immediate_disposition_symptoms(self) -> set[TimeCritical_Boolean]:
+    def time_critical_symptoms(self) -> set[RD2_Boolean]:
         """Returns the list of symptoms for immediate disposition."""
         return {
             # this will compute a set of respective values, meaning len will be 3 at most
@@ -60,4 +60,4 @@ class ImmediateDisposition(KeyQuestionSymptom):
         „Um Menschenleben zu retten, ist (…) unverzügliche Erste Hilfe vor allem beim Herz-Kreislaufstillstand, beim Verschlucken von Fremd-körpern, bei Verbrennungen oder bei schweren Blutungen sinnvoll und notwendig.“
         """
 
-        return tristate(self.immediate_disposition_symptoms)
+        return tristate(self.time_critical_symptoms)

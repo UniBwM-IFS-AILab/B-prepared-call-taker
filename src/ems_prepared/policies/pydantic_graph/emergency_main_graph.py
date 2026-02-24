@@ -218,12 +218,13 @@ def save_graph_run_results(graph, graph_run, deps):
     Note: Logging should be completed before calling this function.
     """
     if graph_run.result is not None:
-        save_state_json(graph_run.result.state.call_state, deps.save_path)
         save_mermaid_graph(graph, deps.save_path)
+
+        # TODO: deduplicate this part with the equivalent in agent.py
         (deps.save_path / "deps.json").write_text(
             data=deps.model_dump_json(indent=2), encoding="utf-8"
         )
-        # Save message history
+        save_state_json(graph_run.result.state.call_state, deps.save_path)
         save_message_history_json(
             graph_run.result.state.message_history, deps.save_path
         )

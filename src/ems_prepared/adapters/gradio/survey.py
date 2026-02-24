@@ -10,7 +10,6 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 # =============================================================================
 # Survey Configuration Dataclasses
@@ -27,6 +26,7 @@ class SurveyQuestion:
         text: Full question text shown to the user.
     """
 
+    id: int
     category: str
     label: str
     text: str
@@ -52,13 +52,22 @@ class SurveyConfig:
         return len(self.labels)
 
     def get_choices(self) -> list[tuple[str, int]]:
-        """Get choices formatted for gr.Radio component.
+        """Get choices formatted.
 
         Returns:
             List of (label, value) tuples where value is 1-indexed.
             Format: (display_label, numeric_value)
         """
-        return [(label, i + 1) for i, label in enumerate(self.labels)]
+        return [(label, idx) for idx, label in enumerate(self.labels, 1)]
+
+    def get_choices_dict(self) -> dict[int, str]:
+        """Get choices formatted.
+
+        Returns:
+            List of (label, value) tuples where value is 1-indexed.
+            Format: (display_label, numeric_value)
+        """
+        return {idx: label for idx, label in enumerate(self.labels, 1)}
 
 
 # =============================================================================
@@ -78,46 +87,43 @@ DEFAULT_LIKERT_LABELS = (
 # Survey questions from docs/Evaluation_Survey.md
 DEFAULT_SURVEY_QUESTIONS = (
     SurveyQuestion(
+        id=1,
         category="understanding",
         label="Scenario Understanding",
         text="I always knew what I could say at each point in the dialogue.",
     ),
     SurveyQuestion(
+        id=2,
         category="understanding",
         label="Agents' Understanding",
         text="The agent understood what I said.",  # The system understands the user’s request and fulfils
     ),
-    # SurveyQuestion(
-    #     category="understanding",
-    #     label="Clarity of Communication",
-    #     text="The agent's messages were clear and easy to understand.",
-    # ),
     SurveyQuestion(
+        id=3,
         category="efficiency",
         label="Relevance of messages",
         text="The agent's messages were relevant and focused on the situation.",
     ),
     SurveyQuestion(
+        id=4,
         category="efficiency",
         label="Response Time",
         text="The agent responded promptly and avoided unnecessary delays during the conversation.",
     ),
-    # SurveyQuestion(
-    #     category="efficiency",
-    #     label="Coherence of the dialogue",
-    #     text="I always knew what I could say at each point in the dialogue.",
-    # ),
     SurveyQuestion(
+        id=5,
         category="naturalness",
         label="Agent adjustment to context",
         text="The agent's behavior felt appropriate for this conversation.",
     ),
     SurveyQuestion(
+        id=6,
         category="naturalness",
         label="Human-like responses",
         text="The agent's messages felt realistic and fluent.",
     ),
     SurveyQuestion(
+        id=7,
         category="overall",
         label="Overall Satisfaction",
         text="Overall, this conversation went well.",  #  https://aclanthology.org/P07-1100/
@@ -130,10 +136,16 @@ DEFAULT_SURVEY = SurveyConfig(
 )
 
 
+DEFAULT_BY_LABEL: dict[str, SurveyQuestion] = {
+    q.label: q for q in DEFAULT_SURVEY_QUESTIONS
+}
+DEFAULT_BY_ID: dict[int, SurveyQuestion] = {q.id: q for q in DEFAULT_SURVEY_QUESTIONS}
+
+
 def save_survey_responses(
     save_path: Path,
-    responses: dict[str, Any],
-    metadata: dict[str, Any] | None = None,
+    responses: list[dict],
+    metadata: dict[str, str],
 ) -> Path:
     """Save survey responses to a JSON file.
 
@@ -148,13 +160,11 @@ def save_survey_responses(
     Returns:
         Path to the saved survey.json file.
     """
-    survey_data = {
+    survey_data: dict[str, str | list[dict] | dict[str, str]] = {
         "timestamp": datetime.now().isoformat(),
         "responses": responses,
+        "metadata": metadata,
     }
-
-    if metadata:
-        survey_data["metadata"] = metadata
 
     file_path = save_path / "survey.json"
     file_path.write_text(

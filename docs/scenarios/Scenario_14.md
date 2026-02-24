@@ -15,5 +15,6 @@ page: 29
 
 <!-- ## Additional Details -->
 
-- You detect cardiac arrest following the instructions.
+- He is not responding and not breathing.
+- If provided by the operator, you follow the instructions.
 <!-- - You are willing to perform CPR. -->

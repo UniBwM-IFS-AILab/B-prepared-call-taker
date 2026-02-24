@@ -1,9 +1,9 @@
 """CLI argument parsing for the Gradio app."""
 
 import argparse
+import logging
 import os
 import random
-import logging
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -61,12 +61,18 @@ class GradioAppArgs:
 
 def parse_args() -> GradioAppArgs:
     """Parse CLI arguments and return typed GradioAppArgs."""
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(
+        description="CLI for configuring and running the Gradio app.",
+        epilog=(
+            "Examples:\n"
+            "  python cli.py --scenario-dir ./scenarios --user-id 42 --policy graph --debug --random-scenario --experiment-name exp_2024_12\n"
+        ),
+    )
     parser.add_argument(
         "--scenario-dir",
         type=str,
         default=None,
-        help="Path to the directory for the scenario descriptions.",
+        help="Path to the directory containing scenario descriptions.",
     )
     parser.add_argument(
         "--user-id",
@@ -75,7 +81,7 @@ def parse_args() -> GradioAppArgs:
         dest="user_id",
         type=int,
         default=0,
-        help="Integer user ID (default: 0).",
+        help="User ID as an integer (default: 0).",
     )
     parser.add_argument(
         "--policy",
@@ -84,19 +90,19 @@ def parse_args() -> GradioAppArgs:
         type=str,
         default="graph",
         choices=["graph", "agent", "random"],
-        help="Policy to use: 'graph' for pydantic_graph (default), 'agent' for LLM-only agent, or 'random' to select one with equal probability.",
+        help="Policy to use: 'graph' (default) for pydantic_graph, 'agent' for LLM-only agent, or 'random' to select one randomly.",
     )
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Show additional session debug information in the UI.",
+        help="Enable debug mode to show additional session information in the UI.",
     )
     parser.add_argument(
         "--random-scenario",
         "--rs",
         dest="random_scenario",
         action="store_true",
-        help="Randomize scenario selection on each session reset.",
+        help="Enable random scenario selection on each session reset.",
     )
     parser.add_argument(
         "--experiment-name",
@@ -105,7 +111,7 @@ def parse_args() -> GradioAppArgs:
         dest="experiment_name",
         type=str,
         default=None,
-        help="Optional experiment/run name to group logs into a subdirectory (e.g., 'exp_2024_12').",
+        help="Optional name for the experiment/run to group logs into a subdirectory (e.g., 'exp_2024_12').",
     )
 
     args, _ = parser.parse_known_args()

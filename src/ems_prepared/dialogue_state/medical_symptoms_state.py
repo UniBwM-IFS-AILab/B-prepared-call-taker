@@ -4,7 +4,10 @@ This module provides:
 - MedicalEmergency: A model combining symptoms and states from various emergency call protocol components.
 """  # noqa: E501
 
+from typing import Literal
+
 from numpy import ndarray
+from pydantic.config import ConfigDict
 from pydantic.fields import computed_field
 from pydantic.functional_validators import model_validator
 from pydantic.json_schema import SkipJsonSchema
@@ -25,6 +28,7 @@ from ems_prepared.dialogue_state.medical.circulation_state import Circulation
 from ems_prepared.dialogue_state.medical.conscious_state import Consciousness
 from ems_prepared.dialogue_state.medical.immediate_disposition_state import (
     ImmediateDisposition,
+    TimeCritical_Boolean,
 )
 from ems_prepared.dialogue_state.medical.neurological_state import Neurological
 from ems_prepared.dialogue_state.medical.tcpr_state import TeleCpr
@@ -46,31 +50,35 @@ class MedicalEmergency(
     comprehensive view of the patient's medical emergency status.
     """
 
+    def get_outcome(self) -> Literal["cpr", "rd1", "rd2"] | None:
+        if self.cpr_needed:
+            return "cpr"
+        elif self.time_critical:
+            return "rd2"
+        elif self.rd2:
+            return "rd2"
+        elif self.rd1:
+            return "rd1"
+        else:
+            return None
+
     # TODO: move RD1 and RD2 detection to KeyQuestionSymptom and calculate RD1/RD2 by looping over members of type KeyQuestionSymptom
     @property
     def rd1_symptoms(self) -> set[KnownBoolean]:
         """Returns the list of symptoms for rd1."""
         return {
-            # this will compute a set of respective values, meaning len will be 3 at most
             getattr(self, name)
-            for name, field in type(self).model_fields.items()
-            if field.annotation is RD1_Boolean
+            for name, field_info in type(self).model_fields.items()
+            if field_info.annotation is RD1_Boolean
         }
 
     @property
     def rd2_symptoms(self) -> set[KnownBoolean]:
         """Returns the set of fields of type KnownBoolean for rd2."""
         return {
-            # this will compute a set of respective values, meaning len will be 3 at most
             getattr(self, name)
-            for name, field in type(self).model_fields.items()
-            if field.annotation
-            # TODO: CPR_Boolean (and Urgency_boolean in the future should not be needed here, instead use extra computed_field "cpr_needed" which itself is an RD2_Boolean)
-            in [
-                RD2_Boolean,
-                CPR_Boolean,
-                Urgency_Boolean,  # TODO: remove Urgency_Boolean as well
-            ]
+            for name, field_info in type(self).model_fields.items()
+            if field_info.annotation in [RD2_Boolean, CPR_Boolean, TimeCritical_Boolean]
         }
 
     # computed fields are not shown to pydantic_ai agents when enforcing strutured output using output_type
@@ -81,7 +89,7 @@ class MedicalEmergency(
         return tristate(
             self.rd1_symptoms.union(
                 self.rd2_symptoms,
-                self.immediate_disposition_symptoms,
+                self.time_critical_symptoms,
                 self.cpr_symptoms,
             )
         )

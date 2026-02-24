@@ -250,9 +250,13 @@ def save_agent_run_results(
         message_history: Complete message history
         deps: Settings with save_path
     """
-    save_message_history_json(message_history, deps.save_path)
 
+    # TODO: deduplicate this part with the equivalent in emergency_main_graph.py
+    (deps.save_path / "deps.json").write_text(
+        data=deps.model_dump_json(indent=2), encoding="utf-8"
+    )
     save_state_json(state, deps.save_path)
+    save_message_history_json(message_history, deps.save_path)
 
 
 # FIXME: Why does this get agent and result as input? Improve API?

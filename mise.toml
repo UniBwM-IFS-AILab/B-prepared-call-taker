@@ -11,7 +11,9 @@ sops = "latest"
 ttyd = "latest"
 pre-commit = "latest"
 ollama = "latest"
-
+python = "3.13"
+node = "latest"
+"gitlab:graphviz/graphviz" = { version = "latest", exe = "dot" }
 
 [env]
 _.file = [".env.json", "env.json"]
@@ -39,6 +41,7 @@ enter = "mise i -q" # && mise en -s $env:SHELL"
 
 [settings.sops]
 age_key_file = '~/.config/mise/age.txt'
+strict = false
 # age_recipients=
 
 [tasks.llm_only]
@@ -70,9 +73,3 @@ run = "uv run --no-sync {{config_root}}/src/ems_prepared/adapters/gradio/app.py 
 [tasks.gradio_dev]
 env = { GRADIO_DEBUG = "1" }
 run = "uv run --no-sync gradio {{config_root}}/src/ems_prepared/adapters/gradio/app.py"
-
-[tools."ubi:graphviz/graphviz"]
-version = "13.0.1"
-exe = "dot"
-matching = "win64"
-provider = "gitlab"

@@ -15,44 +15,44 @@ class Circulation(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Chest Discomfort",
-        description="Indicates if the patient is currently experiencing chest discomfort.",
+        description="Indicates if the patient is currently experiencing chest discomfort. [RD1]",
     )
     acute_circulatory_problems: RD1_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Acute Circulatory Problems",
-        description="Indicates if the patient is currently experiencing acute circulatory problems.",
+        description="Indicates if the patient is currently experiencing acute circulatory problems. [RD1]",
     )
 
     acute_chest_pain: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Acute Chest Pain",
-        description="Indicates if the patient is currently experiencing acute chest pain.",
+        description="Indicates if the patient is currently experiencing acute chest pain. [RD2]",
     )
     cold_sweat: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Cold Sweat",
-        description="Indicates if the patient is currently experiencing cold sweat.",
+        description="Indicates if the patient is currently experiencing cold sweat. [RD2]",
     )
     pallor: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Pallor",
-        description="Indicates if the patient is currently experiencing pallor (pale skin).",
+        description="Indicates if the patient is currently experiencing pallor (pale skin). [RD2]",
     )
     hypertensive_crisis: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Hypertensive Crisis",
-        description="Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure).",
+        description="Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure). [RD2]",
     )
     hypotensive_collapse: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Hypotensive Collapse",
-        description="Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure).",
+        description="Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure). [RD2]",
     )
 
     # TODO: this require one of the sub-symptoms below to be true
@@ -61,25 +61,25 @@ class Circulation(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Tachycardia",
-        description="Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate).",
+        description="Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate). [RD2]",
     )
     bradycardia: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Bradycardia",
-        description="Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate).",
+        description="Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate). [RD2]",
     )
     arrhythmia: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Arrhythmia",
-        description="Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat).",
+        description="Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat). [RD2]",
     )
     pacemaker_malfunction: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Pacemaker Malfunction",
-        description="Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm).",
+        description="Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm). [RD2]",
     )
 
     # TODO: sub-symptoms / indications:  "skin rash", "circulatory issues", "difficulty breathing",
@@ -87,11 +87,11 @@ class Circulation(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Allergic Reaction",
-        description="Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance).",
+        description="Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance). [RD2]",
     )
     known_anaphylaxis: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Anaphylaxis",
-        description="Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction).",
+        description="Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction). [RD2]",
     )

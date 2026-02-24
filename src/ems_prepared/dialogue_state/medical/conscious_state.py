@@ -21,7 +21,7 @@ class Consciousness(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Normal Responsiveness",
-        description="Indicates if the patient is currently unresponsive unlike normal.",
+        description="Indicates if the patient is currently unresponsive unlike normal. [RD1]",
         # Reagiert er / sie jetzt normal (wie sonst auch), wenn Sie ihn / sie ansprechen“
     )
 
@@ -29,11 +29,11 @@ class Consciousness(KeyQuestionSymptom):
         default=None,
         examples=[True, False, Unknown],
         title="Unconscious",
-        description="Indicates if the patient is currently unconscious.",
+        description="Indicates if the patient is currently unconscious. [RD2]",
     )
     rapidly_progressing_unconsciousness: RD2_Boolean = Field(
         default=None,
         examples=[True, False, Unknown],
         title="Rapidly Progressing Unconsciousness",
-        description="Indicates if the patient is currently experiencing rapidly progressing unconsciousness.",
+        description="Indicates if the patient is currently experiencing rapidly progressing unconsciousness. [RD2]",
     )

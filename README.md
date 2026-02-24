@@ -1,5 +1,11 @@
 # ems-prepared
 
+## Motivation
+
+Im Eckpunktepapier 20162 von 30 wissenschaftlichen Fachgesellschaften, Institutionen und Organisa-tionen zur notfallmedizinischen Versorgung der Bevölkerung in der Prähospitalphase und in der Klinik wird auch die Erste Hilfe durch Laien thematisiert: „Gezielte und regelmäßige Schulung der Bevölke-rung – insbesondere Schüler im Rahmen des regulären Unterrichts – sowie von Präventions- und Auf-klärungsprogrammen sollen medizinische Laien befähigen, Vitalstörungen frühzeitig zu erkennen, einen Notruf korrekt abzusetzen und danach selbst effektive und lebensrettende Maßnahmen durch-zuführen.“
+
+(Taken from the "Empfehlung 001/01-2017 vom 10.07.2017 des Rettungsdienstausschuss Bayern")
+
 ## Known Bugs
 
 - Determination of Emergency Type

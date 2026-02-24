@@ -1,6 +1,7 @@
 """Defines the graph for the emergency call workflow."""
 
 from __future__ import annotations
+from abc import ABC
 
 from typing import Annotated, override
 
@@ -28,7 +29,7 @@ from ems_prepared.util.settings import Locale, Settings
 state_print_filter = {"patient_symptoms"}
 
 
-class MessageNode(EmergencyNode):
+class MessageNode(EmergencyNode, ABC):
     """Base class for nodes that emit informative messages to the caller.
 
     Subclasses MUST provide a `messages` mapping keyed by `Locale` (type: dict[Locale, str]).
@@ -38,7 +39,7 @@ class MessageNode(EmergencyNode):
     messages: dict[Locale, str]
 
 
-class QuestionNode(EmergencyNode):
+class QuestionNode(EmergencyNode, ABC):
     """Base class for nodes that ask a question and expect a response.
 
     Subclasses MUST provide a `question` attribute (type: str).
@@ -137,7 +138,6 @@ class ChooseQuestion(EmergencyNode):
 
 
 @dataclass
-@dataclass
 class AskCaller(QuestionNode):
     """Generic node for asking questions in the emergency call workflow."""
 
@@ -156,7 +156,7 @@ class AskCaller(QuestionNode):
             "AskCaller node should not be executed directly when using persistence."
         )
 
-        return ExtractState(question=self.question, response="")
+        # return ExtractState(question=self.question, response="")
         # return ExtractState(question=self.question, response=response)
 
 

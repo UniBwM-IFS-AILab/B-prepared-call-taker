@@ -1,12 +1,6 @@
-from typing import Sequence
-
 from argcomplete.io import debug
-from attr.filters import exclude
 from deepdiff.diff import DeepDiff
 from pydantic_ai.agent import AgentRunResult
-from pydantic_ai.messages import (
-    ModelMessage,
-)
 from pydantic_graph import GraphRunContext
 from rich import print
 
@@ -73,7 +67,7 @@ async def state_fill_task(
     #     f"Last question from you: {question}.\n"
     #     f"Answer from caller: {user_response}.\n"
     # )
-    agent_task: dict = {
+    agent_task: dict[str, str] = {
         "user_prompt": (
             f"Last question from you: {question}.\n"
             f"Answer from caller: {user_response}.\n"
@@ -88,9 +82,9 @@ async def state_fill_task(
     # message_history: Sequence[ModelMessage] | None = ctx.state.message_history
     result: AgentRunResult[
         NonEmptyEmergencyCall | NonEmptyStr
-    ] = await state_fill_agent.run(  # type: ignore
+    ] = await state_fill_agent.run(
         **agent_task,
-        deps=ctx.deps,  # type: ignore
+        deps=ctx.deps,
     )
     if isinstance(result.output, str):  # message_history is None and
         ctx.deps.logger.info(
