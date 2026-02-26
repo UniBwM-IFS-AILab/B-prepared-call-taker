@@ -51,6 +51,7 @@ class GradioAppArgs:
 
         Returns:
             The resolved policy name ('graph' or 'agent')
+
         """
         if self.policy == "random":
             selected = random.choice(AVAILABLE_POLICIES)
@@ -68,13 +69,13 @@ def parse_args() -> GradioAppArgs:
             "  python cli.py --scenario-dir ./scenarios --user-id 42 --policy graph --debug --random-scenario --experiment-name exp_2024_12\n"
         ),
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--scenario-dir",
         type=str,
         default=None,
         help="Path to the directory containing scenario descriptions.",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--user-id",
         "--user",
         "-u",
@@ -83,7 +84,7 @@ def parse_args() -> GradioAppArgs:
         default=0,
         help="User ID as an integer (default: 0).",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--policy",
         "-p",
         dest="policy",
@@ -92,19 +93,19 @@ def parse_args() -> GradioAppArgs:
         choices=["graph", "agent", "random"],
         help="Policy to use: 'graph' (default) for pydantic_graph, 'agent' for LLM-only agent, or 'random' to select one randomly.",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug mode to show additional session information in the UI.",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--random-scenario",
         "--rs",
         dest="random_scenario",
         action="store_true",
         help="Enable random scenario selection on each session reset.",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--experiment-name",
         "--experiment",
         "-e",

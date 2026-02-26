@@ -11,8 +11,6 @@ dependencies = [
   "gradio>=6.1.0",
   "langgraph>=1.0.3",
   "loguru>=0.7.3",
-  "marimo>=0.18.4",
-  "numpy>=2.3.1",
   "pycountry>=24.6.1",
   "pydantic-ai>=0.4.3",
   "pydantic-settings>=2.10.1",
@@ -20,6 +18,7 @@ dependencies = [
   "python-dotenv-vault>=0.7",
   "pyzmq>=27.1.0",
   "rapidfuzz>=3.13.0",
+  "scikit-learn>=1.8.0",
   "scipy>=1.16.3",
   "seaborn>=0.13.2",
 ]
@@ -49,7 +48,9 @@ dev = [
   "odfpy>=1.4.1",
   "marimo[recommended]>=0.17.7",
   "streamlit>=1.51.0",
-  "gradio>=6.0.0",
+  "matplotlib>=3.10.8",
+  "numpy>=2.3.1",
+  "pandas>=2.3.3",
 ]
 experiment = ["pydantic-ai-examples>=0.2.18"]
 lsp = [
@@ -90,6 +91,8 @@ select = [
 
 [tool.basedpyright]
 reportImplicitStringConcatenation = false
+typeCheckingMode= "strict"
+ignore= ["**/__pycache__"]
 
 [tool.pyrefly]
 # ignore-errors-in-generated-code = true
