@@ -1,4 +1,4 @@
-
+from functools import lru_cache
 from typing import Literal
 
 from pydantic_ai.agent import Agent, AgentRunResult
@@ -65,28 +65,31 @@ async def var_fill_task(
 
     result: AgentRunResult[
         EmergencyCall | Literal[True] | str
-    ] = await var_fill_agent.run(user_prompt=agent_task)
+    ] = await get_var_fill_agent().run(user_prompt=agent_task)
 
     print(result.usage())
 
     return result.output
 
 
-var_fill_agent = Agent(
-    FallbackModel(
-        *build_models(
-            "github:gpt-4.1-mini",
-        )
-    ),
-    output_type=PromptedOutput(
-        outputs=[EmergencyCall, Literal[True], str],
-        name="Structured Output if possible",
-        description="The extracted state or confirmation as boolean. If extraction is not possible, return a string with further instructions.",
-        template="Follow the schema: {schema}",
-    ),
-    deps_type=Settings,
-    instructions=(state_fill_prompt.full_prompt),
-)
+@lru_cache(maxsize=1)
+def get_var_fill_agent():
+    return Agent(
+        FallbackModel(
+            *build_models(
+                "github:gpt-4.1-mini",
+            )
+        ),
+        output_type=PromptedOutput(
+            outputs=[EmergencyCall, Literal[True], str],
+            name="Structured Output if possible",
+            description="The extracted state or confirmation as boolean. If extraction is not possible, return a string with further instructions.",
+            template="Follow the schema: {schema}",
+        ),
+        deps_type=Settings,
+        instructions=(state_fill_prompt.full_prompt),
+    )
+
 
 if __name__ == "__main__":
     state = EmergencyCall()

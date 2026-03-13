@@ -6,11 +6,9 @@ backend = "gitlab:graphviz/graphviz"
 [[tools.node]]
 version = "25.3.0"
 backend = "core:node"
-"platforms.linux-arm64" = { checksum = "sha256:8098e098dc91ec3bf98035eeebff8d9b3e46fb9e14c1e8c377986f76e0b8368f", url = "https://nodejs.org/dist/v25.3.0/node-v25.3.0-linux-arm64.tar.gz"}
-"platforms.linux-x64" = { checksum = "sha256:cc91362eb9a009efa26117c39c7bd55fe130123f01cf60d300b8b57e9501c27c", url = "https://nodejs.org/dist/v25.3.0/node-v25.3.0-linux-x64.tar.gz"}
-"platforms.macos-arm64" = { checksum = "sha256:d80f384c182971724a7aa819173084e1d8244338fa8e9271a1961d38274d7209", url = "https://nodejs.org/dist/v25.3.0/node-v25.3.0-darwin-arm64.tar.gz"}
-"platforms.macos-x64" = { checksum = "sha256:d6d494e5deca973556e146555cdd29b927b0adb3cae2f234b8e1a92310657c39", url = "https://nodejs.org/dist/v25.3.0/node-v25.3.0-darwin-x64.tar.gz"}
-"platforms.windows-x64" = { checksum = "sha256:3c138ba2cd835b1af70ae2813422f544b2e786bdff8c0885ffb89fb7d407148e", url = "https://nodejs.org/dist/v25.3.0/node-v25.3.0-win-x64.zip"}
+
+[tools.node.options]
+compile = "true"
 
 [[tools.ollama]]
 version = "0.13.5"
@@ -25,11 +23,9 @@ backend = "aqua:pre-commit/pre-commit"
 [[tools.python]]
 version = "3.13.12"
 backend = "core:python"
-"platforms.linux-arm64" = { checksum = "sha256:207c5504dfd2627949be652f2740bddab5ba6e6bea6ce45de9db1858f67c9b42", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.13.12+20260303-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"}
-"platforms.linux-x64" = { checksum = "sha256:4ecfaffe0db6d4363c2bca7a40f017c56fdad1f399d6218b7ddc1f47f071ffc6", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.13.12+20260303-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"}
-"platforms.macos-arm64" = { checksum = "sha256:0103ab534b93472b1e2036fbb127a0dd4df73f437a4d8d7ce6fbe7e3d1f4fbbd", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.13.12+20260303-aarch64-apple-darwin-install_only_stripped.tar.gz"}
-"platforms.macos-x64" = { checksum = "sha256:ca97cdd8338716dac48204f1b33e51ec4f072eeeb91cecdb9ea3bfecae1c538a", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.13.12+20260303-x86_64-apple-darwin-install_only_stripped.tar.gz"}
-"platforms.windows-x64" = { checksum = "sha256:eb1e212b97b001efc1281bb01fd26ca1ecdfe9ef2875b52c58d39e9719ab75df", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.13.12+20260303-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"}
+
+[tools.python.options]
+compile = "true"
 
 [[tools.ruff]]
 version = "0.14.11"

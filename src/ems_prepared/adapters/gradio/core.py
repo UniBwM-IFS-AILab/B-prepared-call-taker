@@ -310,6 +310,7 @@ async def invoke_agent(
         agent,
         agent_history,
         msg,
+        deps,
     )
     if msg:
         deps.messages_logger.info("", extra={"speaker": "caller", "msg_text": msg})

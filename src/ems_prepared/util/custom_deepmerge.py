@@ -19,13 +19,7 @@ EMPTY_VALUES: list[dict[None, None] | list[None] | str | None] = [
 
 def strategy_keep_if_not_none(config: Merger, path, base: T, nxt: T) -> T:
     """Keep if old value not Empty, else override. False is kept."""
-    # If new value is empty, always keep the base (even if base is also empty)
-    # if nxt in EMPTY_VALUES:
-    #     return base
-    # if base in EMPTY_VALUES:
-    #     return nxt
-    # # If new value is not empty, use it
-    # return base
+    # If new value is not empty, use it
     return base if base not in EMPTY_VALUES else nxt
 
 
@@ -52,11 +46,7 @@ def strategy_length_nonzero(config: Merger, path, base: T, nxt: T) -> T:
 
 def strategy_replace_intersectless(config: Merger, path, base: list, nxt: list) -> list:
     """Replace list if it does not contain any items from the current list."""
-    for item in nxt:
-        if item in nxt:
-            return base
-    else:
-        return nxt
+    return base if any(item in base for item in nxt) else nxt
 
 
 def concat_strings(config: Merger, path, base: str, nxt: str) -> str | None | object:

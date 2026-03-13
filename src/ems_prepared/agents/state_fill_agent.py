@@ -1,4 +1,5 @@
-from argcomplete.io import debug
+from functools import lru_cache
+
 from deepdiff.diff import DeepDiff
 from pydantic_ai.agent import AgentRunResult
 from pydantic_graph import GraphRunContext
@@ -42,15 +43,21 @@ state_fill_prompt = extend_system_prompt(
 )
 
 
-state_fill_agent = build_fallback_agent(
-    output_type=[NonEmptyEmergencyCall, NonEmptyStr],  # DialogueOutput
-    instructions=state_fill_prompt.full_prompt,
-)
-contextual_question_agent = build_fallback_agent(
-    output_type=NonEmptyStr,  # DialogueOutput
-    instructions=BASE_SYSTEM_PROMPT.full_prompt,
-    history_processors=[remove_before_extracion_processor],
-)
+@lru_cache(maxsize=1)
+def get_state_fill_agent():
+    return build_fallback_agent(
+        output_type=[NonEmptyEmergencyCall, NonEmptyStr],  # DialogueOutput
+        instructions=state_fill_prompt.full_prompt,
+    )
+
+
+@lru_cache(maxsize=1)
+def get_contextual_question_agent():
+    return build_fallback_agent(
+        output_type=NonEmptyStr,  # DialogueOutput
+        instructions=BASE_SYSTEM_PROMPT.full_prompt,
+        history_processors=[remove_before_extracion_processor],
+    )
 
 
 async def state_fill_task(
@@ -82,7 +89,7 @@ async def state_fill_task(
     # message_history: Sequence[ModelMessage] | None = ctx.state.message_history
     result: AgentRunResult[
         NonEmptyEmergencyCall | NonEmptyStr
-    ] = await state_fill_agent.run(
+    ] = await get_state_fill_agent().run(
         **agent_task,
         deps=ctx.deps,
     )
@@ -90,15 +97,18 @@ async def state_fill_task(
         ctx.deps.logger.info(
             f"Retrying with full message history, current result {result.output}"
         )
-        result: AgentRunResult[NonEmptyStr] = await contextual_question_agent.run(  # type: ignore
+        result: AgentRunResult[NonEmptyStr] = await get_contextual_question_agent().run(  # type: ignore
             **agent_task,
             deps=ctx.deps,  # type: ignore
             message_history=ctx.state.message_history,
         )
 
-    debug(result.output.model_dump(exclude_none=True)) if isinstance(
-        result.output, EmergencyCall
-    ) else debug(result.output)
+    result_data = (
+        result.output.model_dump(exclude_none=True)
+        if isinstance(result.output, EmergencyCall)
+        else result.output
+    )
+    ctx.deps.logger.debug("state_fill_task result: %s", result_data)
     ctx.state.message_history.extend(result.new_messages())
     return result.output
 
@@ -112,6 +122,7 @@ if __name__ == "__main__":
         "State: {state}"
     )
     deps = Settings(name="state_fill_agent_main", emit=print)
+    state_fill_agent = get_state_fill_agent()
 
     result = state_fill_agent.run_sync(  # type: ignore
         user_prompt=prompt.format(state=state),

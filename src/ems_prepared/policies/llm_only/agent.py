@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from dataclasses import dataclass
 
 from pydantic_ai._agent_graph import capture_run_messages
@@ -19,19 +18,16 @@ from ems_prepared.agents.reusable_prompts import (
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.structured_output import DialogueOutput
-from ems_prepared.policies.pydantic_graph.utils import save_state_json
-from ems_prepared.util.custom_deepmerge import ignore_empty_merger
+from ems_prepared.policies.shared import (
+    merge_call_state,
+    save_run_artifacts,
+)
 from ems_prepared.util.logger import flush_logger
 from ems_prepared.util.models import (
     build_fallback_agent,
 )
-
-# removed unused imports
-from ems_prepared.util.save_utils import save_message_history_json
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -88,6 +84,7 @@ async def run_agent_with_capture(
     agent: Agent[Settings, DialogueOutput],
     agent_history: list[ModelMessage],
     user_prompt: str | None,
+    deps: Settings,
 ) -> tuple[AgentRunResult[DialogueOutput], list]:
     """Run the agent inside a capture context and return result + captured messages.
 
@@ -95,12 +92,13 @@ async def run_agent_with_capture(
         agent: The Agent instance to run.
         agent_history: Mutable message history to pass to the agent.
         user_prompt: User-provided prompt (None for initial greeting).
+        deps: Settings/dependencies containing session logger.
 
     Returns:
         Tuple of (AgentRunResult, captured_messages_list)
     """
 
-    logger.debug(f"{len(agent_history)} messages in history")
+    deps.logger.debug(f"{len(agent_history)} messages in history")
     # from devtools import debug
 
     # debug(agent_history[-4:])
@@ -201,22 +199,10 @@ def merge_state(
         deps: Settings with loggers
     """
 
-    deps.logger.debug(f"Old State:\t{current_state.model_dump(exclude_none=True)}")
-    deps.logger.debug(f"New State:\t{new_state.model_dump(exclude_none=True)}")
-
-    # Merge new state into existing state
-    _ = ignore_empty_merger.merge(current_state.__dict__, new_state.__dict__)
-
-    # Log the merged state as JSON (same format as graph's MergeState node)
-    state_data = current_state.model_dump(exclude_none=True)
-    deps.state_logger.info(
-        {"state": state_data},
-        extra={"event": "state_merged"},
-    )
-    deps.logger.debug(f"Merged State:\t{state_data}")
+    _ = merge_call_state(current_state=current_state, new_state=new_state, deps=deps)
 
 
-def check_completion(state: EmergencyCall, deps: Settings | None = None) -> bool:
+def check_completion(state: EmergencyCall, deps: Settings) -> bool:
     """Check if the emergency call has reached a completion state.
 
     Args:
@@ -226,16 +212,9 @@ def check_completion(state: EmergencyCall, deps: Settings | None = None) -> bool
         True if any completion condition is met (rd2, cpr_needed, time_critical)
     """
 
-    if state.no_outcomes:
-        return False
-
-    # if state.enough_information_gathered:
-    #     return True
-
     if state.rd1:
-        (deps.logger if deps else logger).info("reached RD1")
-
-    return any([state.rd2, state.cpr_needed])  # , state.time_critical
+        deps.logger.info("reached RD1")
+    return state.cpr_needed or state.rd2
 
 
 def save_agent_run_results(
@@ -251,12 +230,7 @@ def save_agent_run_results(
         deps: Settings with save_path
     """
 
-    # TODO: deduplicate this part with the equivalent in emergency_main_graph.py
-    (deps.save_path / "deps.json").write_text(
-        data=deps.model_dump_json(indent=2), encoding="utf-8"
-    )
-    save_state_json(state, deps.save_path)
-    save_message_history_json(message_history, deps.save_path)
+    save_run_artifacts(state=state, message_history=message_history, deps=deps)
 
 
 # FIXME: Why does this get agent and result as input? Improve API?
@@ -294,10 +268,8 @@ async def talk_to_user(
         agent,
         prev_messages,
         followup_prompt,
+        deps,
     )
-    from devtools import debug
-
-    debug(new_result)
 
     # Log provider/model info when available
     response_obj = extract_last_model_response(new_result, captured_messages)

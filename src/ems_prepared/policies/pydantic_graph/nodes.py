@@ -1,16 +1,16 @@
 """Defines the graph for the emergency call workflow."""
 
 from __future__ import annotations
-from abc import ABC
 
+from abc import ABC
 from typing import Annotated, override
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 from pydantic_graph.nodes import Edge, End, GraphRunContext
 
-from ems_prepared.agents.emergency_type_agent import emergency_type_agent
-from ems_prepared.agents.enough_info_agent import enough_info_agent
+from ems_prepared.agents.emergency_type_agent import get_emergency_type_agent
+from ems_prepared.agents.enough_info_agent import get_enough_info_agent
 from ems_prepared.agents.state_fill_agent import (
     state_fill_task,
 )
@@ -22,7 +22,9 @@ from ems_prepared.dialogue_state.structured_output import (
 )
 from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType
 from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
-from ems_prepared.util.custom_deepmerge import ignore_empty_merger
+from ems_prepared.policies.shared import (
+    merge_call_state,
+)
 from ems_prepared.util.helpers import async_wrapper
 from ems_prepared.util.settings import Locale, Settings
 
@@ -251,25 +253,14 @@ class MergeState(EmergencyNode):
         Annotated[EvaluateState, Edge(label="New State merged")]
         # | Annotated[Disposition, Edge(label="Accept RD1 as final")]
     ):
-        ctx.deps.logger.debug(
-            f"Old State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
+        _ = merge_call_state(
+            current_state=ctx.state.call_state,
+            new_state=self.new_state,
+            deps=ctx.deps,
+            state_payload=ctx.state.model_dump(
+                exclude_none=True, exclude={"questions"}
+            ),
         )
-        ctx.deps.logger.debug(
-            f"New State:\t{self.new_state.model_dump(exclude_none=True)}"
-        )
-
-        ignore_empty_merger.merge(
-            ctx.state.call_state.__dict__, self.new_state.__dict__
-        )
-        ctx.deps.logger.debug(
-            f"Merged State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
-        )
-
-        ctx.deps.state_logger.info(
-            {"state": ctx.state.model_dump(exclude_none=True, exclude={"questions"})},
-            extra={"event": "state_merged"},
-        )
-
         return EvaluateState()
 
 
@@ -286,19 +277,14 @@ class EvaluateState(EmergencyNode):
         ctx.deps.logger.debug(
             f"Evaluate State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
-
         if ctx.state.call_state.cpr_needed:
-            # needs to take precedence over RD2 because cpr_needed implies RD2
+            # Must take precedence over RD2 because cpr_needed implies RD2.
             return TCPR()
-        # elif ctx.state.call_state.time_critical:
-        #     return HighUrgency()
         elif ctx.state.call_state.rd2:
             return RD2()
         elif ctx.state.call_state.rd1:
             return RD1()
-
-        else:
-            return ChooseQuestion()
+        return ChooseQuestion()
 
 
 @dataclass
@@ -315,7 +301,7 @@ class ChooseSubGraph(EmergencyNode):
     ):
         ctx.deps.logger.info("Forcing Agent to decide the Emergency type...")
 
-        result = await emergency_type_agent.run(  # type: ignore
+        result = await get_emergency_type_agent().run(  # type: ignore
             user_prompt=(
                 "Fill out the Emergency Type based on the current state"
                 f"State: {ctx.state}"
@@ -350,7 +336,9 @@ class RD1(EmergencyNode):
         | Annotated[EvaluateState, Edge(label="Evaluate state")]
     ):
         if ctx.state.call_state.rd1 is not True:
-            raise
+            raise RuntimeError(
+                f"RD1 node reached with invalid state: rd1={ctx.state.call_state.rd1!r}"
+            )
         else:
             ctx.deps.logger.info("Reached RD1")
 
@@ -371,7 +359,7 @@ class RD1(EmergencyNode):
                     "Forcing Agent to decide if enough information gathered..."
                 )
 
-                result = await enough_info_agent.run(  # type: ignore
+                result = await get_enough_info_agent().run(  # type: ignore
                     user_prompt=(
                         f"Current State: {ctx.state.call_state.model_dump(exclude_none=True)}\n"
                     ),
@@ -414,7 +402,9 @@ class RD2(EmergencyNode):
         ctx: GraphRunContext[GraphState, Settings],
     ) -> Annotated[Disposition, Edge(label="Use RD2")]:
         if not ctx.state.call_state.rd2:
-            raise
+            raise RuntimeError(
+                f"RD2 node reached with invalid state: rd2={ctx.state.call_state.rd2!r}"
+            )
 
         return Disposition(DispoType.RD2)
 

@@ -5,6 +5,7 @@ This module provides:
 - ask_user: utility function for prompting users based on input mode
 """
 
+import warnings
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
@@ -44,13 +45,15 @@ async def prompt_user(question: str, deps: Settings) -> str:
         case InputMode.TEST:
             pass
             raise NotImplementedError("Test input mode not implemented yet.")
-        case _:
-            raise ValueError(f"Unknown input mode: {deps.call_origin}")
 
 
-@DeprecationWarning
 async def tell_user(message: str, deps: Settings) -> None:
     """Tell the user in the given mode."""
+    warnings.warn(
+        "tell_user() is deprecated; prefer deps.emit(...) for outbound messages.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     match deps.call_origin:
         case InputMode.CLI:
             print(message)
@@ -72,7 +75,7 @@ async def converse_with_user(
 ) -> T:
     user_response: str | None = await prompt_user(prompt, deps=ctx.deps)
     if user_response is None:
-        raise
+        raise RuntimeError("prompt_user returned None; expected a string response.")
     parse_result = await task_function(
         prompt,
         user_response,

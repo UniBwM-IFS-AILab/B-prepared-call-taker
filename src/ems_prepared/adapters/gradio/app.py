@@ -529,6 +529,7 @@ with demo:
         old_policy, old_deps: Settings | None, user_id: str, scenario_name: str | None
     ):
         """Reset session and prepare to return to confirmation step."""
+        num_radios = len(DEFAULT_SURVEY.questions)
         if old_deps is None and old_policy is None:
             # No active session at the time this event was triggered -> do nothing.
             # This prevents stale picker events from wiping a newly started session.
@@ -536,14 +537,17 @@ with demo:
                 gr.skip(),  # policy_state
                 gr.skip(),  # deps_state
                 gr.skip(),  # chatbot
-                # ... gr.skip() for every survey/reset output you currently return ...
+                *[gr.skip() for _ in range(num_radios)],  # survey radios
+                gr.skip(),  # survey_feedback
+                gr.skip(),  # survey_submit
+                gr.skip(),  # survey_thanks
+                gr.skip(),  # next_step_3
                 gr.skip(),  # session_info_display (already updated elsewhere)
             )
         await cleanup_session(old_policy, old_deps)
         # Return state updates (walkthrough navigation is handled separately)
         # Returns: policy_state, deps_state, chatbot, then one update per survey radio,
         # then survey_feedback, survey_submit, survey_thanks, next_step_3, session_info_display
-        num_radios = len(DEFAULT_SURVEY.questions)
         session_info = gr.update(
             value=format_session_info(
                 user_id=user_id,

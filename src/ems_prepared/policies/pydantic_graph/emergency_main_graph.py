@@ -15,6 +15,7 @@ from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
     clear_old_run,
 )
+from ems_prepared.policies.pydantic_graph.graph_helpers import save_mermaid_graph
 from ems_prepared.policies.pydantic_graph.nodes import (
     RD1,
     RD2,
@@ -33,13 +34,9 @@ from ems_prepared.policies.pydantic_graph.nodes import (
     QuestionNode,
     Start,
 )
-from ems_prepared.policies.pydantic_graph.utils import (
-    save_mermaid_graph,
-    save_state_json,
-)
+from ems_prepared.policies.shared import save_run_artifacts
 from ems_prepared.util.helpers import async_wrapper
 from ems_prepared.util.logger import flush_logger
-from ems_prepared.util.save_utils import save_message_history_json
 from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
@@ -219,14 +216,10 @@ def save_graph_run_results(graph, graph_run, deps):
     """
     if graph_run.result is not None:
         save_mermaid_graph(graph, deps.save_path)
-
-        # TODO: deduplicate this part with the equivalent in agent.py
-        (deps.save_path / "deps.json").write_text(
-            data=deps.model_dump_json(indent=2), encoding="utf-8"
-        )
-        save_state_json(graph_run.result.state.call_state, deps.save_path)
-        save_message_history_json(
-            graph_run.result.state.message_history, deps.save_path
+        save_run_artifacts(
+            state=graph_run.result.state.call_state,
+            message_history=graph_run.result.state.message_history,
+            deps=deps,
         )
 
 

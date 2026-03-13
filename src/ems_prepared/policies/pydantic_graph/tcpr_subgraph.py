@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterator
 from typing import Any, override
 
 from pydantic.dataclasses import dataclass
@@ -12,34 +11,29 @@ from rich import print
 
 from ems_prepared.agents.variable_fill_agent import var_fill_task
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
-from ems_prepared.policies.pydantic_graph.utils import (
+from ems_prepared.policies.pydantic_graph.graph_helpers import (
     init_graph,
     save_mermaid_graph,
-    save_state_json,
 )
+from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
+from ems_prepared.policies.shared import save_state_json
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
-from ems_prepared.util.settings import LOCALE, Settings
+from ems_prepared.util.settings import Locale, Settings
 from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
 )
 
 instructions = {
-    "en": [
+    Locale.EN: [
         "Please let me know once the Ambulance is here. \n"
         "We will now start with CPR. Please follow my instructions carefully."
-        # "We have to perform CPR now. \n"
         "Please follow the instructions, confirm once you finished. \n"
-        # "If possible, place the patient on the floor so that he or she is lying on their back. Is there enough space there?"
         "Kneel beside the patient's chest so that your knees are next to each other at chest level."
-        # "Expose the patient's upper body.",
-        # "Place the heel of one hand on the middle of the patient's bony chest, i.e., on the lower half of the sternum—clearly above the pit of the stomach."
-        # "Place the heel of your second hand on the back of your first hand.",
         "Lean over the patient so that you can push straight down with your arms extended.",
         "Perform 30 chest compressions. Alternate between deep compressions, at least 5 cm deep, and complete release without losing contact with the chest.",
     ],
-    "de": [
+    Locale.DE: [
         "Ein Krankenwagen ist auf dem Weg zu Ihnen, bitte geben Sie mir Bescheid sobald er eintrifft."
         "Bitte folgen Sie den Anweisungen, bestätigen Sie sobald fertig sind."
         "Legen Sie den Patienten nach Möglichkeit auf den Fußboden, so dass er/sie auf dem Rücken liegt.",  #  Ist dort genug Platz?
@@ -52,52 +46,49 @@ instructions = {
     ],
 }
 questions = {
-    "en": [
+    Locale.EN: [
         "Will the emergency services have unobstructed access when they arrive?",
         "Can you send someone to the street to signal them?",
     ],
-    "de": [
+    Locale.DE: [
         "Hat der Rettungsdienst ungehindert Zutritt, wenn er gleich bei Ihnen eintrifft?",
         "Können Sie jemanden auf die Straße schicken, der sich bemerkbar macht?",
     ],
 }
 
-# TODO: move to state
-instruct_iterator: Iterator[str] = iter(instructions[LOCALE])
-ask_iterator: Iterator[str] = iter(questions[LOCALE])
-
 
 ### PREPARATION
 @dataclass
 class Instruct(BaseNode[EmergencyCall, Settings]):
-    instruction: str
+    step_index: int = 0
 
     @override
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> Instruct | ArtificialVentilation | EMSArrived:
-        parse_response = await converse_with_user(self.instruction, ctx, var_fill_task)
-
-        try:
-            if parse_response is True:
-                return Instruct(next(instruct_iterator))
-
-            elif parse_response is False:
-                raise TypeError(
-                    f"Error with type returned by var_fill_agent, value is {parse_response}"
-                )
-            elif type(parse_response) is str:
-                pass
-            elif type(parse_response) is EmergencyCall:
-                _ = ignore_empty_merger.merge(
-                    ctx.state.__dict__, parse_response.__dict__
-                )
-                if ctx.state.ems_arrived:
-                    return EMSArrived()
-            return Instruct(next(instruct_iterator))
-        except StopIteration:
+        instruction_steps = instructions[ctx.deps.locale]
+        if self.step_index >= len(instruction_steps):
             return ArtificialVentilation()
+
+        parse_response = await converse_with_user(
+            instruction_steps[self.step_index], ctx, var_fill_task
+        )
+        next_index = self.step_index + 1
+
+        if parse_response is False:
+            raise TypeError(
+                f"Error with type returned by var_fill_agent, value is {parse_response}"
+            )
+
+        if type(parse_response) is EmergencyCall:
+            _ = ignore_empty_merger.merge(ctx.state.__dict__, parse_response.__dict__)
+            if ctx.state.ems_arrived:
+                return EMSArrived()
+
+        if next_index >= len(instruction_steps):
+            return ArtificialVentilation()
+        return Instruct(step_index=next_index)
 
 
 ###
@@ -156,17 +147,16 @@ async def instruct_user(
 class ArtificialVentilation(BaseNode[EmergencyCall, Settings]):
     """Represents ventilation using mouth-to-mouth, mouth-to-nose or with an external device."""
 
-    instruction: str = {
-        "en": "Please perform two rescue breaths and confirm when done.",
-        "de": "Bitte beatmen Sie den Patienten zwei mal und bestätigen Sie danach.",
-    }[LOCALE]
-
     @override
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> EmergencyNode | EMSArrived:
-        result = await instruct_user(ctx, self.instruction, ChestCompression())
+        instruction = {
+            Locale.EN: "Please perform two rescue breaths and confirm when done.",
+            Locale.DE: "Bitte beatmen Sie den Patienten zwei mal und bestätigen Sie danach.",
+        }[ctx.deps.locale]
+        result = await instruct_user(ctx, instruction, ChestCompression())
         if result is None:
             raise TypeError("Return is none, while it should not be")
 
@@ -175,17 +165,16 @@ class ArtificialVentilation(BaseNode[EmergencyCall, Settings]):
 
 @dataclass
 class ChestCompression(BaseNode[EmergencyCall, Settings]):
-    instruction: str = {
-        "en": "Please perform 30 chest compressions and confirm when done.",
-        "de": "Bitte führen Sie 30 Herzdruckmassagen durch und bestätigen Sie danach.",
-    }[LOCALE]
-
     @override
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
     ) -> EmergencyNode | EMSArrived:
-        result = await instruct_user(ctx, self.instruction, ArtificialVentilation())
+        instruction = {
+            Locale.EN: "Please perform 30 chest compressions and confirm when done.",
+            Locale.DE: "Bitte führen Sie 30 Herzdruckmassagen durch und bestätigen Sie danach.",
+        }[ctx.deps.locale]
+        result = await instruct_user(ctx, instruction, ArtificialVentilation())
         if result is None:
             raise TypeError("Return is none, while it should not be")
         return result
@@ -213,9 +202,9 @@ class EMSArrived(EmergencyNode):
     ) -> End[EmergencyCall]:
         await tell_user(
             {
-                "en": "Please hand over to the paramedics",
-                "de": "Bitte übergeben Sie an die Einsatzkräfte",
-            }[LOCALE],
+                Locale.EN: "Please hand over to the paramedics",
+                Locale.DE: "Bitte übergeben Sie an die Einsatzkräfte",
+            }[ctx.deps.locale],
             ctx.deps,
         )
 
@@ -237,7 +226,7 @@ async def run_graph(
     graph, persistence = await init_graph(
         node_list=[Instruct, ArtificialVentilation, ChestCompression, EMSArrived],
         # Instruct(), persistence=persistence, state=EmergencyCall()
-        init_node=Instruct(next(instruct_iterator)),
+        init_node=Instruct(step_index=0),
         deps=deps,
         init_state=init_state,
         prefix="tcpr_",

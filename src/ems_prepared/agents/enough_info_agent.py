@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Annotated
 
 from pydantic import BaseModel
@@ -67,8 +68,10 @@ class EnoughInfoOutput(BaseModel):
         return self
 
 
-enough_info_agent = build_fallback_agent(
-    output_type=EnoughInfoOutput,  # [EnoughInfoGathered, NonEmptyStr],
-    instructions=(enough_info_prompt.full_prompt),
-    history_processors=[remove_before_extracion_processor],
-)
+@lru_cache(maxsize=1)
+def get_enough_info_agent():
+    return build_fallback_agent(
+        output_type=EnoughInfoOutput,  # [EnoughInfoGathered, NonEmptyStr],
+        instructions=(enough_info_prompt.full_prompt),
+        history_processors=[remove_before_extracion_processor],
+    )
