@@ -1,0 +1,114 @@
+- Introduce Internationalization (i18n) support
+    - python builtin gettext and perhaps an additional package called [babel](https://babel.pocoo.org/en/latest/cmdline.html)
+    - alternative: Project Fluent - https://projectfluent.org/
+    - maybe: translate back to english before prompting llm so that only the application is multilingual but the model only sees english
+    - https://lokalise.com/blog/beginners-guide-to-python-i18n/
+- Fastapi server with DB
+  - write Tests with hurl
+- add conversation agent
+  - give them state_fill_agent access as a tool
+- Redo Quesitons, add them to each state variable, so that we can be more dynamic, i.e. if certain state is missing we can just pick the appropriate question
+- CoT prompt: "lets think step-by-step"
+- completely decouple dialogue from domain, pass funcions and names of outcome-triggering variables as part of deps to the graph
+- Improve state filling
+  - Provide full example for state to the model
+  - Introduce new model for agents, including extra data such as chain of thought (cot)
+  - add aliases to fields
+- emergency type evaluation should happen based on symptoms as well
+  - this would happen backwards (filling from the associated state variables), the llm seems incapable of doing this
+  - alternatively we could try to coerce strings (which it is more likely to understand) to enum values
+- Multi-turn calrifying Questions
+  - currently not working because of how RD1 is handled
+  - maybe could be done if we manage to separate agents better
+    - use a spearate agent to decide when to give up
+    - use a counter
+- Snapshot testing for dialogue state for specific inputs and scenarios
+## Model Engineering
+
+- Pick better models based on specific benchmarks
+  - different models for specific tasks
+    - medical understanding : e.g. https://crfm.stanford.edu/helm/medhelm/latest/
+    - instructions: https://crfm.stanford.edu/helm/instruct/latest/
+      - use prompt optimizer
+- LLMs are sensitive to prompt variations
+  - data serialization format (csv, json, md, txt+tags, ... ) impacts the training performance
+    - LLM-dependent which works best
+
+## Langgraph transition
+  - Tutorials:
+    - RealPython: https://realpython.com/langgraph-python/
+    - Langchain Academy: https://academy.langchain.com/courses/langchain-essentials-python -> https://academy.langchain.com/courses/langgraph-essentials-python -> https://academy.langchain.com/courses/intro-to-langgraph
+    - https://docs.langchain.com/oss/python/langgraph/overview
+  - App Structure:
+    - https://docs.langchain.com/langsmith/application-structure#python-pyproject-toml
+  - Reference:
+    - Langgraph: https://reference.langchain.com/python/langgraph/
+  - Langraph deployment server with postgres for persistence and redis for task queue
+    - Docs: https://docs.langchain.com/langsmith/deployments
+    - unreal: connect to server via requests (https://docs.langchain.com/langsmith/streaming#curl, https://docs.langchain.com/langsmith/add-human-in-the-loop#curl)
+      - The Webhook feature seems be an alternative way https://docs.langchain.com/langsmith/use-webhooks#curl-2
+      - ChatGPT:
+        > - With runs/stream or runs/wait/join, your client keeps a connection open (SSE) or polls and then pulls the result.
+        > - With webhooks, you give the server a URL once, and the server will POST you the result when the run finishes (event-driven; no long-lived client connections). Webhooks are accepted on several endpoints: POST /threads/{id}/runs, /threads/{id}/runs/stream, /threads/{id}/runs/wait, and the stateless variants POST /runs/stream and /runs/wait. The payload is a Run object. You can even disable webhooks in self-hosted by config.
+    - use agent-chat UI for non-game UI: https://github.com/langchain-ai/agent-chat-ui, https://docs.langchain.com/oss/python/langgraph/ui
+    - use https://docs.langchain.com/langsmith/use-remote-graph for other python/js applications
+  - Monitoring UI
+    - Langfuse instead of Langsmith:
+      - Langraph support: https://langfuse.com/guides/cookbook/integration_langgraph
+        - supports low-code prompt managing support (not documented for respective PydanticAI integration)
+      - Monitoring
+      - Prompt Management (low code)
+    - There is also something called "Studio" which could be used? https://docs.langchain.com/langsmith/quick-start-studio
+      - Seems to work without langsmith for locally deployed graphs (LANGSMITH_TRACING=false)
+  - Code:
+    - use langchain for agents (https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent)
+      - could also be used for the "non-fsm / llm-only" approach (just looping nodes)
+      - `prebuilt` module (found in some tutorials) seems deprecated
+    - user interrupt() for user intput: https://docs.langchain.com/oss/python/langgraph/interrupts, https://docs.langchain.com/oss/python/langgraph/interrupts#validating-human-input
+      - API support: https://docs.langchain.com/langsmith/add-human-in-the-loop#curl
+    - use add_edge() or Command() for connecting nodes
+      - Command [by executing specific nodes on a nodes' return call] adds dependencies directly to nodes, less atomic
+  - Future:
+    - RAG: https://docs.langchain.com/oss/python/langgraph/agentic-rag, (maybe also see: https://docs.langchain.com/oss/python/langchain/rag and https://docs.langchain.com/oss/python/langchain/knowledge-base)
+      - pgvector support https://docs.langchain.com/oss/python/integrations/vectorstores/index
+    - Persistence: https://docs.langchain.com/oss/python/langgraph/persistence
+      - might need a way to map user_id+session_id to a corresponding thread_id
+      - checkpointing via SQL DBs already implemented: https://docs.langchain.com/oss/python/langgraph/persistence#checkpointer-libraries
+  - Questions consumer
+    - iterator wont work because non-serializable, might just copy-create a list with remaining questions instead
+    - chatgpt:
+      ```python
+      from typing import TypedDict, Annotated, List, Optional
+      from operator import add
+      from langgraph.graph import StateGraph, START, END
+      # from langchain_core.messages import AIMessage  # if you accumulate messages
+
+      class State(TypedDict):
+          questions: List[str]                 # remaining questions
+          current_q: Optional[str]             # question being asked now
+          answers: Annotated[list, add]        # accumulate answers via reducer
+
+      def ask_next(state: State) -> dict:
+          qs = state["questions"]
+          if not qs:
+              return {}  # nothing to do
+          q = qs[0]
+          # ... call your model/tool to answer q -> ans ...
+          ans = f"stubbed answer to: {q}"
+          # consume one question and append answer
+          return {
+              "current_q": q,
+              "questions": qs[1:],
+              "answers": [ans],   # reducer `add` appends
+          }
+
+      def route(state: State):
+          return END if not state["questions"] else "ask"
+
+      g = StateGraph(State)
+      g.add_node("ask", ask_next)
+      g.add_edge(START, "ask")
+      g.add_conditional_edges("ask", route, {END: END, "ask": "ask"})
+      graph = g.compile()  # optionally with a checkpointer
+    ```
+  - !!! No option to host langgraph server without signing up for langsmith, there is an alternative: https://github.com/ibbybuilds/aegra

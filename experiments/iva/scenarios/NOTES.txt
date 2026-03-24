@@ -1,0 +1,6 @@
+- Ground Truth set the minial needed state to reach the defined outcome
+    - if a RD2 var is true the corresponding RD1 Var is also true
+    - if a Scenario has multiple possible outcomes, we select the ground truth that has the same outcome as the sample
+- Scenarios contains commented sections
+    - they originate from the real world training used for call takers
+    - they are not presented to the users currently

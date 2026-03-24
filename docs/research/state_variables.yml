@@ -1,0 +1,211 @@
+KnownBoolean: &KnownBoolean
+    type: &KnownBooleanType bool | None
+KnownSeverity: &KnownSeverity
+    type: &KnownSeverityType ["light", "heavy", "severe", None]
+
+Emergency Call:
+    Caller_identity: pass
+    Location: pass
+    What: pass
+    Medical:
+        Symptoms:
+            RD1:
+                1A_Breathing:
+                    now_sufficient_air: *KnownBoolean
+                2B_Consciousness:
+                    now_responsive_normally: *KnownBoolean
+                3C_Circulation:
+                    chest_discomfort: *KnownBoolean #  (burning, pressure, tightness, or pain)
+                    acute_circulatory_problems: *KnownBoolean # synonyms? distress / instability
+                4D_Neurological:
+                    acute_motor_deficit: *KnownBoolean      # Lähmung
+                    acute_speech_disorder: *KnownBoolean    # Sprechstörung
+                    acute_speech_comprehension_disorder: *KnownBoolean    # Sprechstörung
+                    acute_visual_disturbance: *KnownBoolean # Sehstörung
+                    acute_headache: *KnownBoolean           # starke Kopfschmerzen
+                    acute_hemisensory_loss: *KnownBoolean   # halbseitige Gefühlsstörung
+                    acute_vertigo_with_falling_risk: *KnownBoolean  # Schwindel mit Fallneigung
+                5_Other:
+                    # 5_1_injury:
+                        injury: *injury # == heavy
+                    # 5_2_bleeding:
+                        non_traumatic_bleeding: &non_traumatic_bleeding
+                            type: *KnownSeverityType # ==severe
+                    # 5_3_poisoning:
+                        intoxication: &intoxication
+                            type: *KnownBooleanType
+                    # 5_4_preganancy:
+                        imminent_childbirth: *KnownBoolean
+                    # 5_5_pain:
+                        pain: &pain
+                            type: *KnownSeverityType
+                    # 5_6_psychiatric:
+                        psychiatric_behaviour: *KnownBoolean
+                    # 5_7_metabolic:
+                        diabetic: *KnownBoolean
+                        metabolic_disorder: *KnownBoolean
+            RD2:
+                ## 1.A Breathing
+                1A_Breathing:
+                    rapidly_progressive_respiratory_distress:
+                        type: boolean | None
+                    severe_dyspnoea:
+                        type: boolean | None
+                    cyanosis: &cyanosis
+                        type: *KnownBooleanType
+                    stridor: *KnownBoolean
+
+                    # ?? just one
+                    # inspiratory_stridor:
+                    #     type: boolean | None
+                    # expiratory_stridor:
+                    #     type: boolean | None
+                    #??
+
+                    abnormal_breathing_sounds:
+                        type: boolean | None
+                    aspiration: # something other than air in the lungs
+                        type: boolean | None
+
+                    # ?? just one?s
+                    # abnormal_thoracic_excursions:
+                    #     type: boolean | None
+                    # absent_thoracic_excursions:
+                    #     type: boolean | None
+                    abnormal_chest_movement: *KnownBoolean
+                    # ??
+
+                    # ?? abnormal_breathing_rate needed
+                    # abnormal_breathing_rate:
+                    #     type: boolean | None
+                    bradypnea:
+                        type: boolean | None
+                    tachypnea:
+                        type: boolean | None
+                    apnea:
+                        type: boolean | None
+                    # ??
+                    ## 1.A
+
+                2B_Consciousness:
+                    # 2.B Consciousness
+                    unconscious:
+                        type: boolean | None
+                    rapidly_progressing_unconsciousness:
+                        type: boolean | None
+
+                3C_Circulation:
+                    # 3.C Circulation
+                    acute_chest_pain:
+                        type: boolean | None
+                    cold_sweat:
+                        type: boolean | None
+                    pallor:
+                        type: boolean | None
+
+                    #??
+                    hypertensive_crisis:
+                        type: boolean | None
+                    hypotensive_collapse:
+                        type: boolean | None
+                    # ??
+
+                    # ?? combine
+                    tachycardia:
+                        type: boolean | None
+                        clinical_signs_examples:
+                            &clinical_signs_examples [
+                                "headache",
+                                "chest pain",
+                                "stomach pain",
+                                "palpitations",
+                                "difficulty breathing",
+                            ]
+                    bradycardia:
+                        type: boolean | None
+                        clinical_signs_examples: *clinical_signs_examples
+                    arrhythmia: # python: `tachycardia or bradycardia`
+                        type: boolean | None
+                    # ??
+
+                    pacemaker_malfunction: # synonym AICD
+                        type: boolean | None
+                    allergic_reaction:
+                        type: boolean | None
+                        features:
+                            [
+                                "skin rash",
+                                "circulatory issues",
+                                "difficulty breathing",
+                            ]
+                    anaphylaxis: # anaphylactic shock
+                        type: boolean | None
+
+                4D_Neurological:
+                    # 4.D neurological symptoms
+                    neurological_deficits:
+                        type: boolean | None
+                    ongoing_seizure:
+                        type: boolean | None
+                    status_epilepticus: # multiple_seizures
+                        type: boolean | None
+
+                5_Other:
+                    # 5.1. heavy injury
+                    vital_threat_injury: *KnownBoolean
+
+                    # 5.2. heavy non-traumatic bleeding / Severe haemorrhage
+                    gastrointestinal_bleeding: *KnownBoolean
+                    gynecological_bleeding: *KnownBoolean
+                    epistaxis: # nosebleed
+                        type: *KnownBooleanType
+                        requirements:
+                            [
+                                "Consciousness",
+                                "Breathing",
+                                "Circulatory",
+                                "severe pain",
+                            ]
+
+                    # 5.3. poisoning
+                    life_threatening_intoxication: *KnownBoolean
+
+                    # 5.4. imminent childbirth
+                    pregnancy_contraction_frequency_<3min: *KnownBoolean
+                    ongoing_delivery: *KnownBoolean
+                    vaginal_bleeding: *KnownBoolean
+
+                    # 5.5. severe pain
+                    unbearable_pain:
+                        type: *KnownBooleanType
+                        severity: ["light", "heavy", "severe"]
+                    thunderclap_headache: *KnownBoolean
+                    colicky_pain: *KnownBoolean
+
+                    # 5.6. psychiatric symptoms
+                    acute_self_harm_risk: *KnownBoolean
+                    acute_violence_risk: *KnownBoolean
+                    suicidal: *KnownBoolean
+
+                    # 5.7. metabolic disorders
+                    metabolic_decompensation: *KnownBoolean
+                    hyperthermia: *KnownBoolean
+                    hypothermia: *KnownBoolean
+
+            Immediate_Disposition:
+                cyanosis: *cyanosis
+                suffocation: *KnownBoolean
+                severe_accident: *KnownBoolean
+                injury: &injury
+                    type: *KnownBooleanType
+                    severity: ["light", "heavy", "severe"] # == severe
+            ## Immediate Disposition
+
+            ## T-CPR
+            T-CPR:
+                cardiac_arrest: *KnownBoolean
+                agonal_respiration: *KnownBoolean # gasping breaths
+            ## T-CPR
+        Criteria: pass
+    Fire: pass
+    None: pass

@@ -1,0 +1,150 @@
+
+notrufabfrage:
+  notrufannahme:
+    greeting: greeting_text              # Begrüßungsformel
+    operator_name: operator_name         # Optional: Name des Disponenten
+    caller_name: caller_name             # Mit wem spreche ich bitte?
+    location: incident_location          # Wo genau ist der Einsatzort?
+    acute_problem: acute_problem_desc    # Was ist jetzt akut passiert?
+    is_caller_patient: is_caller_patient # Sind Sie der Patient?
+    num_persons_involved: num_persons_involved # Anzahl Beteiligte/Verletzte/Erkrankte
+
+  assessment:
+    case_type:
+      is_medical_emergency: is_medical_emergency
+      is_fire_emergency: is_fire_emergency
+      is_mixed_emergency: is_mixed_emergency
+      is_non_emergency: is_non_emergency
+
+    self_protection:
+      is_caller_in_danger: is_caller_in_danger
+
+  medical_emergency:
+    immediate_life_threat:
+      has_airway_obstruction_or_cyanosis: has_airway_obstruction_or_cyanosis
+      has_cardiac_arrest: has_cardiac_arrest
+      has_severe_injury: has_severe_injury
+
+    # Schlüsselfragen ("Key questions") by ABCD schema:
+    abcd_questions:
+      a_airway_breathing:
+        has_sufficient_air: has_sufficient_air
+        symptoms:
+          rapid_progressive_respiratory_distress: rapid_progressive_respiratory_distress
+          severe_dyspnea: severe_dyspnea
+          cyanosis: cyanosis
+          stridor: stridor
+          abnormal_breath_sounds: abnormal_breath_sounds
+          aspiration: aspiration
+          abnormal_chest_movement: abnormal_chest_movement
+          bradypnea: bradypnea
+          tachypnea: tachypnea
+          apnea: apnea
+      b_consciousness:
+        is_responsive_normally: is_responsive_normally
+        symptoms:
+          rapidly_progressive_consciousness_impairment: rapidly_progressive_consciousness_impairment
+          unconsciousness: unconsciousness
+          inadequate_response_to_stimuli: inadequate_response_to_stimuli
+      c_circulation:
+        has_chest_pain: has_chest_pain
+        has_new_circulatory_problem: has_new_circulatory_problem
+        symptoms:
+          acute_chest_pain: acute_chest_pain
+          shock_signs: shock_signs
+          blood_pressure_derailment: blood_pressure_derailment
+          symptomatic_tachycardia: symptomatic_tachycardia
+          symptomatic_bradycardia: symptomatic_bradycardia
+          symptomatic_arrhythmia: symptomatic_arrhythmia
+          pacemaker_icd_malfunction: pacemaker_icd_malfunction
+          severe_allergic_reaction: severe_allergic_reaction
+      d_neurological_deficit:
+        has_new_motor_deficit: has_new_motor_deficit         # Lähmung
+        has_new_speech_disorder: has_new_speech_disorder     # Sprechstörung
+        has_new_visual_disturbance: has_new_visual_disturbance # Sehstörung
+        has_new_headache: has_new_headache                   # starke Kopfschmerzen
+        has_new_hemisensory_loss: has_new_hemisensory_loss   # halbseitige Gefühlsstörung
+        has_new_vertigo_with_fall: has_new_vertigo_with_fall # Schwindel mit Fallneigung
+        has_seizure: has_seizure                             # Krampfanfall
+        symptoms:
+          focal_neurological_deficit_with_consciousness: focal_neurological_deficit_with_consciousness
+          status_epilepticus: status_epilepticus
+          multiple_seizures: multiple_seizures
+
+  supplemental_questions:
+    has_severe_injury: has_severe_injury
+    has_severe_non_traumatic_bleeding: has_severe_non_traumatic_bleeding
+    has_poisoning: has_poisoning
+    imminent_childbirth: imminent_childbirth
+    contraction_interval_minutes: contraction_interval_minutes
+    has_severe_pain: has_severe_pain
+    is_psychiatric_emergency: is_psychiatric_emergency
+    has_known_diabetes: has_known_diabetes
+    has_known_metabolic_disorder: has_known_metabolic_disorder
+    feels_abnormally_hot: feels_abnormally_hot
+    feels_abnormally_cold: feels_abnormally_cold
+
+    # Symptoms related to above
+    symptoms:
+      life_threatening_trauma:
+        consciousness_impairment: trauma_consciousness_impairment
+        respiratory_impairment: trauma_respiratory_impairment
+        circulatory_impairment: trauma_circulatory_impairment
+        severe_bleeding: trauma_severe_bleeding
+        severe_pain: trauma_severe_pain
+        trauma_mechanisms:
+          fall_above_3m: trauma_fall_above_3m
+          entrapment: trauma_entrapment
+          high_speed_impact: trauma_high_speed_impact
+          pedestrian_cyclist_collision: trauma_pedestrian_cyclist_collision
+          ejection_from_vehicle: trauma_ejection_from_vehicle
+          penetrating_injury: trauma_penetrating_injury
+          firearm_injury: trauma_firearm_injury
+          electrocution_with_symptoms: trauma_electrocution_with_symptoms
+      severe_non_traumatic_bleeding:
+        gi_bleeding: severe_gi_bleeding
+        gynecological_bleeding: severe_gynecological_bleeding
+        epistaxis_with_vital_signs: epistaxis_with_vital_signs
+      severe_poisoning:
+        potential_life_threat: poisoning_life_threat
+        impaired_vital_functions: poisoning_impaired_vitals
+      obstetric_emergencies:
+        contractions_less_than_3min: contractions_less_than_3min
+        active_birth: active_birth
+        vaginal_bleeding_pregnancy: vaginal_bleeding_pregnancy
+      severe_pain:
+        unbearable_pain: unbearable_pain
+        thunderclap_headache: thunderclap_headache
+        colicky_pain: colicky_pain
+      psychiatric_emergencies:
+        acute_self_harm_risk: acute_self_harm_risk
+        suicide_attempt: suicide_attempt
+        violence_risk: violence_risk
+      metabolic_emergencies:
+        metabolic_decompensation_with_symptoms: metabolic_decompensation_with_symptoms
+        hyperthermia: hyperthermia
+        hypothermia: hypothermia
+
+  fire_emergency:
+    fire_location: fire_location
+    persons_in_danger: fire_persons_in_danger
+    fire_cause: fire_cause
+    hazard_indicators: fire_hazard_indicators
+
+  technical_assistance:
+    incident_type: thl_incident_type
+    num_injured: thl_num_injured
+    persons_trapped: thl_persons_trapped
+    hazard_indicators: thl_hazard_indicators
+
+  hazardous_materials:
+    substance_leak_location: hazmat_substance_leak_location
+    persons_in_danger: hazmat_persons_in_danger
+    amount_and_type: hazmat_amount_and_type
+    warning_signs: hazmat_warning_signs
+
+  end_of_call:
+    summary: call_summary
+    help_promise: help_promise
+    first_aid_advice: first_aid_advice
+    advise_recall_on_worsening: advise_recall_on_worsening
