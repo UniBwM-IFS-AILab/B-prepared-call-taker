@@ -47,7 +47,7 @@ strict = false
 
 [tasks.llm_only]
 alias = 'dumb'
-run = "uv run {{config_root}}/src/ems_prepared/policies/llm_only/agent.py"
+run = "uv run {{config_root}}/src/ems_prepared/main_cli.py --policy agent"
 
 [tasks.ollama]
 shell = 'bash -c'
@@ -56,21 +56,23 @@ hide = true
 
 [tasks.cli]
 alias = 'ems'
-run = "uv run {{config_root}}/src/ems_prepared/policies/pydantic_graph/emergency_main_graph.py"
+run = "uv run {{config_root}}/src/ems_prepared/main_cli.py --policy graph"
 
 [tasks.server]
-run = "fastapi dev {{config_root}}/src/ems_prepared/adapters/app.py"
+run = "fastapi dev {{config_root}}/src/ems_prepared/main_fastapi.py"
 # depends = ['ollama']
-
-[tasks.streamlit]
-alias = "sl"
-run = "streamlit run {{config_root}}/src/ems_prepared/adapters/streamlit_app.py"
-
 
 [tasks.gradio]
 # env = { SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/XXX/YYY/ZZZ" }
-run = "uv run --no-sync {{config_root}}/src/ems_prepared/adapters/gradio/app.py --docs-dir ./docs/scenarios"
+run = "uv run --no-sync {{config_root}}/src/ems_prepared/main_gradio.py"
 
 [tasks.gradio_dev]
 env = { GRADIO_DEBUG = "1" }
-run = "uv run --no-sync gradio {{config_root}}/src/ems_prepared/adapters/gradio/app.py"
+run = '''
+SCENARIO_DIR="${SCENARIO_DIR:-$(find "{{config_root}}/experiments" -mindepth 2 -maxdepth 2 -type d -name scenarios | sort | head -n1)}"
+if [ -z "$SCENARIO_DIR" ]; then
+  echo "No scenario directory found under {{config_root}}/experiments/*/scenarios. Set SCENARIO_DIR explicitly." >&2
+  exit 2
+fi
+uv run --no-sync {{config_root}}/src/ems_prepared/main_gradio.py --scenario-dir "$SCENARIO_DIR"
+'''

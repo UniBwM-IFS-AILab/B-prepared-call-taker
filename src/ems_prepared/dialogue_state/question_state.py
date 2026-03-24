@@ -1,7 +1,7 @@
 from anthropic._models import BaseModel
 
 from ems_prepared.dialogue_state.type_defs import EmergencyType
-from ems_prepared.util.settings import Locale
+from ems_prepared.model.context import Locale
 
 _SENTINEL = object()
 

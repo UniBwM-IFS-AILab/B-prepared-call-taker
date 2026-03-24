@@ -2,14 +2,10 @@
 
 This module contains:
 - Dataclasses for survey configuration (questions, scale labels)
-- Default survey configuration based on Evaluation_Survey.md
-- Survey response persistence (save to JSON file)
+- Default survey question set used by the Gradio adapter
 """
 
-import json
 from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
 
 # =============================================================================
 # Survey Configuration Dataclasses
@@ -24,6 +20,7 @@ class SurveyQuestion:
         category: category for the question (used in logging).
         label: Short label for display/reference.
         text: Full question text shown to the user.
+
     """
 
     id: int
@@ -41,6 +38,7 @@ class SurveyConfig:
             (e.g., ("Strongly Disagree", ..., "Strongly Agree")).
             The number of options is derived from len(labels).
         questions: Tuple of SurveyQuestion instances.
+
     """
 
     labels: tuple[str, ...]
@@ -57,6 +55,7 @@ class SurveyConfig:
         Returns:
             List of (label, value) tuples where value is 1-indexed.
             Format: (display_label, numeric_value)
+
         """
         return [(label, idx) for idx, label in enumerate(self.labels, 1)]
 
@@ -66,6 +65,7 @@ class SurveyConfig:
         Returns:
             List of (label, value) tuples where value is 1-indexed.
             Format: (display_label, numeric_value)
+
         """
         return {idx: label for idx, label in enumerate(self.labels, 1)}
 
@@ -84,7 +84,7 @@ DEFAULT_LIKERT_LABELS = (
 )
 
 
-# Survey questions from docs/Evaluation_Survey.md
+# Survey questions used by the Gradio flow
 DEFAULT_SURVEY_QUESTIONS = (
     SurveyQuestion(
         id=1,
@@ -96,7 +96,7 @@ DEFAULT_SURVEY_QUESTIONS = (
         id=2,
         category="understanding",
         label="Agents' Understanding",
-        text="The agent understood what I said.",  # The system understands the user’s request and fulfils
+        text="The agent understood what I said.",  # The system understands the user's request and fulfils
     ),
     SurveyQuestion(
         id=3,
@@ -140,35 +140,3 @@ DEFAULT_BY_LABEL: dict[str, SurveyQuestion] = {
     q.label: q for q in DEFAULT_SURVEY_QUESTIONS
 }
 DEFAULT_BY_ID: dict[int, SurveyQuestion] = {q.id: q for q in DEFAULT_SURVEY_QUESTIONS}
-
-
-def save_survey_responses(
-    save_path: Path,
-    responses: list[dict],
-    metadata: dict[str, str],
-) -> Path:
-    """Save survey responses to a JSON file.
-
-    Creates a single survey.json file in the session directory.
-    Overwrites any existing file (one survey per session).
-
-    Args:
-        save_path: Session-specific directory path.
-        responses: Dictionary mapping question label to response data.
-        metadata: Optional metadata (user_id, session_id, scenario, etc.).
-
-    Returns:
-        Path to the saved survey.json file.
-    """
-    survey_data: dict[str, str | list[dict] | dict[str, str]] = {
-        "timestamp": datetime.now().isoformat(),
-        "responses": responses,
-        "metadata": metadata,
-    }
-
-    file_path = save_path / "survey.json"
-    file_path.write_text(
-        json.dumps(survey_data, indent=2, default=str), encoding="utf-8"
-    )
-
-    return file_path

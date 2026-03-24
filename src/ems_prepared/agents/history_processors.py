@@ -12,6 +12,7 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 
+from ems_prepared.agents.reusable_prompts import BASE_SYSTEM_PROMPT
 from ems_prepared.dialogue_state.structured_output import DialogueOutput
 
 
@@ -148,7 +149,7 @@ def state_fill_history_processor(
         processed.insert(
             0,
             ModelRequest(
-                parts=[SystemPromptPart(content=state_fill_prompt.full_prompt)]
+                parts=[SystemPromptPart(content=BASE_SYSTEM_PROMPT.full_prompt)]
             ),
         )
 

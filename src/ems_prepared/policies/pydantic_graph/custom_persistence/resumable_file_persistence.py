@@ -74,17 +74,12 @@ class ResumableFilePersistence(FileStatePersistence[StateT, RunEndT]):
         return await super().load_next()
 
 
-async def clear_old_run(user_id: UUID, experiment_name: str | None = None):
+async def clear_old_run(user_id: UUID, user_root: Path):
     if user_id.int == 0:
         import shutil
 
         print("Cleaning up old test runs for user_id=0")
-        base_path = Path("logs")
-        # Use experiment_name if provided, otherwise use "_sessions"
-        experiment_dir = experiment_name if experiment_name else "_sessions"
-        shutil.rmtree(
-            base_path / experiment_dir / user_id.hex, ignore_errors=True
-        )  # , ignore_errors=True
+        shutil.rmtree(user_root, ignore_errors=True)
 
 
 async def setup_resumable_file_persistence(

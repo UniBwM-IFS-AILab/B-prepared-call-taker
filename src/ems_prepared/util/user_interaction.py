@@ -9,17 +9,13 @@ import warnings
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
-import fastapi as fapi
-from fastapi.exceptions import WebSocketException
-from pydantic_ai.agent import Agent
-from pydantic_ai.run import AgentRunResult
 from pydantic_graph import GraphRunContext
 from rich import print
 from rich.prompt import Prompt
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.util.custom_deepmerge import ignore_empty_merger
-from ems_prepared.util.settings import InputMode, Settings
+from ems_prepared.model.context import InputMode, Settings
+from ems_prepared.util.helpers import async_wrapper
 
 T = TypeVar("T")
 
@@ -32,18 +28,11 @@ async def prompt_user(question: str, deps: Settings) -> str:
             return Prompt.ask(question)  # blocking read
         case InputMode.API:
             print(question)
-            if deps.websocket is not None:
-                await deps.websocket.send_text(question)
-                message = await deps.websocket.receive_text()
-                # await deps.websocket.send_text(message)
-                return message
-            # TODO: use yield like in this example: https://ai.pydantic.dev/examples/chat-app/#example-code
-            # this allows us to post-process the user message before displaying ii in hte frontend (e.g. a llm could try to correct the ASR errors)
-            else:
-                raise WebSocketException(code=fapi.status.HTTP_503_SERVICE_UNAVAILABLE)
-
+            request_input = deps.transport.request_input
+            if request_input is None:
+                raise RuntimeError("No API request_input transport configured.")
+            return await request_input(deps, question)
         case InputMode.TEST:
-            pass
             raise NotImplementedError("Test input mode not implemented yet.")
 
 
@@ -59,9 +48,7 @@ async def tell_user(message: str, deps: Settings) -> None:
             print(message)
         case InputMode.API:
             print(message)
-            if deps.websocket is not None:
-                return await deps.websocket.send_text(message)
-
+            await async_wrapper(deps.transport.emit(deps, message))
         case InputMode.TEST:
             pass  # handle differently if it makes sense
 
@@ -73,6 +60,7 @@ async def converse_with_user(
         [str, str, GraphRunContext[EmergencyCall, Settings]], Awaitable[T]
     ],
 ) -> T:
+    """Prompt for user input and pass response through the provided task function."""
     user_response: str | None = await prompt_user(prompt, deps=ctx.deps)
     if user_response is None:
         raise RuntimeError("prompt_user returned None; expected a string response.")

@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic_ai.agent import Agent, AgentRunResult
+from pydantic_ai.agent import Agent
 from pydantic_ai.models.fallback import FallbackModel
 from pydantic_ai.output import PromptedOutput
 from pydantic_graph import GraphRunContext
@@ -9,8 +9,8 @@ from rich import print
 
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.model.context import Settings
 from ems_prepared.util.models import build_models
-from ems_prepared.util.settings import Settings
 
 state_fill_prompt: system_prompt = system_prompt(
     task=(
@@ -63,13 +63,16 @@ async def var_fill_task(
         # f"Schema: {state.model_json_schema(mode='serialization')}"
     )
 
-    result: AgentRunResult[
-        EmergencyCall | Literal[True] | str
-    ] = await get_var_fill_agent().run(user_prompt=agent_task)
+    result = await get_var_fill_agent().run(user_prompt=agent_task, deps=ctx.deps)
 
     print(result.usage())
 
-    return result.output
+    if not isinstance(result.output, (EmergencyCall, bool, str)):
+        raise TypeError(
+            f"Unsupported var_fill_task output type: {type(result.output)!r}"
+        )
+    else:
+        return result.output
 
 
 @lru_cache(maxsize=1)
@@ -89,7 +92,3 @@ def get_var_fill_agent():
         deps_type=Settings,
         instructions=(state_fill_prompt.full_prompt),
     )
-
-
-if __name__ == "__main__":
-    state = EmergencyCall()

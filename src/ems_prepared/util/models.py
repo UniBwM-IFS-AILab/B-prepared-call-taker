@@ -27,19 +27,9 @@ from httpx._client import AsyncClient
 from httpx._exceptions import HTTPStatusError
 from pydantic_ai.agent import Agent
 from pydantic_ai.models import Model, infer_model
-from pydantic_ai.models.anthropic import AnthropicModel
-from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.models.groq import GroqModel
-from pydantic_ai.models.mistral import MistralModel
 from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.providers.anthropic import AnthropicProvider
-from pydantic_ai.providers.cerebras import CerebrasProvider
-from pydantic_ai.providers.google import GoogleProvider
-from pydantic_ai.providers.groq import GroqProvider
-from pydantic_ai.providers.mistral import MistralProvider
 from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.providers.openrouter import OpenRouterProvider
 from pydantic_ai.retries import AsyncTenacityTransport, RetryConfig, wait_retry_after
 from pydantic_ai.settings import ModelSettings
 from tenacity.retry import retry_if_exception_type
@@ -112,8 +102,8 @@ def build_models(
         ...     "github:gpt-4.1-mini",
         ...     "google-gla:gemini-2.5-flash",
         ... ))
-    """
 
+    """
     models: list[Model] = []
     for name in names:
         if name.startswith(_OLLAMA_LOCAL_PREFIX):
@@ -136,10 +126,16 @@ def build_models(
             if http_client is not None:
                 # Build manually to support http_client
                 if name.startswith("google-gla:"):
+                    from pydantic_ai.models.google import GoogleModel
+                    from pydantic_ai.providers.google import GoogleProvider
+
                     model_name = name[len("google-gla:") :]
                     provider = GoogleProvider(http_client=http_client)
                     model = GoogleModel(model_name, provider=provider)
                 elif name.startswith("anthropic:"):
+                    from pydantic_ai.models.anthropic import AnthropicModel
+                    from pydantic_ai.providers.anthropic import AnthropicProvider
+
                     model_name = name[len("anthropic:") :]
                     provider = AnthropicProvider(http_client=http_client)
                     model = AnthropicModel(model_name, provider=provider)
@@ -155,18 +151,28 @@ def build_models(
                     )
                     model = OpenAIChatModel(model_name, provider=provider)
                 elif name.startswith("groq:"):
+                    from pydantic_ai.models.groq import GroqModel
+                    from pydantic_ai.providers.groq import GroqProvider
+
                     model_name = name[len("groq:") :]
                     provider = GroqProvider(http_client=http_client)
                     model = GroqModel(model_name, provider=provider)
                 elif name.startswith("cerebras:"):
+                    from pydantic_ai.providers.cerebras import CerebrasProvider
+
                     model_name = name[len("cerebras:") :]
                     provider = CerebrasProvider(http_client=http_client)
                     model = OpenAIChatModel(model_name, provider=provider)
                 elif name.startswith("mistral:"):
+                    from pydantic_ai.models.mistral import MistralModel
+                    from pydantic_ai.providers.mistral import MistralProvider
+
                     model_name = name[len("mistral:") :]
                     provider = MistralProvider(http_client=http_client)
                     model = MistralModel(model_name, provider=provider)
                 elif name.startswith("openrouter:"):
+                    from pydantic_ai.providers.openrouter import OpenRouterProvider
+
                     model_name = name[len("openrouter:") :]
                     provider = OpenRouterProvider(http_client=http_client)
                     model = OpenAIChatModel(model_name, provider=provider)
@@ -188,6 +194,7 @@ def get_default_settings(overrides: dict[str, object] | None = None) -> ModelSet
 
     Returns:
         ModelSettings instance with applied overrides.
+
     """
     default_settings = ModelSettings(
         temperature=0,
@@ -240,6 +247,7 @@ def get_default_models(
 
     Returns:
         Tuple of Model instances.
+
     """
     if overrides is not None:
         model_names = overrides
@@ -272,8 +280,8 @@ def build_fallback_agent(
     model_overrides: list[str] | None = None,
     model_extras: list[str] | None = None,
     setting_overrides: dict[str, object] | None = None,
-    **kwargs: dict[str, None],
-) -> Agent[None, str]:
+    **kwargs: Any,
+) -> Agent[Any, Any]:
     """Build a FallbackModel agent with default models and settings.
 
     Args:
@@ -281,6 +289,7 @@ def build_fallback_agent(
 
     Returns:
         An Agent instance using a FallbackModel with default models.
+
     """
     from pydantic_ai.models.fallback import FallbackModel
 

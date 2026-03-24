@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
 
 from pydantic_ai._agent_graph import capture_run_messages
@@ -10,7 +9,6 @@ from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_ai.messages import ModelMessage, ModelResponse
 from rich import print
 
-from ems_prepared.agents.history_processors import remove_before_extracion_processor
 from ems_prepared.agents.reusable_prompts import (
     BASE_SYSTEM_PROMPT,
     extend_system_prompt,
@@ -18,15 +16,12 @@ from ems_prepared.agents.reusable_prompts import (
 from ems_prepared.agents.system_prompt import system_prompt
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.structured_output import DialogueOutput
-from ems_prepared.policies.shared import (
-    merge_call_state,
-    save_run_artifacts,
-)
+from ems_prepared.model.context import Settings
+from ems_prepared.policies.shared import merge_call_state
 from ems_prepared.util.logger import flush_logger
 from ems_prepared.util.models import (
     build_fallback_agent,
 )
-from ems_prepared.util.settings import Settings
 from ems_prepared.util.user_interaction import prompt_user
 
 
@@ -45,8 +40,8 @@ def build_emergency_agent(deps: Settings) -> Agent[Settings, DialogueOutput]:
 
     Returns:
         Configured PydanticAI agent for emergency call handling
-    """
 
+    """
     prompt: system_prompt = extend_system_prompt(
         BASE_SYSTEM_PROMPT,
         task=(
@@ -96,9 +91,9 @@ async def run_agent_with_capture(
 
     Returns:
         Tuple of (AgentRunResult, captured_messages_list)
-    """
 
-    deps.logger.debug(f"{len(agent_history)} messages in history")
+    """
+    deps.telemetry.logger.debug(f"{len(agent_history)} messages in history")
     # from devtools import debug
 
     # debug(agent_history[-4:])
@@ -107,11 +102,13 @@ async def run_agent_with_capture(
             result = await agent.run(
                 user_prompt="",
                 message_history=agent_history,
+                deps=deps,
             )
         else:
             result = await agent.run(
                 user_prompt=user_prompt,
                 message_history=agent_history,
+                deps=deps,
             )
 
     return result, list(captured_messages)
@@ -141,7 +138,6 @@ def update_history_and_merge_state(
     """Extend agent_history, merge result state into current state, log operator/question,
     and return (is_complete, next_question).
     """
-
     # Extend history with new messages
     agent_history.extend(result.new_messages())
 
@@ -155,11 +151,11 @@ def update_history_and_merge_state(
         check_completion(current_state, deps=deps)
         or result.output.enough_information_gathered
     )
-    deps.logger.debug(
+    deps.telemetry.logger.debug(
         f"Completion check: {is_complete}, enough_info: {result.output.enough_information_gathered}, no outcomes: {current_state.no_outcomes}, rd2: {current_state.rd2}"
     )
     if is_complete:
-        deps.state_logger.info(
+        deps.telemetry.state_logger.info(
             {"state": current_state.model_dump(exclude_none=True)},
             extra={"event": "complete"},
         )
@@ -167,14 +163,14 @@ def update_history_and_merge_state(
 
     # Log operator question (may be None)
     next_question = result.output.next_question
-    deps.messages_logger.info(
+    deps.telemetry.messages_logger.info(
         "",
         extra={"speaker": "operator", "msg_text": next_question},
     )
 
     # Log extraction event if caller response present
     if caller_msg is not None and new_state is not None:
-        deps.state_logger.info(
+        deps.telemetry.state_logger.info(
             {
                 "result": new_state.model_dump(exclude_none=True),
                 "question": next_question,
@@ -197,8 +193,8 @@ def merge_state(
         state: Current state to merge into (modified in place)
         new_state: New state to merge from
         deps: Settings with loggers
-    """
 
+    """
     _ = merge_call_state(current_state=current_state, new_state=new_state, deps=deps)
 
 
@@ -210,27 +206,11 @@ def check_completion(state: EmergencyCall, deps: Settings) -> bool:
 
     Returns:
         True if any completion condition is met (rd2, cpr_needed, time_critical)
-    """
 
+    """
     if state.rd1:
-        deps.logger.info("reached RD1")
-    return state.cpr_needed or state.rd2
-
-
-def save_agent_run_results(
-    state: EmergencyCall,
-    message_history: list[ModelMessage],
-    deps: Settings,
-) -> None:
-    """Save the final state, schema, and message history to JSON files.
-
-    Args:
-        state: Final emergency call state
-        message_history: Complete message history
-        deps: Settings with save_path
-    """
-
-    save_run_artifacts(state=state, message_history=message_history, deps=deps)
+        deps.telemetry.logger.info("reached RD1")
+    return bool(state.cpr_needed) or bool(state.rd2)
 
 
 # FIXME: Why does this get agent and result as input? Improve API?
@@ -247,7 +227,7 @@ async def talk_to_user(
     # If the agent produced a question, present it to the operator and capture their response
     if isinstance(result.output.next_question, str):
         question = result.output.next_question
-        deps.messages_logger.info(
+        deps.telemetry.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": question}
         )
 
@@ -255,7 +235,7 @@ async def talk_to_user(
         response = user_response
 
         if user_response:
-            deps.messages_logger.info(
+            deps.telemetry.messages_logger.info(
                 "", extra={"speaker": "caller", "msg_text": user_response}
             )
 
@@ -274,7 +254,7 @@ async def talk_to_user(
     # Log provider/model info when available
     response_obj = extract_last_model_response(new_result, captured_messages)
     if response_obj:
-        deps.logger.info(
+        deps.telemetry.logger.info(
             f"provider={response_obj.provider_name} model={response_obj.model_name}"
         )
 
@@ -290,22 +270,15 @@ async def main():
     """Run the emergency call agent in CLI mode."""
     state = EmergencyCall()
 
-    deps = Settings(name="llm_loop")
+    deps = Settings(name="llm_loop", policy_name="agent")
     agent = build_emergency_agent(deps)
 
-    result: AgentRunResult[DialogueOutput] = await agent.run()
+    result: AgentRunResult[DialogueOutput] = await agent.run(deps=deps)
     while result := await talk_to_user(state, result, agent, deps=deps):
         if check_completion(state, deps=deps):
             print("Outcome reached")
             break
 
     # Flush loggers to ensure all data is written
-    flush_logger(deps.messages_logger)
-    flush_logger(deps.state_logger)
-
-    # Save results to files
-    save_agent_run_results(state, result.all_messages(), deps)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    flush_logger(deps.telemetry.messages_logger)
+    flush_logger(deps.telemetry.state_logger)

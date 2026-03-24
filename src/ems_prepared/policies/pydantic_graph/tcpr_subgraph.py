@@ -11,14 +11,13 @@ from rich import print
 
 from ems_prepared.agents.variable_fill_agent import var_fill_task
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
+from ems_prepared.model.context import Locale, Settings
 from ems_prepared.policies.pydantic_graph.graph_helpers import (
     init_graph,
     save_mermaid_graph,
 )
-from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
-from ems_prepared.policies.shared import save_state_json
+from ems_prepared.policies.runtime_shared import record_completion_artifacts
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
-from ems_prepared.util.settings import Locale, Settings
 from ems_prepared.util.user_interaction import (
     converse_with_user,
     tell_user,
@@ -55,6 +54,9 @@ questions = {
         "Können Sie jemanden auf die Straße schicken, der sich bemerkbar macht?",
     ],
 }
+
+
+TCPRNode = BaseNode[EmergencyCall, Settings]
 
 
 ### PREPARATION
@@ -113,8 +115,8 @@ class Instruct(BaseNode[EmergencyCall, Settings]):
 async def instruct_user(
     ctx: GraphRunContext[EmergencyCall, Settings],
     instruction: str,
-    next_node: EmergencyNode,
-) -> EMSArrived | EmergencyNode | None:
+    next_node: TCPRNode,
+) -> EMSArrived | TCPRNode | None:
     parse_result = await converse_with_user(instruction, ctx, var_fill_task)
 
     if type(parse_result) is EmergencyCall:
@@ -151,7 +153,7 @@ class ArtificialVentilation(BaseNode[EmergencyCall, Settings]):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> EmergencyNode | EMSArrived:
+    ) -> TCPRNode | EMSArrived:
         instruction = {
             Locale.EN: "Please perform two rescue breaths and confirm when done.",
             Locale.DE: "Bitte beatmen Sie den Patienten zwei mal und bestätigen Sie danach.",
@@ -169,7 +171,7 @@ class ChestCompression(BaseNode[EmergencyCall, Settings]):
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ) -> EmergencyNode | EMSArrived:
+    ) -> TCPRNode | EMSArrived:
         instruction = {
             Locale.EN: "Please perform 30 chest compressions and confirm when done.",
             Locale.DE: "Bitte führen Sie 30 Herzdruckmassagen durch und bestätigen Sie danach.",
@@ -184,17 +186,17 @@ class ChestCompression(BaseNode[EmergencyCall, Settings]):
 
 
 @dataclass
-class AEDArrived(EmergencyNode):
+class AEDArrived(BaseNode[EmergencyCall, Settings]):
     @override
     async def run(
         self,
         ctx: GraphRunContext[EmergencyCall, Settings],
-    ):
-        pass
+    ) -> End[EmergencyCall]:
+        return End(ctx.state)
 
 
 @dataclass
-class EMSArrived(EmergencyNode):
+class EMSArrived(BaseNode[EmergencyCall, Settings]):
     @override
     async def run(
         self,
@@ -241,25 +243,24 @@ async def run_graph(
             else:
                 print(node)
     if run.result is not None:
-        _ = asyncio.create_task(save_state_json(run.result, deps.save_path))
-        _ = asyncio.create_task(
-            save_mermaid_graph(
-                graph,
-                deps.save_path,
-            )
+        save_mermaid_graph(
+            graph,
+            deps.storage.save_path,
         )
-        _ = (deps.save_path / "deps.json").write_text(
-            data=deps.model_dump_json(indent=2), encoding="utf-8"
+        record_completion_artifacts(
+            deps,
+            run.result.state,
+            [],
         )
 
     return run.result
 
 
-async def main(deps=None, state=None):
+async def main(deps: Settings | None = None, state: EmergencyCall | None = None):
     """Function to test the graph in isolation."""
 
-    deps: Settings = deps or Settings(name="tcp_subgraph_only")
-    state: EmergencyCall = state or EmergencyCall(cardiac_arrest=True)
+    deps = deps or Settings(name="tcp_subgraph_only")
+    state = state or EmergencyCall(cardiac_arrest=True)
 
     result = await run_graph(init_state=state, deps=deps)
     if result is not None:

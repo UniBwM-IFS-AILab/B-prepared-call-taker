@@ -11,7 +11,7 @@ from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
     setup_file_persistence,
 )
-from ems_prepared.util.settings import Settings
+from ems_prepared.model.context import Settings
 
 
 def save_mermaid_graph(
@@ -36,6 +36,6 @@ async def init_graph(
     graph = Graph[EmergencyCall, Settings, EmergencyCall](
         nodes=node_list,
     )
-    persistence = await setup_file_persistence(graph, deps.save_path, prefix=prefix)
+    persistence = await setup_file_persistence(graph, deps.storage.save_path, prefix=prefix)
     await graph.initialize(init_node, persistence=persistence, state=init_state)
     return graph, persistence

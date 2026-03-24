@@ -36,6 +36,7 @@ undefined/
 
 # Caches
 __marimo__/
+__pycache__/
 *.drawio.bkp
 typings/
 repo.bundle

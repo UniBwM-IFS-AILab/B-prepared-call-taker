@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import TypedDict
 
 from deepdiff.diff import DeepDiff
-from pydantic_ai.agent import AgentRunResult
+from pydantic_ai.agent import Agent, AgentRunResult
 from pydantic_graph import GraphRunContext
 from rich import print
 
@@ -16,8 +17,25 @@ from ems_prepared.dialogue_state.structured_output import (
     NonEmptyEmergencyCall,
     NonEmptyStr,
 )
+from ems_prepared.model.context import Settings
 from ems_prepared.util.models import build_fallback_agent
-from ems_prepared.util.settings import Settings
+
+type StateFillOutput = NonEmptyEmergencyCall | NonEmptyStr
+
+
+def _record_state_fill_result(
+    ctx: GraphRunContext[GraphState, Settings],
+    result: AgentRunResult[StateFillOutput],
+) -> StateFillOutput:
+    result_data = (
+        result.output.model_dump(exclude_none=True)
+        if isinstance(result.output, EmergencyCall)
+        else result.output
+    )
+    ctx.deps.telemetry.logger.debug("state_fill_task result: %s", result_data)
+    ctx.state.message_history.extend(result.new_messages())
+    return result.output
+
 
 state_fill_prompt = extend_system_prompt(
     BASE_SYSTEM_PROMPT,
@@ -44,19 +62,21 @@ state_fill_prompt = extend_system_prompt(
 
 
 @lru_cache(maxsize=1)
-def get_state_fill_agent():
+def get_state_fill_agent() -> Agent[Settings, NonEmptyEmergencyCall | NonEmptyStr]:
     return build_fallback_agent(
         output_type=[NonEmptyEmergencyCall, NonEmptyStr],  # DialogueOutput
         instructions=state_fill_prompt.full_prompt,
+        deps_type=Settings,
     )
 
 
 @lru_cache(maxsize=1)
-def get_contextual_question_agent():
+def get_contextual_question_agent() -> Agent[Settings, NonEmptyStr]:
     return build_fallback_agent(
         output_type=NonEmptyStr,  # DialogueOutput
         instructions=BASE_SYSTEM_PROMPT.full_prompt,
         history_processors=[remove_before_extracion_processor],
+        deps_type=Settings,
     )
 
 
@@ -64,17 +84,14 @@ async def state_fill_task(
     question: str,
     user_response: str,
     ctx: GraphRunContext[GraphState, Settings],
-) -> NonEmptyEmergencyCall | NonEmptyStr:
+) -> StateFillOutput:
     """Extract structured information from a user's response using AI."""
 
-    # agent_task: str = (
-    #     "Try to extract structured information from the user's answer.\n"
-    #     "Decide if you need any more questions you need to ask.\n"
-    #     f"Only use the following language: {ctx.deps.locale.value}.\n"
-    #     f"Last question from you: {question}.\n"
-    #     f"Answer from caller: {user_response}.\n"
-    # )
-    agent_task: dict[str, str] = {
+    class AgentTask(TypedDict):
+        user_prompt: str
+        instructions: str
+
+    agent_task: AgentTask = {
         "user_prompt": (
             f"Last question from you: {question}.\n"
             f"Answer from caller: {user_response}.\n"
@@ -86,55 +103,22 @@ async def state_fill_task(
         ),
     }
 
-    # message_history: Sequence[ModelMessage] | None = ctx.state.message_history
-    result: AgentRunResult[
-        NonEmptyEmergencyCall | NonEmptyStr
-    ] = await get_state_fill_agent().run(
+    initial_result: AgentRunResult[StateFillOutput] = await get_state_fill_agent().run(
         **agent_task,
         deps=ctx.deps,
     )
-    if isinstance(result.output, str):  # message_history is None and
-        ctx.deps.logger.info(
-            f"Retrying with full message history, current result {result.output}"
+    if isinstance(initial_result.output, str):  # message_history is None and
+        ctx.deps.telemetry.logger.info(
+            "Retrying with full message history, current result %s",
+            initial_result.output,
         )
-        result: AgentRunResult[NonEmptyStr] = await get_contextual_question_agent().run(  # type: ignore
+        retry_result: AgentRunResult[
+            NonEmptyStr
+        ] = await get_contextual_question_agent().run(
             **agent_task,
-            deps=ctx.deps,  # type: ignore
+            deps=ctx.deps,
             message_history=ctx.state.message_history,
         )
+        return _record_state_fill_result(ctx, retry_result)
 
-    result_data = (
-        result.output.model_dump(exclude_none=True)
-        if isinstance(result.output, EmergencyCall)
-        else result.output
-    )
-    ctx.deps.logger.debug("state_fill_task result: %s", result_data)
-    ctx.state.message_history.extend(result.new_messages())
-    return result.output
-
-
-if __name__ == "__main__":
-    state = EmergencyCall()
-    prompt: str = (
-        "Extract Values from the Statement to fit the variables defined int the State."
-        "Ask the user for more information if you can't extract new values from the Statement compared to the current state."
-        "Statement: here is Carl, there is a man that fell off his bike. He is bleeding and holding his knee"
-        "State: {state}"
-    )
-    deps = Settings(name="state_fill_agent_main", emit=print)
-    state_fill_agent = get_state_fill_agent()
-
-    result = state_fill_agent.run_sync(  # type: ignore
-        user_prompt=prompt.format(state=state),
-        deps=deps,  # type: ignore
-    )
-    print(result)
-    state2 = result.output
-    result2 = state_fill_agent.run_sync(  # type: ignore        user_prompt=prompt.format(state=state2),
-        deps=deps,  # type: ignore
-    )
-    print(result2)
-
-    if isinstance(result2.output, EmergencyCall):
-        print("2nd call to agent found more info when it shouldn't")
-        print(f"Diff: {DeepDiff(result2.output, result.output)}")
+    return _record_state_fill_result(ctx, initial_result)

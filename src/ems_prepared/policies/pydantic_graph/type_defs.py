@@ -4,6 +4,6 @@ from pydantic_graph.nodes import BaseNode
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
-from ems_prepared.util.settings import Settings
+from ems_prepared.model.context import Settings
 
 EmergencyNode: TypeAlias = BaseNode[GraphState, Settings, EmergencyCall]

@@ -94,6 +94,13 @@ reportImplicitStringConcatenation = false
 typeCheckingMode= "strict"
 ignore= ["**/__pycache__"]
 
+[tool.pyright]
+include = ["src", "tests"]
+exclude = ["notebooks", "scripts", "logs", ".venv"]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "basic"
+
 [tool.pyrefly]
 # ignore-errors-in-generated-code = true
 # use-untyped-imports = true

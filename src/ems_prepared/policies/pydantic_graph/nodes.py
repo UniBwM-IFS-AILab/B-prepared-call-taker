@@ -21,12 +21,12 @@ from ems_prepared.dialogue_state.structured_output import (
     NonEmptyStr,
 )
 from ems_prepared.dialogue_state.type_defs import DispoType, EmergencyType
+from ems_prepared.model.context import Locale, Settings
 from ems_prepared.policies.pydantic_graph.type_defs import EmergencyNode
 from ems_prepared.policies.shared import (
     merge_call_state,
 )
 from ems_prepared.util.helpers import async_wrapper
-from ems_prepared.util.settings import Locale, Settings
 
 state_print_filter = {"patient_symptoms"}
 
@@ -84,7 +84,7 @@ class Greeting(MessageNode):
         message = self.messages[ctx.deps.locale]
         # asyncio.create_task(tell_user(self.messages[ctx.deps.locale], ctx.deps))
         await async_wrapper(ctx.deps.emit(ctx.deps, message))
-        ctx.deps.messages_logger.info(
+        ctx.deps.telemetry.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": message}
         )
         ctx.state.call_state.emergency_type = EmergencyType.INTRO
@@ -135,7 +135,7 @@ class ChooseQuestion(EmergencyNode):
 
             return AskCaller(question=next_question)
         except IndexError:
-            ctx.deps.logger.debug("No more questions in current set")
+            ctx.deps.telemetry.logger.debug("No more questions in current set")
             return ChooseSubGraph()
 
 
@@ -151,9 +151,8 @@ class AskCaller(QuestionNode):
         ctx: GraphRunContext[GraphState, Settings],
     ) -> Annotated[ExtractState, Edge(label="Try to extract state")]:
         """Ask the user. THIS NODE WILL NEVER BE EXECTUED WHEN USING PERSISTENCE."""
-
         # response: str = await prompt_user(self.question, deps=ctx.deps)
-        ctx.deps.logger.debug("ran node AskCaller")
+        ctx.deps.telemetry.logger.debug("ran node AskCaller")
         raise Exception(
             "AskCaller node should not be executed directly when using persistence."
         )
@@ -176,10 +175,10 @@ class ExtractState(EmergencyNode):
         """Extract state from the current context."""
 
         # Log operator question and caller response
-        ctx.deps.messages_logger.info(
+        ctx.deps.telemetry.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": self.question}
         )
-        ctx.deps.messages_logger.info(
+        ctx.deps.telemetry.messages_logger.info(
             "", extra={"speaker": "caller", "msg_text": self.response}
         )
 
@@ -195,7 +194,7 @@ class ExtractState(EmergencyNode):
                 exclude_none=True, exclude={"questions", "current_position"}
             )
         )
-        ctx.deps.state_logger.info(
+        ctx.deps.telemetry.state_logger.info(
             {
                 "question": self.question,
                 "response": self.response,
@@ -220,8 +219,8 @@ class EvaluateAgentOutput(EmergencyNode):
         # | Annotated[Disposition, Edge(label="Trigger w/ RD1, no RD2 symptoms detected")]
     ):
         if isinstance(self.run_result, EmergencyCall):
-            ctx.deps.logger.info("Model returned new data")
-            ctx.deps.logger.debug(
+            ctx.deps.telemetry.logger.info("Model returned new data")
+            ctx.deps.telemetry.logger.debug(
                 f"New extracted state: {self.run_result.model_dump(exclude_none=True)}"
             )
 
@@ -235,7 +234,7 @@ class EvaluateAgentOutput(EmergencyNode):
 
         # elif isinstance(self.run_result, str):
         else:
-            ctx.deps.logger.info(
+            ctx.deps.telemetry.logger.info(
                 "No new Data extracted, asking clarifying question (probably)"
             )
             return AskCaller(question=self.run_result)
@@ -274,7 +273,7 @@ class EvaluateState(EmergencyNode):
         # | Disposition
         # | Annotated[HighUrgency, Edge(label="Immediate Disposition")]
     ):
-        ctx.deps.logger.debug(
+        ctx.deps.telemetry.logger.debug(
             f"Evaluate State:\t{ctx.state.call_state.model_dump(exclude_none=True)}"
         )
         if ctx.state.call_state.cpr_needed:
@@ -299,7 +298,7 @@ class ChooseSubGraph(EmergencyNode):
             EvaluateAgentOutput, Edge(label="Force-update emergency type in state")
         ]
     ):
-        ctx.deps.logger.info("Forcing Agent to decide the Emergency type...")
+        ctx.deps.telemetry.logger.info("Forcing Agent to decide the Emergency type...")
 
         result = await get_emergency_type_agent().run(  # type: ignore
             user_prompt=(
@@ -309,8 +308,8 @@ class ChooseSubGraph(EmergencyNode):
             deps=ctx.deps,  # type: ignore
             message_history=ctx.state.message_history,
         )
-        ctx.deps.logger.debug(f"Result type: {type(result.output)}")
-        ctx.deps.logger.debug(f"Emergency type: {result.output}")
+        ctx.deps.telemetry.logger.debug(f"Result type: {type(result.output)}")
+        ctx.deps.telemetry.logger.debug(f"Emergency type: {result.output}")
 
         return EvaluateAgentOutput(EmergencyCall(emergency_type=result.output))
 
@@ -340,22 +339,24 @@ class RD1(EmergencyNode):
                 f"RD1 node reached with invalid state: rd1={ctx.state.call_state.rd1!r}"
             )
         else:
-            ctx.deps.logger.info("Reached RD1")
+            ctx.deps.telemetry.logger.info("Reached RD1")
 
         # Ask at least one time for RD2
         if ctx.state.enough_information_gathered is None:
             ctx.state.enough_information_gathered = False
-            ctx.deps.logger.info("Asking static question for RD2")
+            ctx.deps.telemetry.logger.info("Asking static question for RD2")
             return AskCaller(self.questions[ctx.deps.locale])
 
         # if RD2 is unkown, decide if more question or go to RD1 if already done
         if ctx.state.call_state.rd2 is None:
             if ctx.state.enough_information_gathered:
-                ctx.deps.logger.info("No more questions needed, accepting RD1")
+                ctx.deps.telemetry.logger.info(
+                    "No more questions needed, accepting RD1"
+                )
                 return Disposition(DispoType.RD1)
 
             elif not ctx.state.enough_information_gathered:
-                ctx.deps.logger.info(
+                ctx.deps.telemetry.logger.info(
                     "Forcing Agent to decide if enough information gathered..."
                 )
 
@@ -371,10 +372,14 @@ class RD1(EmergencyNode):
                     message_history=ctx.state.message_history,
                 )
                 ctx.state.message_history.extend(result.new_messages())
-                ctx.deps.logger.debug(f"Enough info result (raw): {result.output!r}")
+                ctx.deps.telemetry.logger.debug(
+                    f"Enough info result (raw): {result.output!r}"
+                )
 
                 if result.output.enough_information_gathered:
-                    ctx.deps.logger.info("Enough information gathered, accepting RD1")
+                    ctx.deps.telemetry.logger.info(
+                        "Enough information gathered, accepting RD1"
+                    )
                     ctx.state.enough_information_gathered = (
                         result.output.enough_information_gathered
                     )
@@ -385,7 +390,9 @@ class RD1(EmergencyNode):
                     #     )
                     # )
 
-                ctx.deps.logger.info("Asking contextual question for more info")
+                ctx.deps.telemetry.logger.info(
+                    "Asking contextual question for more info"
+                )
                 return AskCaller(question=result.output.next_question)
 
         # self.visited = True
@@ -424,7 +431,7 @@ class TCPR(EmergencyNode):
 
         # Log the state update after changing emergency_type
         state_data = ctx.state.model_dump(exclude_none=True, exclude={"questions"})
-        ctx.deps.state_logger.info(
+        ctx.deps.telemetry.state_logger.info(
             {"state": state_data},
             extra={"event": "emergency_type_set"},
         )
@@ -465,13 +472,13 @@ class Disposition(MessageNode):
         ctx: GraphRunContext[GraphState, Settings],
     ) -> End[EmergencyCall]:
         # TODO: ask for number of persons
-        ctx.deps.logger.info(
+        ctx.deps.telemetry.logger.info(
             f"final state: {ctx.state.call_state.model_dump(exclude_none=True, exclude={'questions'})}"
         )
 
         message = self.messages[ctx.deps.locale]
         await async_wrapper(ctx.deps.emit(ctx.deps, message))
-        ctx.deps.messages_logger.info(
+        ctx.deps.telemetry.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": message}
         )
 
