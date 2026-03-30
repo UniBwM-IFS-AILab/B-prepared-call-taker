@@ -19,7 +19,7 @@ from ems_prepared.policies.pydantic_graph.emergency_main_graph import (
     run_graph,
 )
 from ems_prepared.policies.pydantic_graph.nodes import MessageNode, QuestionNode
-from ems_prepared.policies.runtime_shared import (
+from ems_prepared.policies.shared import (
     record_completion_artifacts,
     to_event_payload,
 )

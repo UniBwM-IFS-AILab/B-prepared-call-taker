@@ -118,11 +118,19 @@ def extract_last_model_response(
     result: AgentRunResult[DialogueOutput], captured_messages: list | None = None
 ) -> ModelResponse | None:
     """Return the last ModelResponse from result.new_messages(), falling back to captured_messages."""
-    responses = [m for m in result.new_messages() if isinstance(m, ModelResponse)]
+    responses = [
+        message
+        for message in result.new_messages()
+        if isinstance(message, ModelResponse)
+    ]
     if responses:
         return responses[-1]
     if captured_messages:
-        responses = [m for m in captured_messages if isinstance(m, ModelResponse)]
+        responses = [
+            message
+            for message in captured_messages
+            if isinstance(message, ModelResponse)
+        ]
         if responses:
             return responses[-1]
     return None

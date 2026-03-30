@@ -67,7 +67,11 @@ def keep_user_and_text_only(messages: list[ModelMessage]) -> list[ModelMessage]:
     for msg in messages:
         if isinstance(msg, ModelRequest):
             # Keep only user prompts in the request
-            new_parts = [p for p in msg.parts if isinstance(p, UserPromptPart)]
+            new_parts = [
+                message_part
+                for message_part in msg.parts
+                if isinstance(message_part, UserPromptPart)
+            ]
             if not new_parts:
                 # If nothing left, drop this request entirely
                 continue
@@ -77,7 +81,11 @@ def keep_user_and_text_only(messages: list[ModelMessage]) -> list[ModelMessage]:
 
         elif isinstance(msg, ModelResponse):
             # Keep only plain text parts in the response
-            new_parts = [p for p in msg.parts if isinstance(p, TextPart)]
+            new_parts = [
+                message_part
+                for message_part in msg.parts
+                if isinstance(message_part, TextPart)
+            ]
             if not new_parts:
                 # If nothing left, drop this response entirely
                 continue
@@ -108,8 +116,8 @@ def state_fill_history_processor(
 
     # Find the most recent successful extraction (DialogueOutput.state is not None).
     last_success_idx: int | None = None
-    for i in range(len(history_without_current) - 1, -1, -1):
-        msg = history_without_current[i]
+    for history_index in range(len(history_without_current) - 1, -1, -1):
+        msg = history_without_current[history_index]
         if isinstance(msg, ModelRequest):
             for part in msg.parts:
                 if (
@@ -117,7 +125,7 @@ def state_fill_history_processor(
                     and isinstance(part.content, DialogueOutput)
                     and getattr(part.content, "state", None) is not None
                 ):
-                    last_success_idx = i
+                    last_success_idx = history_index
                     break
         if last_success_idx is not None:
             break

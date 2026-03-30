@@ -7,7 +7,6 @@ including caller information, location, emergency type, and medical details.
 from __future__ import annotations
 
 import logging
-from typing import TypeVar
 
 from pydantic import Field
 from pydantic.json_schema import SkipJsonSchema
@@ -15,7 +14,6 @@ from pydantic.json_schema import SkipJsonSchema
 from ems_prepared.dialogue_state.medical_symptoms_state import MedicalEmergency
 from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString
 
-T = TypeVar("T")
 _SENTINEL = object()
 logger = logging.getLogger(__name__)
 
@@ -98,7 +96,7 @@ def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
         # try to produce String at the end of methods
         try:
             return EmergencyCall.model_validate_json(input)
-        except Exception as _:
+        except Exception:
             return input
 
     return input

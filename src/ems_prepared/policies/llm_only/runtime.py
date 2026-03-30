@@ -14,7 +14,7 @@ from ems_prepared.policies.llm_only.agent import (
     run_agent_with_capture,
     update_history_and_merge_state,
 )
-from ems_prepared.policies.runtime_shared import (
+from ems_prepared.policies.shared import (
     record_completion_artifacts,
     to_event_payload,
 )

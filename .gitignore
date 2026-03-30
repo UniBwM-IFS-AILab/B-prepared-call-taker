@@ -20,7 +20,7 @@ wheels/
 .gradio/certificate.pem
 
 # logs
-logs/*
+**/logs/*
 
 # get rid of .keep files
 .keep

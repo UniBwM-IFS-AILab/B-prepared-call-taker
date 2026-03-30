@@ -1,6 +1,10 @@
-"""Shared helpers used by both policy implementations."""
+"""Shared helpers used by policy implementations and runtime adapters."""
+
+from __future__ import annotations
 
 from typing import Any
+
+from pydantic import BaseModel
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.model.context import Settings
@@ -31,3 +35,28 @@ def merge_call_state(
         extra={"event": "state_merged"},
     )
     return merged_state_data
+
+
+def record_completion_artifacts(
+    deps: Settings,
+    state: Any,
+    message_history: list[Any],
+) -> None:
+    """Persist completion artifacts through the session-scoped recorder callback."""
+    if deps.record_completion_artifacts is None:
+        deps.telemetry.logger.warning(
+            "Completion artifact recorder is not configured; skipping final artifacts."
+        )
+        return
+    deps.record_completion_artifacts(state, message_history)
+
+
+def to_event_payload(value: Any) -> dict[str, Any]:
+    """Convert runtime values to JSON-friendly payload data."""
+    if isinstance(value, BaseModel):
+        return {"state": value.model_dump(exclude_none=True)}
+    if isinstance(value, dict):
+        return value
+    if value is None:
+        return {}
+    return {"value": value}

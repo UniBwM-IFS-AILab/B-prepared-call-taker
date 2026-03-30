@@ -230,7 +230,7 @@ def create_retrying_client():
         ),
         validate_response=should_retry_status,
     )
-    return AsyncClient(transport=transport)
+    return AsyncClient(transport=transport, timeout=10.0)
 
 
 def get_default_models(

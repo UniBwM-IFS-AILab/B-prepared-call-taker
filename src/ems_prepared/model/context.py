@@ -90,7 +90,7 @@ class Storage:
         root: Path = (
             Path("experiments") / self.experiment_name / "logs"
             if self.experiment_name
-            else Path("logs") / "_sessions"
+            else Path("logs")
         )
         root.mkdir(parents=True, exist_ok=True)
         return root
@@ -147,10 +147,10 @@ class Settings(BaseSettings):
     user_id: UUID = Field(default_factory=uuid4)
     session_id: UUID = Field(default_factory=uuid4)
     experiment_name: str = Field(
-        default="_sessions",
+        default="",
         description="Optional experiment/run name to group logs into an experiment directory. "
         "When provided, logs are saved to experiments/{experiment_name}/logs/{user_id}/{session_id}/. "
-        "When empty, logs are saved to logs/_sessions/{user_id}/{session_id}/. "
+        "When empty, logs are saved to logs/{user_id}/{session_id}/. "
         "Can also be set via EXPERIMENT_NAME environment variable.",
     )
     scenario_name: str | None = Field(

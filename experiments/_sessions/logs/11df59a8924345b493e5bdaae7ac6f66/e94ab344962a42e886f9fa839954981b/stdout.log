@@ -1,4 +1,0 @@
-2026-03-24 13:49:43.407	INFO    	[logger.py:setup_session_logger:188] Log Path: experiments/_sessions/logs/11df59a8924345b493e5bdaae7ac6f66/e94ab344962a42e886f9fa839954981b
-2026-03-24 13:49:43.407	INFO    	[runtime.py:_run_turn:62] agent_history_len=0 usage={}
-2026-03-24 13:49:43.407	WARNING 	[runtime.py:_run_turn:76] No ModelResponse found for this run.
-2026-03-24 13:49:43.407	INFO    	[runtime.py:_run_turn:87] Outcome reached

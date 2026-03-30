@@ -78,9 +78,9 @@ class FileSessionRecorder(SessionRecorder):
             return
 
         events_file = save_path / EVENTS_FILE
-        with events_file.open(mode="a", encoding="utf-8") as f:
+        with events_file.open(mode="a", encoding="utf-8") as events_file_handle:
             for event in events:
-                f.write(
+                events_file_handle.write(
                     json.dumps(
                         {
                             "timestamp": datetime.now().isoformat(),

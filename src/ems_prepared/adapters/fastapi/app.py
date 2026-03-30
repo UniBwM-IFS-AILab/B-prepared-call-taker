@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any, get_args
+from argparse import ArgumentParser, Namespace
+from typing import Annotated, Any, Protocol, runtime_checkable
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, WebSocket
@@ -12,7 +13,7 @@ from starlette.websockets import WebSocketDisconnect
 from ems_prepared.model.context import InputMode, Locale
 from ems_prepared.model.contracts import (
     BackendEvent,
-    PolicyName,
+    FrontendPlugin,
     SessionHandle,
     SessionManager,
     SessionParameters,
@@ -21,14 +22,31 @@ from ems_prepared.model.contracts import (
 from ems_prepared.model.errors import SessionNotFoundError, UnsupportedPolicyError
 
 
+@runtime_checkable
+class _FastAPIRuntimeState(Protocol):
+    """Typed subset of app.state required by this adapter."""
+
+    session_manager: SessionManager
+    default_policy: str
+    default_locale: Locale
+    app_default_experiment_name: str | None
+
+
+@runtime_checkable
+class _SupportsFastAPIState(Protocol):
+    """Objects that expose a state object with FastAPI runtime settings."""
+
+    state: _FastAPIRuntimeState
+
+
 class StartSessionPayload(BaseModel):
     """Request payload for starting a new session."""
 
-    policy_name: PolicyName = "graph"
+    policy_name: str | None = None
     scenario_name: str | None = None
     user_id: UUID | None = None
     session_id: UUID | None = None
-    locale: Locale = Locale.EN
+    locale: Locale | None = None
     experiment_name: str | None = None
 
 
@@ -129,21 +147,31 @@ def _to_state_response(state: SessionState) -> SessionStateResponse:
     )
 
 
-def _require_session_manager(app_like: Any) -> SessionManager:
-    """Read configured session manager from FastAPI app state."""
-    manager = getattr(app_like.state, "session_manager", None)
-    if manager is None:
-        raise RuntimeError("Session manager is not configured on FastAPI app state.")
-    if not isinstance(manager, SessionManager):
+def _resolve_runtime(app_like: Any) -> _FastAPIRuntimeState:
+    """Resolve typed runtime state from a FastAPI app-like object."""
+    if not isinstance(app_like, _SupportsFastAPIState):
+        raise RuntimeError("FastAPI app state is missing required runtime settings.")
+    runtime = app_like.state
+    if not isinstance(runtime.default_policy, str) or not runtime.default_policy:
+        raise RuntimeError("FastAPI default_policy must be a non-empty string.")
+    if not isinstance(runtime.default_locale, Locale):
+        raise RuntimeError("FastAPI default_locale must be a Locale value.")
+    if runtime.app_default_experiment_name is not None and not isinstance(
+        runtime.app_default_experiment_name, str
+    ):
+        raise RuntimeError(
+            "FastAPI app_default_experiment_name must be a string or None."
+        )
+    if not isinstance(runtime.session_manager, SessionManager):
         raise RuntimeError(
             "Configured session manager does not satisfy SessionManager protocol."
         )
-    return manager
+    return runtime
 
 
 def get_session_manager(request: Request) -> SessionManager:
     """FastAPI dependency that resolves the configured session manager."""
-    return _require_session_manager(request.app)
+    return _resolve_runtime(request.app).session_manager
 
 
 SessionManagerDep = Annotated[SessionManager, Depends(get_session_manager)]
@@ -155,20 +183,28 @@ router = APIRouter()
 @router.post("/session")
 async def start_session(
     payload: StartSessionPayload,
+    request: Request,
     session_manager: SessionManagerDep,
 ) -> StartSessionResponse:
     """Create a new session and return initial backend events."""
+    runtime = _resolve_runtime(request.app)
+    default_policy = runtime.default_policy
+    default_locale = runtime.default_locale
+    app_default_experiment_name = runtime.app_default_experiment_name
+    effective_policy = payload.policy_name or default_policy
+    effective_locale = payload.locale or default_locale
+    effective_experiment_name = payload.experiment_name or app_default_experiment_name
     try:
         handle, events = await session_manager.start_session(
             SessionParameters(
                 frontend_name="fastapi",
-                policy_name=payload.policy_name,
+                policy_name=effective_policy,
                 scenario_name=payload.scenario_name,
                 user_id=payload.user_id,
                 session_id=payload.session_id,
-                locale=payload.locale,
+                locale=effective_locale,
                 call_origin=InputMode.API,
-                experiment_name=payload.experiment_name,
+                experiment_name=effective_experiment_name,
             )
         )
     except UnsupportedPolicyError as exc:
@@ -238,19 +274,18 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     """Run one websocket chat session backed by shared session orchestration."""
     await websocket.accept()
     started_session_id: UUID | None = None
-    session_manager = _require_session_manager(websocket.app)
+    runtime = _resolve_runtime(websocket.app)
+    session_manager = runtime.session_manager
+    default_policy = runtime.default_policy
+    default_locale = runtime.default_locale
+    app_default_experiment_name = runtime.app_default_experiment_name
 
-    policy_name = websocket.query_params.get("policy", "graph")
-    if policy_name not in get_args(PolicyName):
-        await websocket.send_json(
-            {"kind": "error", "text": f"Unsupported policy: {policy_name}"}
-        )
-        await websocket.close(code=1003)
-        return
-
+    policy_name = websocket.query_params.get("policy") or default_policy
     scenario_name = websocket.query_params.get("scenario")
-    locale_raw = websocket.query_params.get("locale", Locale.EN.value)
-    experiment_name = websocket.query_params.get("experiment")
+    locale_raw = websocket.query_params.get("locale") or default_locale.value
+    experiment_name = (
+        websocket.query_params.get("experiment") or app_default_experiment_name
+    )
     try:
         locale = Locale(locale_raw)
     except ValueError:
@@ -301,9 +336,56 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             _ = await session_manager.end_session(started_session_id)
 
 
-def create_app(session_manager: SessionManager) -> FastAPI:
+def create_app(
+    session_manager: SessionManager,
+    *,
+    default_policy: str = "graph",
+    default_locale: Locale = Locale.EN,
+    app_default_experiment_name: str | None = None,
+) -> FastAPI:
     """Create FastAPI app and wire the shared session manager."""
     app = FastAPI()
     app.state.session_manager = session_manager
+    app.state.default_policy = default_policy
+    app.state.default_locale = default_locale
+    app.state.app_default_experiment_name = app_default_experiment_name
     app.include_router(router)
     return app
+
+
+class FastAPIFrontend(FrontendPlugin):
+    """Frontend plugin that serves the FastAPI adapter via uvicorn."""
+
+    def register_arguments(self, subparser: ArgumentParser, /) -> None:
+        """Register FastAPI frontend specific arguments."""
+        _ = subparser.add_argument("-H", "--host", default="127.0.0.1")
+        _ = subparser.add_argument("--port", type=int, default=8000)
+        _ = subparser.add_argument(
+            "-r",
+            "--reload",
+            action="store_true",
+            help="Enable uvicorn auto-reload.",
+        )
+
+    def run(
+        self,
+        session_manager: SessionManager,
+        parsed_args: Namespace,
+        /,
+    ) -> int | None:
+        """Run the FastAPI app using parser-composed launcher arguments."""
+        app = create_app(
+            session_manager,
+            default_policy=parsed_args.policy,
+            default_locale=Locale(parsed_args.locale),
+            app_default_experiment_name=parsed_args.experiment_name,
+        )
+        import uvicorn
+
+        uvicorn.run(
+            app,
+            host=parsed_args.host,
+            port=parsed_args.port,
+            reload=parsed_args.reload,
+        )
+        return 0

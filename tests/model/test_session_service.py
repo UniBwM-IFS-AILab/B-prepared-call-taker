@@ -15,7 +15,6 @@ from ems_prepared.model.contracts import (
 )
 from ems_prepared.model.errors import SessionNotFoundError, UnsupportedPolicyError
 from ems_prepared.model.session_service import SessionService
-from ems_prepared.policies.runtime_shared import build_policy
 from tests.fakes import FakeSessionRecorder
 
 
@@ -42,10 +41,9 @@ class FakeConversationPolicy:
 
 
 def build_fake_factory(policy: FakeConversationPolicy):
-    """Create a policy-builder bound to one fake policy instance."""
+    """Create a policy factory bound to one fake policy instance."""
 
-    async def factory(policy_name: str, deps: Settings) -> ConversationPolicy:
-        assert policy_name == "fake"
+    async def factory(deps: Settings) -> ConversationPolicy:
         assert deps.policy_name == "fake"
         return policy
 
@@ -63,7 +61,7 @@ async def test_start_session_returns_handle_and_initial_events(
     )
     session_recorder = FakeSessionRecorder()
     service = SessionService(
-        policy_builder=build_fake_factory(policy),
+        policy_factories={"fake": build_fake_factory(policy)},
         session_recorder=session_recorder,
     )
 
@@ -114,7 +112,7 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
     )
     session_recorder = FakeSessionRecorder()
     service = SessionService(
-        policy_builder=build_fake_factory(policy),
+        policy_factories={"fake": build_fake_factory(policy)},
         session_recorder=session_recorder,
     )
 
@@ -152,7 +150,7 @@ async def test_submit_survey_writes_to_session_directory(monkeypatch, tmp_path) 
     policy = FakeConversationPolicy(start_events=[])
     session_recorder = FakeSessionRecorder()
     service = SessionService(
-        policy_builder=build_fake_factory(policy),
+        policy_factories={"fake": build_fake_factory(policy)},
         session_recorder=session_recorder,
     )
 
@@ -184,7 +182,7 @@ async def test_service_raises_for_unknown_policy(monkeypatch, tmp_path) -> None:
     """Unknown policies should fail before a session is created."""
     monkeypatch.chdir(tmp_path)
     service = SessionService(
-        policy_builder=build_policy,
+        policy_factories={},
         session_recorder=FakeSessionRecorder(),
     )
 
@@ -204,7 +202,7 @@ async def test_service_raises_for_unknown_session(monkeypatch, tmp_path) -> None
     monkeypatch.chdir(tmp_path)
     policy = FakeConversationPolicy(start_events=[])
     service = SessionService(
-        policy_builder=build_fake_factory(policy),
+        policy_factories={"fake": build_fake_factory(policy)},
         session_recorder=FakeSessionRecorder(),
     )
 

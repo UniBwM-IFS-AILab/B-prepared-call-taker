@@ -15,8 +15,8 @@ from ems_prepared.adapters.gradio.survey import (
 
 
 def _iter_json_files(inputs: List[str]) -> Iterable[Path]:
-    for p in inputs:
-        path = Path(p)
+    for input_path_text in inputs:
+        path = Path(input_path_text)
         if path.is_dir():
             yield from sorted(path.glob("*.json"))
         else:
@@ -24,8 +24,8 @@ def _iter_json_files(inputs: List[str]) -> Iterable[Path]:
 
 
 def _load_json(path: Path) -> Dict[str, Any]:
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    with path.open("r", encoding="utf-8") as input_file:
+        return json.load(input_file)
 
 
 def _deterministic_extra_id(category: str, label: str, text: str) -> int:
@@ -33,8 +33,8 @@ def _deterministic_extra_id(category: str, label: str, text: str) -> int:
     Stable integer id for non-default questions (in case you add more later).
     """
     key = f"{category}||{label}||{text}".encode("utf-8")
-    h = hashlib.sha1(key).hexdigest()
-    return 1000 + (int(h[:8], 16) % 900_000_000)
+    hash_digest = hashlib.sha1(key).hexdigest()
+    return 1000 + (int(hash_digest[:8], 16) % 900_000_000)
 
 
 def normalize_survey_json(
@@ -75,7 +75,12 @@ def normalize_survey_json(
                     "score": resp.get("score"),
                 }
             )
-        out_list.sort(key=lambda x: (x.get("id") is None, x.get("id", 10**18)))
+        out_list.sort(
+            key=lambda response_item: (
+                response_item.get("id") is None,
+                response_item.get("id", 10**18),
+            )
+        )
         return {"metadata": metadata, "timestamp": timestamp, "responses": out_list}
 
     # Old format: dict keyed by label
@@ -94,14 +99,14 @@ def normalize_survey_json(
 
     if include_all_default_questions:
         # Always emit canonical 1..7
-        for q in DEFAULT_SURVEY_QUESTIONS:
+        for survey_question in DEFAULT_SURVEY_QUESTIONS:
             out_responses.append(
                 {
-                    "id": q.id,
-                    "category": q.category,
-                    "label": q.label,
-                    "text": q.text,
-                    "score": score_for_label(q.label),
+                    "id": survey_question.id,
+                    "category": survey_question.category,
+                    "label": survey_question.label,
+                    "text": survey_question.text,
+                    "score": score_for_label(survey_question.label),
                 }
             )
 
@@ -124,7 +129,7 @@ def normalize_survey_json(
                 }
             )
 
-        out_responses.sort(key=lambda x: x["id"])
+        out_responses.sort(key=lambda response_item: response_item["id"])
         return {
             "metadata": metadata,
             "timestamp": timestamp,
@@ -142,13 +147,13 @@ def normalize_survey_json(
             continue
 
         if label in DEFAULT_BY_LABEL:
-            q = DEFAULT_BY_LABEL[label]
+            survey_question = DEFAULT_BY_LABEL[label]
             out_responses.append(
                 {
-                    "id": q.id,
-                    "category": q.category,
-                    "label": q.label,
-                    "text": q.text,
+                    "id": survey_question.id,
+                    "category": survey_question.category,
+                    "label": survey_question.label,
+                    "text": survey_question.text,
                     "score": score,
                 }
             )
@@ -163,25 +168,25 @@ def normalize_survey_json(
                 }
             )
 
-    out_responses.sort(key=lambda x: x["id"])
+    out_responses.sort(key=lambda response_item: response_item["id"])
     return {"metadata": metadata, "timestamp": timestamp, "responses": out_responses}
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument(
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
         "inputs", nargs="+", help="JSON file(s) or directory(ies) containing *.json"
     )
-    ap.add_argument("--outdir", default="out", help="Output directory")
-    ap.add_argument(
+    parser.add_argument("--outdir", default="out", help="Output directory")
+    parser.add_argument(
         "--suffix", default=".normalized.json", help="Output filename suffix"
     )
-    ap.add_argument(
+    parser.add_argument(
         "--only-answered",
         action="store_true",
         help="Only include questions present in the input (default: include all 7 defaults).",
     )
-    args = ap.parse_args(argv)
+    args = parser.parse_args(argv)
 
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -193,8 +198,8 @@ def main(argv: Optional[List[str]] = None) -> None:
         )
 
         out_path = outdir / (fpath.stem + args.suffix)
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(out, f, ensure_ascii=False, indent=2)
+        with out_path.open("w", encoding="utf-8") as output_file:
+            json.dump(out, output_file, ensure_ascii=False, indent=2)
 
         print(f"Wrote {out_path}")
 

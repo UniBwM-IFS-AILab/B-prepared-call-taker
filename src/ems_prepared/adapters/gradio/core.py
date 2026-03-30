@@ -86,7 +86,11 @@ def get_scenario_directory(scenario_dir: str | None = None) -> Path:
 def list_md_files(scenario_dir: str | None = None) -> list[str]:
     """Return available Markdown filenames (base names)."""
     path = get_scenario_directory(scenario_dir=scenario_dir)
-    return sorted(p.name for p in path.glob("*.md") if not p.name.startswith("_"))
+    return sorted(
+        scenario_file.name
+        for scenario_file in path.glob("*.md")
+        if not scenario_file.name.startswith("_")
+    )
 
 
 def get_random_scenario(scenario_dir: str | None = None) -> str | None:

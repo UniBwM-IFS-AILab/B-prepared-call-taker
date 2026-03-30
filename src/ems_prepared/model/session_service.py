@@ -2,27 +2,24 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 from uuid import UUID, uuid4
 
 from ems_prepared.model.context import Settings
 from ems_prepared.model.contracts import (
     BackendEvent,
     ConversationPolicy,
+    PolicyFactory,
     SessionHandle,
     SessionManager,
     SessionParameters,
     SessionRecorder,
     SessionState,
 )
-from ems_prepared.model.errors import SessionNotFoundError
-from ems_prepared.model.session_recording import FileSessionRecorder
-from ems_prepared.policies.runtime_shared import build_policy
-
-type PolicyBuilder = Callable[[str, Settings], Awaitable[ConversationPolicy]]
+from ems_prepared.model.errors import SessionNotFoundError, UnsupportedPolicyError
 
 
 @dataclass(slots=True)
@@ -41,11 +38,11 @@ class SessionService(SessionManager):
     def __init__(
         self,
         *,
-        policy_builder: PolicyBuilder = build_policy,
-        session_recorder: SessionRecorder = FileSessionRecorder(),
+        policy_factories: Mapping[str, PolicyFactory],
+        session_recorder: SessionRecorder,
     ) -> None:
-        """Store configured policy builder and session output recorder."""
-        self._policy_builder = policy_builder
+        """Store configured policy factories and session output recorder."""
+        self._policy_factories = dict(policy_factories)
         self._session_recorder = session_recorder
         self._sessions: dict[UUID, _SessionEntry] = {}
 
@@ -100,7 +97,7 @@ class SessionService(SessionManager):
             )
 
         deps.record_completion_artifacts = _record_completion_artifacts
-        policy = await self._policy_builder(request.policy_name, deps)
+        policy = await self._build_policy(request.policy_name, deps)
 
         managed = _SessionEntry(handle=handle, deps=deps, policy=policy)
         self._sessions[handle.session_id] = managed
@@ -191,15 +188,18 @@ class SessionService(SessionManager):
             raise SessionNotFoundError(f"Unknown session: {session_id}")
         return session
 
+    async def _build_policy(
+        self,
+        policy_name: str,
+        deps: Settings,
+    ) -> ConversationPolicy:
+        """Build one policy runtime from the configured factories."""
+        factory = self._policy_factories.get(policy_name)
+        if factory is None:
+            raise UnsupportedPolicyError(f"Unsupported policy: {policy_name}")
+        return await factory(deps)
+
     @staticmethod
     def _has_completion(events: Sequence[BackendEvent]) -> bool:
         """Check whether the event list marks a session complete."""
         return any(event.kind == "completed" for event in events)
-
-
-def create_session_manager() -> SessionManager:
-    """Create the default shared session manager with production wiring."""
-    return SessionService(
-        policy_builder=build_policy,
-        session_recorder=FileSessionRecorder(),
-    )

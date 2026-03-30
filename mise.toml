@@ -47,7 +47,7 @@ strict = false
 
 [tasks.llm_only]
 alias = 'dumb'
-run = "uv run {{config_root}}/src/ems_prepared/main_cli.py --policy agent"
+run = "uv run main cli --policy agent"
 
 [tasks.ollama]
 shell = 'bash -c'
@@ -56,15 +56,15 @@ hide = true
 
 [tasks.cli]
 alias = 'ems'
-run = "uv run {{config_root}}/src/ems_prepared/main_cli.py --policy graph"
+run = "uv run main cli --policy graph"
 
 [tasks.server]
-run = "fastapi dev {{config_root}}/src/ems_prepared/main_fastapi.py"
+run = "uv run main fastapi --reload"
 # depends = ['ollama']
 
 [tasks.gradio]
 # env = { SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/XXX/YYY/ZZZ" }
-run = "uv run --no-sync {{config_root}}/src/ems_prepared/main_gradio.py"
+run = "uv run --no-sync main gradio"
 
 [tasks.gradio_dev]
 env = { GRADIO_DEBUG = "1" }
@@ -74,5 +74,5 @@ if [ -z "$SCENARIO_DIR" ]; then
   echo "No scenario directory found under {{config_root}}/experiments/*/scenarios. Set SCENARIO_DIR explicitly." >&2
   exit 2
 fi
-uv run --no-sync {{config_root}}/src/ems_prepared/main_gradio.py --scenario-dir "$SCENARIO_DIR"
+uv run --no-sync main gradio --scenario-dir "$SCENARIO_DIR" --debug
 '''

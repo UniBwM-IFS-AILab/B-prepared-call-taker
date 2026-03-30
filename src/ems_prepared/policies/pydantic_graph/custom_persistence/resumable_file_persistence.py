@@ -27,9 +27,9 @@ class ResumableFilePersistence(FileStatePersistence[StateT, RunEndT]):
             snapshots = self._load_sync()
             # Use a loop instead of next() to avoid StopIteration
             snapshot = None
-            for s in snapshots:
-                if s.id == snapshot_id:
-                    snapshot = s
+            for snapshot_entry in snapshots:
+                if snapshot_entry.id == snapshot_id:
+                    snapshot = snapshot_entry
                     break
 
             if snapshot is None:
@@ -43,9 +43,9 @@ class ResumableFilePersistence(FileStatePersistence[StateT, RunEndT]):
             snapshot.duration = duration
             snapshot.status = status
             self._save_sync(snapshots)
-        except Exception as e:
+        except Exception as error:
             # Log but don't raise to avoid breaking the graph execution
-            print(f"Warning: Failed to update snapshot status: {e}")
+            print(f"Warning: Failed to update snapshot status: {error}")
 
     async def load_next(self):
         try:
@@ -53,8 +53,10 @@ class ResumableFilePersistence(FileStatePersistence[StateT, RunEndT]):
             snapshot = await super().load_next()
             if snapshot is not None:
                 return snapshot
-        except Exception as e:
-            print(f"failed to resume, attempt to repair persistence file. Error: {e}")
+        except Exception as error:
+            print(
+                f"failed to resume, attempt to repair persistence file. Error: {error}"
+            )
         # No 'created' found; requeue the last pending/running as a fresh 'created'
         async with self._lock():  # uses the file lock as in base class
             snapshots = await self.load_all()

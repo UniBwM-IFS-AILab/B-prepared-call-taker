@@ -6,6 +6,7 @@ import asyncio
 import logging
 import os
 import time
+from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from functools import partial
 from typing import TypedDict
@@ -15,7 +16,15 @@ import gradio as gr
 import requests
 from gradio import ChatMessage
 
-from ems_prepared.adapters.gradio.args import GradioAppArgs
+from ems_prepared.adapters.gradio.args import (
+    GradioAppArgs,
+)
+from ems_prepared.adapters.gradio.args import (
+    from_namespace as gradio_args_from_namespace,
+)
+from ems_prepared.adapters.gradio.args import (
+    register_arguments as register_gradio_arguments,
+)
 from ems_prepared.adapters.gradio.core import (
     COMPLETION_MESSAGE,
     ChatMessageDict,
@@ -24,9 +33,10 @@ from ems_prepared.adapters.gradio.core import (
     list_md_files,
 )
 from ems_prepared.adapters.gradio.survey import DEFAULT_SURVEY
-from ems_prepared.model.context import InputMode
+from ems_prepared.model.context import InputMode, Locale
 from ems_prepared.model.contracts import (
     BackendEvent,
+    FrontendPlugin,
     SessionManager,
     SessionParameters,
 )
@@ -340,6 +350,7 @@ async def _start_session(
                 policy_name=policy_setting,
                 scenario_name=selected_scenario,
                 user_id=user_id,
+                locale=Locale(args.locale),
                 call_origin=InputMode.API,
                 experiment_name=experiment_name,
             )
@@ -984,3 +995,28 @@ def run_gradio_app(session_manager: SessionManager, args: GradioAppArgs) -> None
     _log_launch_info(local_url, share_url)
     if not args.exit_on_launch:
         _block_forever()
+
+
+class GradioFrontend(FrontendPlugin):
+    """Frontend plugin that launches the Gradio UI."""
+
+    # TODO: Replace this staticmethod bridge during full Gradio adapter restructure.
+    def register_arguments(self, subparser: ArgumentParser, /) -> None:
+        """Register Gradio frontend specific arguments."""
+        register_gradio_arguments(subparser)
+
+    def run(
+        self,
+        session_manager: SessionManager,
+        parsed_args: Namespace,
+        /,
+    ) -> int | None:
+        """Run Gradio with parser-composed launcher arguments."""
+        run_gradio_app(
+            session_manager=session_manager,
+            args=gradio_args_from_namespace(parsed_args),
+        )
+        return 0
+
+
+FRONTEND_PLUGIN = GradioFrontend()

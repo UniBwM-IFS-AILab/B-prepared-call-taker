@@ -26,7 +26,9 @@ def _relative_if_under(child: Path, parent: Path) -> Path | None:
         return None
 
 
-def copy_from_leaf_dirs(src_root: Path, dst_root: Path, overwrite: bool, dry_run: bool, verbose: bool) -> int:
+def copy_from_leaf_dirs(
+    src_root: Path, dst_root: Path, overwrite: bool, dry_run: bool, verbose: bool
+) -> int:
     src_root = src_root.resolve()
     dst_root = dst_root.resolve()
 
@@ -86,11 +88,15 @@ def copy_from_leaf_dirs(src_root: Path, dst_root: Path, overwrite: bool, dry_run
                 continue
 
             if verbose or dry_run:
-                print(f"{'DRY-RUN copy' if dry_run else 'Copy'}: {src_file} -> {dst_file}")
+                print(
+                    f"{'DRY-RUN copy' if dry_run else 'Copy'}: {src_file} -> {dst_file}"
+                )
 
             if not dry_run:
                 dst_dir.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src_file, dst_file)  # preserves more metadata than copy() :contentReference[oaicite:2]{index=2}
+                shutil.copy2(
+                    src_file, dst_file
+                )  # preserves more metadata than copy() :contentReference[oaicite:2]{index=2}
 
             copied += 1
 
@@ -103,9 +109,19 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument("src_root", type=Path, help="Root directory to scan (source).")
     parser.add_argument("dst_root", type=Path, help="Destination root directory.")
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite files if they already exist in DST.")
-    parser.add_argument("--dry-run", action="store_true", help="Print what would be copied, but do nothing.")
-    parser.add_argument("--verbose", action="store_true", help="Print each file decision.")
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite files if they already exist in DST.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be copied, but do nothing.",
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print each file decision."
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -116,8 +132,8 @@ def main(argv: list[str]) -> int:
             dry_run=args.dry_run,
             verbose=args.verbose,
         )
-    except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
+    except Exception as error:
+        print(f"ERROR: {error}", file=sys.stderr)
         return 2
 
     print(f"Done. Copied {copied} file(s).")

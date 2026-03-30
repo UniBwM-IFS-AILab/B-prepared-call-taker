@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from argparse import ArgumentParser, Namespace
+from collections.abc import Awaitable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Protocol, TypeAlias, get_args, runtime_checkable
 from uuid import UUID
 
-from ems_prepared.model.context import InputMode, Locale, RequestInputCallable
+from ems_prepared.model.context import (
+    InputMode,
+    Locale,
+    RequestInputCallable,
+    Settings,
+)
 
-PolicyName: TypeAlias = Literal["graph", "agent"]
 BackendEventKind: TypeAlias = Literal["message", "question", "completed", "error"]
 
 
@@ -81,6 +86,33 @@ class ConversationPolicy(Protocol):
 
     async def close(self) -> None:
         """Flush and release runtime resources."""
+        ...
+
+
+@runtime_checkable
+class PolicyFactory(Protocol):
+    """Factory callable that creates one policy runtime for a session deps object."""
+
+    def __call__(self, deps: Settings, /) -> Awaitable[ConversationPolicy]:
+        """Build one policy runtime for the given settings/deps."""
+        ...
+
+
+@runtime_checkable
+class FrontendPlugin(Protocol):
+    """Frontend plugin contract used by launcher composition."""
+
+    def register_arguments(self, subparser: ArgumentParser, /) -> None:
+        """Register frontend-specific arguments onto one subparser."""
+        ...
+
+    def run(
+        self,
+        session_manager: "SessionManager",
+        parsed_args: Namespace,
+        /,
+    ) -> int | None:
+        """Run one frontend and return a process exit code."""
         ...
 
 

@@ -9,6 +9,7 @@ def _():
     from uuid import UUID
 
     import marimo as mo
+    from ems_prepared.util.settings import Settings
 
     from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
         clear_old_run,
@@ -17,7 +18,6 @@ def _():
         init_graph,
         run_graph,
     )
-    from ems_prepared.util.settings import Settings
 
     return Settings, UUID, clear_old_run, init_graph, mo, run_graph
 
@@ -86,8 +86,14 @@ def _(answer, deps, graph, mo, persistence, run_graph):
     seeded, set_seeded = mo.state(False)
     if not seeded:
         chat.value = [
-            mo.ai.ChatMessage(role="system", content="You are a terse helper."),
-            mo.ai.ChatMessage(role="assistant", content="👋 Hey! Ask me anything."),
+            mo.ai.ChatMessage(
+                role="system",
+                content="You are a terse helper.",
+            ),
+            mo.ai.ChatMessage(
+                role="assistant",
+                content="👋 Hey! Ask me anything.",
+            ),
             mo.ai.ChatMessage(role="user", content="What can you do?"),
         ]
         set_seeded(True)
@@ -116,7 +122,10 @@ async def _(chat, deps, graph, mo, persistence, run_graph):
 def _(mo):
     def respond(messages: list[mo.ai.ChatMessage], config):
         payload = [{"role": "system", "content": "Be terse. Use markdown."}]
-        payload += [{"role": m.role, "content": m.content} for m in messages]
+        payload += [
+            {"role": chat_message.role, "content": chat_message.content}
+            for chat_message in messages
+        ]
         return payload  # return text or any renderable object
 
     chat2 = mo.ui.chat(respond)

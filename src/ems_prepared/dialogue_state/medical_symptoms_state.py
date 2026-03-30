@@ -138,11 +138,11 @@ class MedicalEmergency(
         )  # ty: ignore[no-matching-overload]
 
         # Identify pairs with similarity above the cutoff
-        for i in range(len(field_names)):
-            for j in range(i + 1, len(field_names)):
-                score = sim_matrix[i][j]
+        for first_index in range(len(field_names)):
+            for second_index in range(first_index + 1, len(field_names)):
+                score = sim_matrix[first_index][second_index]
                 if score >= threshold:
                     raise ValueError(
-                        f'"{field_names[i]}" and "{field_names[j]}" are too similar (score: {score:.2f})'  # noqa: E501
+                        f'"{field_names[first_index]}" and "{field_names[second_index]}" are too similar (score: {score:.2f})'  # noqa: E501
                     )
         return data

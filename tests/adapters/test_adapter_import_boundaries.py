@@ -17,7 +17,7 @@ DISALLOWED_IMPORT_SNIPPETS = (
 ADAPTERS_USING_BOUNDARY_ERRORS = (
     ADAPTERS_ROOT / "fastapi/app.py",
     ADAPTERS_ROOT / "gradio/app.py",
-    ADAPTERS_ROOT / "session_cli.py",
+    ADAPTERS_ROOT / "cli/app.py",
 )
 
 

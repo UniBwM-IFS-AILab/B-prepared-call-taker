@@ -23,6 +23,18 @@ dependencies = [
   "seaborn>=0.13.2",
 ]
 
+[project.scripts]
+main = "ems_prepared.main:main"
+
+[project.entry-points."ems_prepared.policies"]
+graph = "ems_prepared.policies.pydantic_graph.runtime:build_graph_policy"
+agent = "ems_prepared.policies.llm_only.runtime:build_agent_policy"
+
+[project.entry-points."ems_prepared.frontends"]
+fastapi = "ems_prepared.adapters.fastapi.app:FastAPIFrontend"
+gradio = "ems_prepared.adapters.gradio.app:GradioFrontend"
+cli = "ems_prepared.adapters.cli.app:CliFrontend"
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]

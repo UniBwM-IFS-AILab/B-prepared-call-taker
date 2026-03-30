@@ -69,9 +69,9 @@ class PydanticSanitizingFilter(logging.Filter):
             return obj.model_dump(exclude=self.fields_to_exclude)
         elif isinstance(obj, dict):
             return {
-                k: self._sanitize(v)
-                for k, v in obj.items()
-                if k not in self.fields_to_exclude
+                key: self._sanitize(value)
+                for key, value in obj.items()
+                if key not in self.fields_to_exclude
             }
         elif isinstance(obj, list):
             return [self._sanitize(item) for item in obj]

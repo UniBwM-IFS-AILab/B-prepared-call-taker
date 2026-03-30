@@ -16,7 +16,7 @@ from ems_prepared.policies.pydantic_graph.graph_helpers import (
     init_graph,
     save_mermaid_graph,
 )
-from ems_prepared.policies.runtime_shared import record_completion_artifacts
+from ems_prepared.policies.shared import record_completion_artifacts
 from ems_prepared.util.custom_deepmerge import ignore_empty_merger
 from ems_prepared.util.user_interaction import (
     converse_with_user,

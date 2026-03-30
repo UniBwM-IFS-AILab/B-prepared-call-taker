@@ -137,6 +137,9 @@ DEFAULT_SURVEY = SurveyConfig(
 
 
 DEFAULT_BY_LABEL: dict[str, SurveyQuestion] = {
-    q.label: q for q in DEFAULT_SURVEY_QUESTIONS
+    survey_question.label: survey_question
+    for survey_question in DEFAULT_SURVEY_QUESTIONS
 }
-DEFAULT_BY_ID: dict[int, SurveyQuestion] = {q.id: q for q in DEFAULT_SURVEY_QUESTIONS}
+DEFAULT_BY_ID: dict[int, SurveyQuestion] = {
+    survey_question.id: survey_question for survey_question in DEFAULT_SURVEY_QUESTIONS
+}

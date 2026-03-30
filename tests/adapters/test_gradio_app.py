@@ -66,6 +66,7 @@ def test_build_demo_wires_events_inside_blocks_context(tmp_path: Path) -> None:
         scenario_dir=str(tmp_path),
         user_id=0,
         policy="graph",
+        locale=Locale.EN.value,
         debug=False,
         random_scenario=False,
         experiment_name=None,

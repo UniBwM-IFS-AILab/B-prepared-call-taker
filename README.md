@@ -1,5 +1,83 @@
 # ems-prepared
 
+## Usage
+
+### Install
+
+```bash
+mise i
+uv sync --all-groups
+```
+
+### Generic launcher (`main`)
+
+List discovered plugins:
+
+```bash
+uv run main list
+```
+
+Run a frontend subcommand:
+
+```bash
+# CLI frontend
+uv run main cli
+uv run main cli --policy agent --locale english
+uv run main cli --experiment exp_2026_03
+
+# Gradio frontend
+uv run main gradio --locale german --scenario-dir ./experiments/iva/scenarios
+
+# FastAPI frontend
+uv run main fastapi --experiment exp_2026_03 --host 127.0.0.1 --port 8000 --reload
+```
+
+Get frontend-specific help:
+
+```bash
+uv run main cli --help
+uv run main gradio --help
+uv run main fastapi --help
+```
+
+`--policy`, `--locale`, and `--experiment`/`--experiment-name` are shared launcher flags available on every frontend subcommand.
+
+### Mise tasks
+
+```bash
+mise run cli
+mise run llm_only
+mise run gradio
+mise run gradio_dev
+mise run server
+```
+
+## Structure
+
+### Package structure
+
+```text
+src/ems_prepared/
+├── main.py                # subcommand launcher + shared policy/locale/experiment flags
+├── plugins.py             # entry-point discovery + validation
+├── model/
+│   ├── contracts.py       # core backend contracts/DTOs
+│   ├── context.py         # Settings deps object for runtime
+│   ├── session_service.py # shared backend orchestration
+│   ├── session_recording.py
+│   └── errors.py
+├── adapters/
+│   ├── fastapi/app.py     # FastAPIFrontend plugin class
+│   ├── gradio/app.py      # GradioFrontend plugin class
+│   └── cli/app.py         # CliFrontend plugin class
+└── policies/
+    ├── pydantic_graph/runtime.py  # policy factory
+    ├── llm_only/runtime.py        # policy factory
+    └── ...
+```
+
+
+
 ## Motivation
 
 Im Eckpunktepapier 20162 von 30 wissenschaftlichen Fachgesellschaften, Institutionen und Organisa-tionen zur notfallmedizinischen Versorgung der Bevölkerung in der Prähospitalphase und in der Klinik wird auch die Erste Hilfe durch Laien thematisiert: „Gezielte und regelmäßige Schulung der Bevölke-rung – insbesondere Schüler im Rahmen des regulären Unterrichts – sowie von Präventions- und Auf-klärungsprogrammen sollen medizinische Laien befähigen, Vitalstörungen frühzeitig zu erkennen, einen Notruf korrekt abzusetzen und danach selbst effektive und lebensrettende Maßnahmen durch-zuführen.“

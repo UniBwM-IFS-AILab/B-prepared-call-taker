@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from uuid import UUID
 
 from ems_prepared.model.context import InputMode, Locale, Settings
@@ -42,3 +43,20 @@ def test_settings_model_dump_excludes_runtime_transport(monkeypatch, tmp_path) -
 
     assert "emit" not in payload
     assert "request_input" not in payload
+
+
+def test_settings_without_experiment_uses_root_logs(monkeypatch, tmp_path) -> None:
+    """Empty experiment names should place session outputs under the root logs tree."""
+    monkeypatch.chdir(tmp_path)
+    settings = Settings(
+        name="unit_test",
+        user_id=UUID(int=1),
+        session_id=UUID(int=2),
+        experiment_name="",
+    )
+
+    assert settings.storage.logs_root == Path("logs")
+    assert (
+        settings.storage.save_path
+        == Path("logs") / settings.user_id.hex / settings.session_id.hex
+    )

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
 
-from ems_prepared.adapters.fastapi.app import create_app
+from ems_prepared.adapters.fastapi.app import FastAPIFrontend, create_app
 from ems_prepared.model.context import Locale
 from ems_prepared.model.contracts import (
     BackendEvent,
@@ -24,6 +25,7 @@ class FakeSessionManager:
     def __init__(self, tmp_path: Path) -> None:
         """Prebuild deterministic domain objects used by API responses."""
         self.base_path = tmp_path / "logs" / "exp"
+        self.started_requests: list[SessionParameters] = []
         self.handle = SessionHandle(
             user_id=UUID(int=1),
             session_id=UUID(int=2),
@@ -45,6 +47,7 @@ class FakeSessionManager:
     ) -> tuple[SessionHandle, list[BackendEvent]]:
         """Return one deterministic session and initial question event."""
         assert request.frontend_name in {"fastapi", "fastapi_ws"}
+        self.started_requests.append(request)
         return self.handle, [
             BackendEvent(kind="question", text="Where are you?", payload={"step": 1})
         ]
@@ -177,6 +180,58 @@ def test_websocket_round_trip(client: TestClient) -> None:
         assert second == {"kind": "message", "text": "Acknowledged", "payload": {}}
 
 
+def test_start_session_uses_app_defaults_when_policy_and_locale_missing(
+    tmp_path: Path,
+) -> None:
+    """POST /session should apply app-level defaults when payload omits values."""
+    fake_manager = FakeSessionManager(tmp_path=tmp_path)
+    app = create_app(
+        fake_manager,
+        default_policy="agent",
+        default_locale=Locale.DE,
+        app_default_experiment_name="exp_default",
+    )
+    client = TestClient(app)
+
+    response = client.post("/session", json={"scenario_name": "scenario_01"})
+
+    assert response.status_code == 200
+    assert fake_manager.started_requests
+    request = fake_manager.started_requests[-1]
+    assert request.policy_name == "agent"
+    assert request.locale == Locale.DE
+    assert request.experiment_name == "exp_default"
+
+
+def test_websocket_uses_app_defaults_when_query_missing(tmp_path: Path) -> None:
+    """WS start should apply app defaults when query params are absent."""
+    fake_manager = FakeSessionManager(tmp_path=tmp_path)
+    app = create_app(
+        fake_manager,
+        default_policy="agent",
+        default_locale=Locale.DE,
+        app_default_experiment_name="exp_default",
+    )
+    client = TestClient(app)
+
+    with client.websocket_connect("/ws") as websocket:
+        first = websocket.receive_json()
+        assert first == {
+            "kind": "question",
+            "text": "Where are you?",
+            "payload": {"step": 1},
+        }
+        websocket.send_text("At Main Street")
+        _ = websocket.receive_json()
+
+    assert fake_manager.started_requests
+    request = fake_manager.started_requests[-1]
+    assert request.frontend_name == "fastapi_ws"
+    assert request.policy_name == "agent"
+    assert request.locale == Locale.DE
+    assert request.experiment_name == "exp_default"
+
+
 def test_openapi_exposes_response_models(client: TestClient) -> None:
     """OpenAPI should reference concrete response models for key endpoints."""
     schema = client.get("/openapi.json").json()
@@ -208,3 +263,40 @@ def test_openapi_exposes_response_models(client: TestClient) -> None:
     assert state_response_schema == {
         "$ref": "#/components/schemas/SessionStateResponse"
     }
+
+
+def test_frontend_plugin_registers_fastapi_specific_args() -> None:
+    """FastAPI plugin parser should include frontend options with shared args."""
+    plugin = FastAPIFrontend()
+    parser = argparse.ArgumentParser()
+    _ = parser.add_argument("-p", "--policy", default="graph")
+    _ = parser.add_argument(
+        "-l",
+        "--locale",
+        choices=[Locale.EN.value, Locale.DE.value],
+        default=Locale.EN.value,
+    )
+    _ = parser.add_argument(
+        "-e",
+        "--experiment",
+        "--experiment-name",
+        dest="experiment_name",
+        default=None,
+    )
+    plugin.register_arguments(parser)
+    args = parser.parse_args(
+        [
+            "-p",
+            "agent",
+            "-l",
+            "german",
+            "--experiment",
+            "exp_shared",
+            "--port",
+            "9001",
+        ]
+    )
+    assert args.policy == "agent"
+    assert args.locale == "german"
+    assert args.experiment_name == "exp_shared"
+    assert args.port == 9001
