@@ -157,6 +157,7 @@ class SessionService(SessionManager):
         self,
         session_id: UUID,
         responses: list[dict[str, Any]],
+        feedback: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Path:
         """Write survey responses into the current session directory."""
@@ -165,6 +166,7 @@ class SessionService(SessionManager):
             session=session.handle,
             save_path=session.deps.storage.save_path,
             responses=responses,
+            feedback=feedback,
             metadata=metadata,
         )
 

@@ -150,6 +150,7 @@ class SessionRecorder(Protocol):
         session: SessionHandle,
         save_path: Path,
         responses: list[dict[str, Any]],
+        feedback: str | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> Path:
         """Write one survey response payload and return the output file."""
@@ -195,6 +196,7 @@ class SessionManager(Protocol):
         self,
         session_id: UUID,
         responses: list[dict[str, Any]],
+        feedback: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Path:
         """Write survey responses for one session."""

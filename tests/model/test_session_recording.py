@@ -80,13 +80,13 @@ def test_save_survey_writes_expected_payload(tmp_path) -> None:
         session=_build_session_handle(),
         save_path=save_path,
         responses=[{"question": "Q1", "score": 5}],
-        metadata={"feedback": "ok"},
+        feedback="ok",
     )
 
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert output_path.name == "survey.json"
     assert payload["responses"] == [{"question": "Q1", "score": 5}]
-    assert payload["metadata"]["feedback"] == "ok"
+    assert payload["feedback"] == "ok"
     assert payload["metadata"]["session_id"] == str(UUID(int=2))
 
 

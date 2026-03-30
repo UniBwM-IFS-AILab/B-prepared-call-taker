@@ -544,20 +544,13 @@ async def _save_survey(
         for question, score in zip(DEFAULT_SURVEY.questions, responses)
     ]
 
-    metadata: dict[str, str] = {
-        "user_id": session_data["user_id"],
-        "session_id": session_data["session_id"],
-        "scenario": str(session_data["scenario_name"]),
-        "policy": session_data["policy_name"],
-    }
-    if feedback and feedback.strip():
-        metadata["feedback"] = feedback.strip()
+    normalized_feedback = feedback.strip() if feedback and feedback.strip() else None
 
     try:
         _ = await session_manager.submit_survey(
             UUID(session_data["session_id"]),
             responses=response,
-            metadata=metadata,
+            feedback=normalized_feedback,
         )
     except SessionNotFoundError:
         logger.warning("Survey submitted but session no longer exists")

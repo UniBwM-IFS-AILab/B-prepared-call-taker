@@ -75,6 +75,7 @@ class FakeSessionRecorder:
         session: SessionHandle,
         save_path: Path,
         responses: list[dict[str, Any]],
+        feedback: str | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> Path:
         """Persist survey payload as JSON and capture the write."""
@@ -84,6 +85,8 @@ class FakeSessionRecorder:
             "responses": responses,
             "metadata": dict(metadata or {}),
         }
+        if feedback is not None:
+            payload["feedback"] = feedback
         output_path.write_text(json.dumps(payload, default=str), encoding="utf-8")
         return output_path
 

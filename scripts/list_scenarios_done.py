@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-List leaf directories under 'logs' and print metadata.scenario from survey.json if present.
+List leaf directories under 'logs' and print the scenario from survey.json if present.
 Usage: python list_surveys.py [path/to/logs]
 """
 
@@ -19,7 +19,16 @@ def find_leaf_dirs(root: Path):
 def read_scenario(survey_file: Path) -> Optional[str]:
     try:
         data = json.loads(survey_file.read_text(encoding="utf-8"))
-        return data.get("metadata", {}).get("scenario")
+        metadata = data.get("metadata", {})
+        if not isinstance(metadata, dict):
+            return None
+        scenario = metadata.get("scenario")
+        if isinstance(scenario, str):
+            return scenario
+        scenario_name = metadata.get("scenario_name")
+        if isinstance(scenario_name, str):
+            return scenario_name
+        return None
     except Exception:
         return None
 

@@ -143,10 +143,17 @@ def load_surveys(experiment_path: Path):
         # Extract metadata (common keys)
         metadata = survey_data["metadata"]
         assert isinstance(metadata, dict)
+        metadata = dict(metadata)
+        feedback = survey_data.get("feedback")
+        if not isinstance(feedback, str):
+            legacy_feedback = metadata.pop("feedback", None)
+            feedback = legacy_feedback if isinstance(legacy_feedback, str) else None
+        else:
+            metadata.pop("feedback", None)
 
         # Find responses container
         responses = survey_data["responses"]
-        assert isinstance(responses, dict)
+        assert isinstance(responses, (dict, list))
 
         session_results = {}
 
@@ -163,11 +170,16 @@ def load_surveys(experiment_path: Path):
         else:
             raise ValueError("Unexpected format for responses in survey data.")
 
-        metadata["scenario"] = metadata["scenario"].strip(".md")
+        scenario_name = metadata.get("scenario")
+        if not isinstance(scenario_name, str):
+            scenario_name = metadata.get("scenario_name")
+        if isinstance(scenario_name, str):
+            metadata["scenario"] = scenario_name.strip(".md")
         rows.append(
             {
                 "source_path": str(session_path),
                 **metadata,
+                "feedback": feedback,
                 "policy": policy_name,
                 **session_results,
             }

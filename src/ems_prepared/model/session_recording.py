@@ -100,10 +100,11 @@ class FileSessionRecorder(SessionRecorder):
         session: SessionHandle,
         save_path: Path,
         responses: list[dict[str, Any]],
+        feedback: str | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> Path:
         """Write one survey payload to `survey.json`."""
-        survey_payload = {
+        survey_payload: dict[str, Any] = {
             "timestamp": datetime.now().isoformat(),
             "responses": responses,
             "metadata": {
@@ -114,6 +115,8 @@ class FileSessionRecorder(SessionRecorder):
                 **(dict(metadata) if metadata is not None else {}),
             },
         }
+        if feedback is not None:
+            survey_payload["feedback"] = feedback
         output_path = save_path / SURVEY_FILE
         output_path.write_text(
             json.dumps(survey_payload, indent=2, default=str),

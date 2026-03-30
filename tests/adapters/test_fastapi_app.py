@@ -76,12 +76,13 @@ class FakeSessionManager:
         self,
         session_id: UUID,
         responses: list[dict[str, object]],
+        feedback: str | None = None,
         metadata: dict[str, object] | None = None,
     ) -> Path:
         """Return a deterministic survey output path."""
         assert session_id == self.handle.session_id
         assert responses
-        _ = metadata
+        _ = (feedback, metadata)
         return self.base_path / "survey.json"
 
 
@@ -146,6 +147,7 @@ def test_submit_survey_response_shape(client: TestClient) -> None:
             "responses": [
                 {"label": "q1", "category": "quality", "question": "Q1", "score": 5}
             ],
+            "feedback": "helpful",
             "metadata": {"note": "ok"},
         },
     )

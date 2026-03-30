@@ -63,9 +63,10 @@ class _InterruptingManager:
         self,
         session_id: UUID,
         responses: list[dict[str, object]],
+        feedback: str | None = None,
         metadata: dict[str, object] | None = None,
     ) -> Path:
-        _ = (session_id, responses, metadata)
+        _ = (session_id, responses, feedback, metadata)
         return Path("survey.json")
 
     def get_view_state(self, session_id: UUID) -> SessionState | None:

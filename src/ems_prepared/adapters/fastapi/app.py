@@ -60,6 +60,7 @@ class SubmitSurveyRequest(BaseModel):
     """Request payload for one survey submission."""
 
     responses: list[dict[str, object]]
+    feedback: str | None = None
     metadata: dict[str, object] | None = None
 
 
@@ -250,6 +251,7 @@ async def submit_survey(
         file_path = await session_manager.submit_survey(
             session_id,
             responses=payload.responses,
+            feedback=payload.feedback,
             metadata=payload.metadata,
         )
     except SessionNotFoundError as exc:

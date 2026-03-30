@@ -37,6 +37,23 @@ def _deterministic_extra_id(category: str, label: str, text: str) -> int:
     return 1000 + (int(hash_digest[:8], 16) % 900_000_000)
 
 
+def _build_normalized_payload(
+    *,
+    metadata: Dict[str, Any],
+    timestamp: str,
+    responses: List[Dict[str, Any]],
+    feedback: str | None,
+) -> Dict[str, Any]:
+    payload = {
+        "metadata": metadata,
+        "timestamp": timestamp,
+        "responses": responses,
+    }
+    if feedback is not None:
+        payload["feedback"] = feedback
+    return payload
+
+
 def normalize_survey_json(
     src: Dict[str, Any],
     include_all_default_questions: bool = True,
@@ -46,6 +63,7 @@ def normalize_survey_json(
       - metadata: object
       - timestamp: string
       - responses: list[object]
+      - feedback: string (optional)
     """
 
     timestamp = src.get("timestamp")
@@ -55,6 +73,15 @@ def normalize_survey_json(
     metadata = src.get("metadata", {})
     if not isinstance(metadata, dict):
         metadata = {}
+    else:
+        metadata = dict(metadata)
+
+    feedback = src.get("feedback")
+    if not isinstance(feedback, str):
+        legacy_feedback = metadata.pop("feedback", None)
+        feedback = legacy_feedback if isinstance(legacy_feedback, str) else None
+    else:
+        metadata.pop("feedback", None)
 
     responses_in = src.get("responses")
     if responses_in is None:
@@ -81,7 +108,12 @@ def normalize_survey_json(
                 response_item.get("id", 10**18),
             )
         )
-        return {"metadata": metadata, "timestamp": timestamp, "responses": out_list}
+        return _build_normalized_payload(
+            metadata=metadata,
+            timestamp=timestamp,
+            responses=out_list,
+            feedback=feedback,
+        )
 
     # Old format: dict keyed by label
     if not isinstance(responses_in, dict):
@@ -130,11 +162,12 @@ def normalize_survey_json(
             )
 
         out_responses.sort(key=lambda response_item: response_item["id"])
-        return {
-            "metadata": metadata,
-            "timestamp": timestamp,
-            "responses": out_responses,
-        }
+        return _build_normalized_payload(
+            metadata=metadata,
+            timestamp=timestamp,
+            responses=out_responses,
+            feedback=feedback,
+        )
 
     # Only answered items
     for label, item in old.items():
@@ -169,7 +202,12 @@ def normalize_survey_json(
             )
 
     out_responses.sort(key=lambda response_item: response_item["id"])
-    return {"metadata": metadata, "timestamp": timestamp, "responses": out_responses}
+    return _build_normalized_payload(
+        metadata=metadata,
+        timestamp=timestamp,
+        responses=out_responses,
+        feedback=feedback,
+    )
 
 
 def main(argv: Optional[List[str]] = None) -> None:
