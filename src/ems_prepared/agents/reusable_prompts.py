@@ -34,7 +34,6 @@ def extend_system_prompt(
     Appends (rather than overwrites) to maximize shared content while still
     allowing each agent to add its own specific constraints.
     """
-
     return replace(
         base,
         role=_concat_section(base.role, role),
@@ -66,7 +65,6 @@ BASE_SYSTEM_PROMPT = system_prompt(
         "Confirmations like 'okay' or 'yes' are acknowledgements and do not change factual fields unless they clearly answer a question."
     ),
     decisions=(
-        # TODO: we need some measure of uncertainy
         "If the caller's reply still does not clearly support setting a field, set it to False.\n"
         "Do no repeat questions \n"
         "Stop asking new questions once the required information has been gathered as far as reasonably possible.\n"

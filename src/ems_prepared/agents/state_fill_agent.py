@@ -45,18 +45,14 @@ state_fill_prompt = extend_system_prompt(
     ),
     rules=(
         "Never invent or guess values. Only set fields when the user explicitly provided the information or it follows unambiguously.\n"
-        # "When you can extract new information, return ONLY a valid JSON object matching the output schema (no extra text, no additional keys).\n"
         "If you cannot extract any new values, ask a single open follow-up question ONLY if it is likely to enable extracting new state.\n"
-        # "If you cannot extract any new values compared to the current state, ask a single open follow-up question ONLY if it is likely to enable extracting new state.\n"
         "When you cannot extract new data, you are not allowed to ask for specific fields directly; ask a single open follow-up question.\n"
         "Use null/None for unknown values.\n"
-        # "If message history is provided, do not repeat any follow-up question already present there (even if paraphrased); if you cannot think of a meaningfully new follow-up question, return empty JSON {}.\n"
         "Never ask the exact same question twice in a row."
     ),
     decisions=(
         "Verify whether the caller answered the last question; if not, you may re-ask it once. "
         "If message history is provided and you already asked that question (or a close paraphrase), "
-        # "do not repeat it and instead ask a meaningfully different open question or extract state if possible."
     ),
 )
 
