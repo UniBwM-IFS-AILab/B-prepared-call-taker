@@ -1,0 +1,14 @@
+timestamp	speaker	message
+2025-12-22 19:11:25	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-22 19:11:54	caller	Hello my name is Simone
+2025-12-22 19:11:55	operator	Thank you, Simone. What is the address of the emergency?
+2025-12-22 19:12:08	caller	The adress is Messkirch
+2025-12-22 19:12:08	operator	Thank you. Can you please tell me what happened?
+2025-12-22 19:12:36	caller	While I 'm cutting onions, I cut my Finger
+2025-12-22 19:12:36	operator	Is the bleeding severe?
+2025-12-22 19:12:49	caller	There are so much blood
+2025-12-22 19:12:49	operator	Are you able to stop the bleeding by applying pressure?
+2025-12-22 19:13:17	caller	There are so much blood. I don't know
+2025-12-22 19:13:17	operator	Is the blood spurting or gushing out?
+2025-12-22 19:13:57	caller	It is spurting
+2025-12-22 19:13:58	operator	The emergency call has been processed. Thank you.

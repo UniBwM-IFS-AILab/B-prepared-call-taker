@@ -1,0 +1,17 @@
+timestamp	speaker	message
+2025-12-19 14:05:35	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 14:05:46	caller	Hi, I am Nico Michel
+2025-12-19 14:05:47	operator	Thank you, Nico. What is the address of the emergency?
+2025-12-19 14:06:07	caller	It is the corner of Floriansmühlstraße and Freisinger Landstraße in München Freimann
+2025-12-19 14:06:08	operator	Thank you. Can you tell me what happened?
+2025-12-19 14:06:22	caller	A traffic accident happened. Two cars crashed
+2025-12-19 14:06:23	operator	Are there any serious injuries?
+2025-12-19 14:06:39	caller	I am not sure. I cannot see it well.
+2025-12-19 14:06:40	operator	Is anyone unconscious or trapped?
+2025-12-19 14:07:22	caller	one car's door is open, but the driver is to exiting yet. Some people stand next to the cars, but unsure if they were in there or just came by
+2025-12-19 14:07:24	operator	Is anyone bleeding heavily?
+2025-12-19 14:07:39	caller	I cannot tell, I am too far away.
+2025-12-19 14:07:40	operator	Is anyone complaining of severe pain?
+2025-12-19 14:08:14	caller	I also don't know. Sorry, I mostly heard the crash, ran to my window and see the cars.
+2025-12-19 14:08:16	operator	Is anyone having difficulty breathing?
+2025-12-19 14:08:27	caller	unsure as well.

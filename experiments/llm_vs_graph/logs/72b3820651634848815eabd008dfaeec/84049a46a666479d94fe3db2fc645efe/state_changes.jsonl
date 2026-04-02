@@ -1,0 +1,3 @@
+{"timestamp": "2026-01-02 00:03:32", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_01.md"}}
+{"timestamp": "2026-01-02 00:03:45", "event": "extraction", "question": "With whom am I speaking, please?", "response": "THere is a man now unresponsive ", "result": {"now_unresponsive": true, "rd1": true}}
+{"timestamp": "2026-01-02 00:03:45", "event": "state_merged", "state": {"call_state": {"now_unresponsive": true, "emergency_type": "intro", "rd1": true}}}

@@ -1,0 +1,35 @@
+2026-01-01 23:51:12.544	INFO    	[logger.py:setup_session_logger:188] Log Path: logs/FLAIRS39/72b3820651634848815eabd008dfaeec/6557d5e92bc0474e98b47a038fce9ff8
+2026-01-01 23:51:12.545	WARNING 	[core.py:init_session:158] Session initialized: 6557d5e9-2bc0-474e-98b4-7a038fce9ff8, 72b38206-5163-4848-815e-abd008dfaeec, graph
+2026-01-01 23:51:15.231	INFO    	[emergency_main_graph.py:resume_from_persistence:143] Initializing new graph run...
+2026-01-01 23:51:15.256	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] Greeting
+2026-01-01 23:51:15.258	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: Hello! You're speaking with the emergency call services.
+2026-01-01 23:51:15.901	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-01 23:51:15.902	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] Greeting
+2026-01-01 23:51:15.902	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{}
+2026-01-01 23:51:15.935	INFO    	[settings.py:async_print:96] Hello! You're speaking with the emergency call services.
+2026-01-01 23:51:15.959	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] ChooseQuestion
+2026-01-01 23:51:16.004	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] AskCaller
+2026-01-01 23:51:16.004	DEBUG   	[emergency_main_graph.py:run_graph:194] AskCaller(question='With whom am I speaking, please?')
+2026-01-01 23:51:16.005	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: With whom am I speaking, please?
+2026-01-01 23:51:23.761	INFO    	[app.py:stream_policy_messages:113] User message: There is a man who is unresponsive  
+2026-01-01 23:51:23.792	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-01 23:51:23.792	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] AskCaller
+2026-01-01 23:51:23.793	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2026-01-01 23:51:26.584	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] EvaluateAgentOutput
+2026-01-01 23:51:26.618	INFO    	[nodes.py:run:221] Model returned new data
+2026-01-01 23:51:26.619	DEBUG   	[nodes.py:run:222] New extracted state: {'now_unresponsive': True, 'unconscious': True, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:26.676	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] MergeState
+2026-01-01 23:51:26.710	DEBUG   	[nodes.py:run:254] Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2026-01-01 23:51:26.711	DEBUG   	[nodes.py:run:257] New State:	{'now_unresponsive': True, 'unconscious': True, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:26.711	DEBUG   	[nodes.py:run:264] Merged State:	{'now_unresponsive': True, 'unconscious': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:26.767	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] EvaluateState
+2026-01-01 23:51:26.796	DEBUG   	[nodes.py:run:286] Evaluate State:	{'now_unresponsive': True, 'unconscious': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:26.858	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] RD2
+2026-01-01 23:51:26.978	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] Disposition
+2026-01-01 23:51:26.979	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: A Vehicle is on it's way to you. Please stand by.
+2026-01-01 23:51:27.548	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-01 23:51:27.548	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] Disposition
+2026-01-01 23:51:27.548	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{'now_unresponsive': True, 'unconscious': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:27.654	INFO    	[nodes.py:run:478] final state: {'now_unresponsive': True, 'unconscious': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'There is a man who is unresponsive.', 'rd1': True, 'rd2': True}
+2026-01-01 23:51:27.655	INFO    	[settings.py:async_print:96] A Vehicle is on it's way to you. Please stand by.
+2026-01-01 23:51:27.726	INFO    	[settings.py:async_print:96] The emergency call has been processed.

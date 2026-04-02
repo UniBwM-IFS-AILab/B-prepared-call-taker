@@ -1,0 +1,7 @@
+{"timestamp": "2025-12-22 18:18:10", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_03.md"}}
+{"timestamp": "2025-12-22 18:18:26", "event": "state_merged", "state": {"caller_name": "Simone"}}
+{"timestamp": "2025-12-22 18:18:26", "event": "extraction", "result": {"caller_name": "Simone"}, "question": "Thank you, Simone. What is the address of the emergency?", "response": "Hello my name is Simone"}
+{"timestamp": "2025-12-22 18:18:46", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch"}}
+{"timestamp": "2025-12-22 18:18:46", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch"}, "question": "Thank you. Can you please describe what happened?", "response": "The adress is Siemensweg 10 in Messkirch"}
+{"timestamp": "2025-12-22 18:19:04", "event": "state_merged", "state": {"acute_chest_pain": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "rd1": true, "rd2": true}}
+{"timestamp": "2025-12-22 18:19:04", "event": "complete", "state": {"acute_chest_pain": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "rd1": true, "rd2": true}}

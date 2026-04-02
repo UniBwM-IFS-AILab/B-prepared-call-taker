@@ -1,0 +1,16 @@
+timestamp	speaker	message
+2025-12-22 18:02:33	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:02:50	caller	Hello my name is Simone
+2025-12-22 18:02:50	operator	Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:03:09	caller	It's in Messkirch
+2025-12-22 18:03:09	operator	Can you please provide the full address, including street name and house number?
+2025-12-22 18:03:43	caller	It's Siemensweg 10 in Messkirch
+2025-12-22 18:03:43	operator	Thank you. Can you tell me what happened?
+2025-12-22 18:04:08	caller	There was a car accident in front of my house
+2025-12-22 18:04:08	operator	Is anyone injured?
+2025-12-22 18:04:33	caller	I don't now how many people are injured
+2025-12-22 18:04:33	operator	Are there any heavy injuries or vital threats?
+2025-12-22 18:05:44	caller	I don't know. One car door is open but the driver is not exit
+2025-12-22 18:05:44	operator	Is the driver unconscious?
+2025-12-22 18:06:22	caller	I think so, but i'm not really sure
+2025-12-22 18:06:22	operator	The emergency call has been processed. Thank you.

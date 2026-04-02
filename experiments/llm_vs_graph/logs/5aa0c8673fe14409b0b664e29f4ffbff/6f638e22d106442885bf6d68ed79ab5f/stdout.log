@@ -1,0 +1,13 @@
+2026-01-21 13:20:16.271	INFO    	[logger.py:setup_session_logger:188] Log Path: logs/FLAIRS39/5aa0c8673fe14409b0b664e29f4ffbff/6f638e22d106442885bf6d68ed79ab5f
+2026-01-21 13:20:16.272	WARNING 	[core.py:init_session:158] Session initialized: 6f638e22-d106-4428-85bf-6d68ed79ab5f, 5aa0c867-3fe1-4409-b0b6-64e29f4ffbff, graph
+2026-01-21 13:20:18.823	INFO    	[emergency_main_graph.py:resume_from_persistence:143] Initializing new graph run...
+2026-01-21 13:20:18.861	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] Greeting
+2026-01-21 13:20:18.863	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: Hello! You're speaking with the emergency call services.
+2026-01-21 13:20:19.506	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-21 13:20:19.506	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] Greeting
+2026-01-21 13:20:19.506	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{}
+2026-01-21 13:20:19.542	INFO    	[settings.py:async_print:96] Hello! You're speaking with the emergency call services.
+2026-01-21 13:20:19.567	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] ChooseQuestion
+2026-01-21 13:20:19.609	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] AskCaller
+2026-01-21 13:20:19.609	DEBUG   	[emergency_main_graph.py:run_graph:194] AskCaller(question='With whom am I speaking, please?')
+2026-01-21 13:20:19.610	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: With whom am I speaking, please?

@@ -1,0 +1,10 @@
+timestamp	speaker	message
+2025-12-24 11:48:53	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-24 11:49:03	caller	Hi I am sean klein
+2025-12-24 11:49:03	operator	Thank you, Sean. What is the address of the emergency?
+2025-12-24 11:49:21	caller	its in Wernerhiesenbergweg 31 Neubiberg
+2025-12-24 11:49:21	operator	Thank you. Can you please describe what happened?
+2025-12-24 11:49:56	caller	A forlift just drove over my foot during package collection at the warenannahme
+2025-12-24 11:49:56	operator	Is there any heavy bleeding from your foot?
+2025-12-24 11:50:11	caller	yes and i an open fracture
+2025-12-24 11:50:12	operator	The emergency call has been processed. Thank you.

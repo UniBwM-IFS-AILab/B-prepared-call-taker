@@ -1,0 +1,9 @@
+{"timestamp": "2026-01-05 22:52:14", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_13.md"}}
+{"timestamp": "2026-01-05 22:52:29", "event": "state_merged", "state": {"caller_name": "Mike"}}
+{"timestamp": "2026-01-05 22:52:29", "event": "extraction", "result": {"caller_name": "Mike"}, "question": "Thank you, Mike. What is the address of the emergency?", "response": "Mike"}
+{"timestamp": "2026-01-05 22:52:58", "event": "state_merged", "state": {"caller_name": "Mike", "emergency_location": "abcd 5"}}
+{"timestamp": "2026-01-05 22:52:58", "event": "extraction", "result": {"caller_name": "Mike", "emergency_location": "abcd 5"}, "question": "Can you please confirm the full address, including city and any specific landmarks?", "response": "abcd 5"}
+{"timestamp": "2026-01-05 22:54:06", "event": "state_merged", "state": {"caller_name": "Mike", "emergency_location": "leondrod 5"}}
+{"timestamp": "2026-01-05 22:54:06", "event": "extraction", "result": {"caller_name": "Mike", "emergency_location": "leondrod 5"}, "question": "Thank you. Can you describe what happened?", "response": "leondrod 5"}
+{"timestamp": "2026-01-05 22:55:51", "event": "state_merged", "state": {"heavy_injury": true, "vital_threat_injury": true, "caller_name": "Mike", "emergency_location": "leondrod 5", "situation_description": "An accident happened at the construction site, and one of the workers was injured due to a piece fell on his head. He has heavy bleeding, but is still responsive", "rd1": true, "rd2": true}}
+{"timestamp": "2026-01-05 22:55:51", "event": "complete", "state": {"heavy_injury": true, "vital_threat_injury": true, "caller_name": "Mike", "emergency_location": "leondrod 5", "situation_description": "An accident happened at the construction site, and one of the workers was injured due to a piece fell on his head. He has heavy bleeding, but is still responsive", "rd1": true, "rd2": true}}

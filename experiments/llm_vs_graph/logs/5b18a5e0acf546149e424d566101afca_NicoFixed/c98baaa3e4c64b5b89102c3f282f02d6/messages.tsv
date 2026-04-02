@@ -1,0 +1,17 @@
+timestamp	speaker	message
+2025-12-19 14:18:59	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 14:19:16	caller	Hi, I am Nico Michel, I am exchange student
+2025-12-19 14:19:17	operator	Thank you, Nico. What is the emergency location?
+2025-12-19 14:20:04	caller	I don't know, My friend Emilia called me, she is also exchanging student and she said she was riding her horse and fell off it somewhere in the Preacher first forest area in the south of munich
+2025-12-19 14:20:05	operator	Thank you. Can you describe the situation in more detail?
+2025-12-19 14:20:50	caller	I am not with her unfortunately, I just got the call from her, she felt confused, not knowing in detail where she currently is located.
+2025-12-19 14:20:51	operator	Is Emilia conscious?
+2025-12-19 14:21:18	caller	yes, her calling was somehow normal, but she said she is unable to walk.
+2025-12-19 14:21:19	operator	Is Emilia experiencing any heavy bleeding?
+2025-12-19 14:21:39	caller	no, she did not tell me anything about.
+2025-12-19 14:21:40	operator	Is Emilia experiencing any severe pain?
+2025-12-19 14:22:01	caller	yes, her legs are hurting. both of them
+2025-12-19 14:22:02	operator	Is Emilia having any difficulty breathing?
+2025-12-19 14:22:22	caller	no, luckily not.
+2025-12-19 14:22:22	operator	Is Emilia experiencing any other symptoms or injuries?
+2025-12-19 14:23:33	caller	she did not tell me anything more. only that she cannot walk, does not know where she is and that she has fallen off the horse.

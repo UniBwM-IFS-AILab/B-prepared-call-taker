@@ -1,0 +1,70 @@
+2025-12-24 11:59:18.785	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/875d727956d6487f8dc3ebbe748c341d/1f77601f37fa4a4aa11d3cec2b0718cb
+2025-12-24 11:59:18.787	WARNING 	core.py:init_session():158 - Session initialized: 1f77601f-37fa-4a4a-a11d-3cec2b0718cb, 875d7279-56d6-487f-8dc3-ebbe748c341d, graph
+2025-12-24 11:59:22.085	INFO    	emergency_main_graph.py:resume_from_persistence():143 - Initializing new graph run...
+2025-12-24 11:59:22.112	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Greeting
+2025-12-24 11:59:22.114	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello! You're speaking with the emergency call services.
+2025-12-24 11:59:22.761	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:59:22.762	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Greeting
+2025-12-24 11:59:22.764	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{}
+2025-12-24 11:59:22.799	INFO    	settings.py:async_print():96 - Hello! You're speaking with the emergency call services.
+2025-12-24 11:59:22.828	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:59:22.873	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:59:22.874	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='With whom am I speaking, please?')
+2025-12-24 11:59:22.876	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: With whom am I speaking, please?
+2025-12-24 11:59:38.101	INFO    	app.py:stream_policy_messages():113 - User message: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhh my finger is bleeding, i just cut myself
+2025-12-24 11:59:38.131	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:59:38.133	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 11:59:38.135	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:59:40.809	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 11:59:40.838	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 11:59:40.839	DEBUG   	nodes.py:run():222 - New extracted state: {'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:40.884	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 11:59:40.912	DEBUG   	nodes.py:run():254 - Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:59:40.913	DEBUG   	nodes.py:run():257 - New State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:40.915	DEBUG   	nodes.py:run():264 - Merged State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:40.969	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 11:59:40.998	DEBUG   	nodes.py:run():286 - Evaluate State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:41.056	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:59:41.149	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:59:41.150	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Where exactly is the emergency location?')
+2025-12-24 11:59:41.152	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Where exactly is the emergency location?
+2025-12-24 11:59:53.980	INFO    	app.py:stream_policy_messages():113 - User message: its at home in my kitchen
+2025-12-24 11:59:54.044	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:59:54.046	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 11:59:54.047	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:55.368	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 11:59:55.411	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 11:59:55.412	DEBUG   	nodes.py:run():222 - New extracted state: {'emergency_location': 'at home in my kitchen'}
+2025-12-24 11:59:55.496	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 11:59:55.544	DEBUG   	nodes.py:run():254 - Old State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:55.546	DEBUG   	nodes.py:run():257 - New State:	{'emergency_location': 'at home in my kitchen'}
+2025-12-24 11:59:55.547	DEBUG   	nodes.py:run():264 - Merged State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:55.641	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 11:59:55.690	DEBUG   	nodes.py:run():286 - Evaluate State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 11:59:55.789	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:59:55.941	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:59:55.943	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='What has just happened acutely?')
+2025-12-24 11:59:55.945	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: What has just happened acutely?
+2025-12-24 12:00:08.418	INFO    	app.py:stream_policy_messages():113 - User message: i cut myself
+2025-12-24 12:00:08.498	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 12:00:08.500	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 12:00:08.501	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 12:00:14.944	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 12:00:15.008	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 12:00:15.009	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_self_harm_risk': True, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:15.135	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 12:00:15.203	DEBUG   	nodes.py:run():254 - Old State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'caller cut their finger and it is bleeding'}
+2025-12-24 12:00:15.205	DEBUG   	nodes.py:run():257 - New State:	{'acute_self_harm_risk': True, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:15.207	DEBUG   	nodes.py:run():264 - Merged State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'acute_self_harm_risk': True, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:15.346	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 12:00:15.416	DEBUG   	nodes.py:run():286 - Evaluate State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'acute_self_harm_risk': True, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:15.557	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD2
+2025-12-24 12:00:15.773	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Disposition
+2025-12-24 12:00:15.775	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: A Vehicle is on it's way to you. Please stand by.
+2025-12-24 12:00:16.389	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 12:00:16.390	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Disposition
+2025-12-24 12:00:16.391	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'acute_self_harm_risk': True, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:16.622	INFO    	nodes.py:run():478 - final state: {'vital_threat_injury': False, 'heavy_non_traumatic_bleeding': False, 'acute_self_harm_risk': True, 'severe_injury': False, 'emergency_location': 'at home in my kitchen', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states they cut themself.', 'rd1': True, 'rd2': True}
+2025-12-24 12:00:16.624	INFO    	settings.py:async_print():96 - A Vehicle is on it's way to you. Please stand by.
+2025-12-24 12:00:16.778	INFO    	settings.py:async_print():96 - The emergency call has been processed.
+2025-12-24 12:00:37.531	INFO    	app.py:handle_survey_submit():735 - Survey saved for session 1f77601f-37fa-4a4a-a11d-3cec2b0718cb

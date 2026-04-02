@@ -1,0 +1,9 @@
+timestamp	speaker	message
+2025-12-19 15:12:27	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-19 15:13:00	caller	Hi, I am nico michel, i am the leading engineer on the construction side at UniBW Building 1234
+2025-12-19 15:13:01	operator	Thank you, Nico. What is the address of the emergency?
+2025-12-19 15:13:57	caller	It is on the UniBW Campus in Neubiberg. Enter through the main gate and they will accompany you to building 1234. You can see the high crane from far away
+2025-12-19 15:13:59	operator	Thank you. Can you tell me what happened?
+2025-12-19 15:14:18	caller	A heavy piece of concrete has fallen on my worker
+2025-12-19 15:14:20	operator	Is your worker conscious and breathing?
+2025-12-19 15:14:57	caller	yes, somehow. His breathing is like doing sports, but he can complain about his head pain and answer normal questions. My colleague is talking to him.

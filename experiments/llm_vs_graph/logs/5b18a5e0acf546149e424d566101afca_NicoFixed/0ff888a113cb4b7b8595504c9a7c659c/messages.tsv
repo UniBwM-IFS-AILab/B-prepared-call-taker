@@ -1,0 +1,9 @@
+timestamp	speaker	message
+2025-12-19 15:23:00	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 15:23:13	caller	Hi, this is nico calling.
+2025-12-19 15:23:14	operator	Thank you, Nico. What is the address of the emergency?
+2025-12-19 15:23:41	caller	it is Floriansmühlstraße 20 in 80939 München in the home for elderly people. Its app. 256
+2025-12-19 15:23:42	operator	Thank you. Can you please describe what happened?
+2025-12-19 15:24:34	caller	I am visiting my dad and I was in the bathroom. I heard some weird noices 5min ago from the living room. When I came back, I found my 90year old dad lying on the floor.
+2025-12-19 15:24:35	operator	Is your father conscious?
+2025-12-19 15:25:09	caller	no, he is not responding, be is breathing slowly, but there is breath. I straight called you

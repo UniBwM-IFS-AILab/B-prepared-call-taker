@@ -1,0 +1,7 @@
+timestamp	speaker	message
+2025-12-19 14:49:03	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-19 14:49:18	caller	Hi, I am Nico Michel
+2025-12-19 14:49:19	operator	Thank you, Nico. What is the address of the emergency?
+2025-12-19 14:49:37	caller	It is at University of the Bundeswehr at Werner-heisenberg Straße in Munich
+2025-12-19 14:49:38	operator	Thank you. Can you please describe what happened?
+2025-12-19 14:50:14	caller	So we are on a construction side. One of my colleagues is lying on the floor, not moving any more. He has fallen of a ladder from about 1m height.

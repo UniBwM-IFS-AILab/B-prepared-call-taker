@@ -1,0 +1,22 @@
+timestamp	speaker	message
+2025-12-24 12:02:08	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-24 12:02:33	caller	Hi my name is man Ager
+2025-12-24 12:02:33	operator	Thank you, Man Ager. What is the address of the emergency?
+2025-12-24 12:03:06	caller	Its at my consturction side, near the church which should stay in the village
+2025-12-24 12:03:06	operator	Could you please provide the full address, including the street name, street number, and village name?
+2025-12-24 12:03:23	caller	the curch is at Werner heisenbergweg 31, munich
+2025-12-24 12:03:23	operator	Thank you. Can you tell me what happened?
+2025-12-24 12:04:16	caller	one of my workers just fell off a ladder
+2025-12-24 12:04:16	operator	How far did your worker fall?
+2025-12-24 12:04:26	caller	approx 1 meter
+2025-12-24 12:04:26	operator	Is the worker conscious and responsive?
+2025-12-24 12:04:39	caller	yes but he does not move
+2025-12-24 12:04:39	operator	Is he complaining of any pain?
+2025-12-24 12:04:51	caller	yes pain in his feet
+2025-12-24 12:04:51	operator	Is there any visible bleeding or deformity in his feet?
+2025-12-24 12:05:03	caller	no there is not
+2025-12-24 12:05:03	operator	Is he able to move his toes or ankles?
+2025-12-24 12:05:13	caller	no
+2025-12-24 12:05:13	operator	Is there anything else you can tell me about his condition?
+2025-12-24 12:05:28	caller	he lies on the floor and does not moe
+2025-12-24 12:05:29	operator	The emergency call has been processed. Thank you.

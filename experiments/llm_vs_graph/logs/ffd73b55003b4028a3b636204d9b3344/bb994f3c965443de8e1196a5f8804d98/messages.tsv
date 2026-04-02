@@ -1,0 +1,12 @@
+timestamp	speaker	message
+2025-12-22 19:53:37	operator	Hello! You're speaking with the emergency call services.
+2025-12-22 19:54:24	operator	With whom am I speaking, please?
+2025-12-22 19:54:24	caller	Hi my name is Simone
+2025-12-22 19:54:44	operator	Where exactly is the emergency location?
+2025-12-22 19:54:44	caller	The address is Siemensweg 10 in Messkirch
+2025-12-22 19:56:23	operator	What has just happened acutely?
+2025-12-22 19:56:23	caller	There was an accidnt on our construction site. A heavy brick has fallen of the head of on of our workers
+2025-12-22 19:56:47	operator	Can you describe the situation with more detail?
+2025-12-22 19:56:47	caller	He is bleeding at his head
+2025-12-22 19:56:56	operator	A Vehicle is on it's way to you. Please stand by.
+2025-12-22 19:56:57	operator	The emergency call has been processed. Thank you.

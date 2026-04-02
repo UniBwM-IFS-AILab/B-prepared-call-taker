@@ -1,0 +1,75 @@
+2025-12-20 19:14:47.313	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/9d5a52e5464b49b0a22b1b51fc70a311/0522e9c9de3c4ff4bca4f5eb9ae711b3
+2025-12-20 19:14:47.319	WARNING 	core.py:init_session():158 - Session initialized: 0522e9c9-de3c-4ff4-bca4-f5eb9ae711b3, 9d5a52e5-464b-49b0-a22b-1b51fc70a311, agent
+2025-12-20 19:14:51.661	INFO    	core.py:invoke_agent():314 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=65, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-20 19:14:51.663	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:14:51.665	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:14:51.667	DEBUG   	core.py:invoke_agent():352 - Hello, thank you for calling the emergency services. What is your name?
+2025-12-20 19:14:51.668	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Hello, thank you for calling the emergency services. What is your name?
+2025-12-20 19:15:00.405	INFO    	app.py:stream_policy_messages():113 - User message: Hey, this is Nico calling.
+2025-12-20 19:15:01.411	INFO    	core.py:invoke_agent():314 - agent_history_len=3 usage=RunUsage(input_tokens=2495, output_tokens=40, details={'text_prompt_tokens': 2495}, requests=1)
+2025-12-20 19:15:01.414	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:15:01.416	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-20 19:15:01.418	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Nico'}
+2025-12-20 19:15:01.420	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Nico'}
+2025-12-20 19:15:01.422	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:15:01.424	DEBUG   	core.py:invoke_agent():352 - Thank you, Nico. What is the address of the emergency?
+2025-12-20 19:15:01.426	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Thank you, Nico. What is the address of the emergency?
+2025-12-20 19:15:20.236	INFO    	app.py:stream_policy_messages():113 - User message: The address is apt. 256 at Floriansmühlstraße 20 in Münich Freimann
+2025-12-20 19:15:21.100	INFO    	core.py:invoke_agent():314 - agent_history_len=6 usage=RunUsage(input_tokens=2579, output_tokens=65, details={'text_prompt_tokens': 2579}, requests=1)
+2025-12-20 19:15:21.102	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:15:21.104	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Nico'}
+2025-12-20 19:15:21.106	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann'}
+2025-12-20 19:15:21.108	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann'}
+2025-12-20 19:15:21.110	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:15:21.112	DEBUG   	core.py:invoke_agent():352 - Thank you. Can you please describe what happened?
+2025-12-20 19:15:21.113	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Thank you. Can you please describe what happened?
+2025-12-20 19:15:45.512	INFO    	app.py:stream_policy_messages():113 - User message: I am having issues with breathing. Every time I try to  have a deep breath, it severely hurts.
+2025-12-20 19:15:46.690	INFO    	core.py:invoke_agent():314 - agent_history_len=9 usage=RunUsage(input_tokens=2686, output_tokens=98, details={'text_prompt_tokens': 2686}, requests=1)
+2025-12-20 19:15:46.692	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:15:46.694	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann'}
+2025-12-20 19:15:46.696	DEBUG   	agent.py:merge_state():205 - New State:	{'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:15:46.699	DEBUG   	agent.py:merge_state():216 - Merged State:	{'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:15:46.701	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-20 19:15:46.703	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:15:46.704	DEBUG   	core.py:invoke_agent():352 - Are you experiencing severe pain?
+2025-12-20 19:15:46.706	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Are you experiencing severe pain?
+2025-12-20 19:15:58.501	INFO    	app.py:stream_policy_messages():113 - User message: yes, during inhaling and exhaling 
+2025-12-20 19:15:59.800	INFO    	core.py:invoke_agent():314 - agent_history_len=12 usage=RunUsage(input_tokens=2812, output_tokens=104, details={'text_prompt_tokens': 2812}, requests=1)
+2025-12-20 19:15:59.802	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:15:59.804	DEBUG   	agent.py:merge_state():204 - Old State:	{'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:15:59.807	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_pain': True, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:15:59.810	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_pain': True, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:15:59.813	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-20 19:15:59.814	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:15:59.816	DEBUG   	core.py:invoke_agent():352 - Is the pain unbearable?
+2025-12-20 19:15:59.817	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Is the pain unbearable?
+2025-12-20 19:16:34.927	INFO    	app.py:stream_policy_messages():113 - User message: not too bad, but I am getting lesser and lesser air.
+2025-12-20 19:16:36.153	INFO    	core.py:invoke_agent():314 - agent_history_len=15 usage=RunUsage(input_tokens=2949, output_tokens=115, details={'text_prompt_tokens': 2949}, requests=1)
+2025-12-20 19:16:36.155	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:16:36.157	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_pain': True, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:16:36.160	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:16:36.163	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:16:36.166	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-20 19:16:36.168	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:16:36.169	DEBUG   	core.py:invoke_agent():352 - Are you experiencing rapidly progressive respiratory distress?
+2025-12-20 19:16:36.171	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Are you experiencing rapidly progressive respiratory distress?
+2025-12-20 19:17:31.284	INFO    	app.py:stream_policy_messages():113 - User message: it took over an hour now to be that bad. Since yesterday, I have smaller breathing problems, but the last hour it went very bad
+2025-12-20 19:17:32.474	INFO    	core.py:invoke_agent():314 - agent_history_len=18 usage=RunUsage(input_tokens=3112, output_tokens=130, details={'text_prompt_tokens': 3112}, requests=1)
+2025-12-20 19:17:32.476	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:17:32.478	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:17:32.481	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'rapidly_progressive_respiratory_distress': False, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:17:32.485	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'rapidly_progressive_respiratory_distress': False, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:17:32.489	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-20 19:17:32.490	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-20 19:17:32.492	DEBUG   	core.py:invoke_agent():352 - Are you experiencing severe dyspnoea?
+2025-12-20 19:17:32.494	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Are you experiencing severe dyspnoea?
+2025-12-20 19:17:59.682	INFO    	app.py:stream_policy_messages():113 - User message: almost, yes. Even talking not takes a fair bit of by breathe
+2025-12-20 19:18:01.146	INFO    	core.py:invoke_agent():314 - agent_history_len=21 usage=RunUsage(input_tokens=3276, output_tokens=146, details={'text_prompt_tokens': 3276}, requests=1)
+2025-12-20 19:18:01.149	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-20 19:18:01.150	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'rapidly_progressive_respiratory_distress': False, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True}
+2025-12-20 19:18:01.154	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'rapidly_progressive_respiratory_distress': False, 'severe_dyspnoea': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True, 'rd2': True}
+2025-12-20 19:18:01.158	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_pain': True, 'unbearable_pain': False, 'now_insufficient_air': True, 'rapidly_progressive_respiratory_distress': False, 'severe_dyspnoea': True, 'caller_name': 'Nico', 'emergency_location': 'apt. 256 at Floriansmühlstraße 20 in Münich Freimann', 'situation_description': 'I am having issues with breathing. Every time I try to have a deep breath, it severely hurts.', 'rd1': True, 'rd2': True}
+2025-12-20 19:18:01.161	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-20 19:18:01.162	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: False, no outcomes: False, rd2: True
+2025-12-20 19:18:01.164	INFO    	core.py:invoke_agent():331 - Outcome reached
+2025-12-20 19:18:44.294	INFO    	app.py:handle_survey_submit():727 - Survey saved for session 0522e9c9-de3c-4ff4-bca4-f5eb9ae711b3

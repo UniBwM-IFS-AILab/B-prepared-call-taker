@@ -1,0 +1,19 @@
+timestamp	speaker	message
+2025-12-19 14:54:22	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 14:54:29	caller	I am Nicole
+2025-12-19 14:54:30	operator	Thank you, Nicole. What is the address of the emergency?
+2025-12-19 14:55:16	caller	it is in Floriansmühlstraße 20, München Freimann
+2025-12-19 14:55:17	operator	Thank you. Can you please describe what happened?
+2025-12-19 14:56:24	caller	My old husband has fallen right before breakfast in the hallway. He cannot get back up on his feet nor walk
+2025-12-19 14:56:25	operator	Is he conscious?
+2025-12-19 14:56:53	caller	Yes he is, he simply has issues with his leg
+2025-12-19 14:56:54	operator	Is he experiencing any severe pain?
+2025-12-19 14:57:18	caller	yes, at his right ankle. It hurts and it is swollen greatly as of now. Way larger than mine is.
+2025-12-19 14:57:20	operator	Is he bleeding heavily?
+2025-12-19 14:57:31	caller	no, just swelling. no blooding as all
+2025-12-19 14:57:32	operator	Is he having any difficulty breathing?
+2025-12-19 14:58:24	caller	no, breathing is fine. Just walking, he cannot get up
+2025-12-19 14:58:26	operator	Is he able to move his toes on the injured foot?
+2025-12-19 14:58:56	caller	let me check. Yes he is.
+2025-12-19 14:58:57	operator	Is he able to feel you touching his toes?
+2025-12-19 14:59:19	caller	hey, but he says the pain is much stronger, so he only feels it softly.

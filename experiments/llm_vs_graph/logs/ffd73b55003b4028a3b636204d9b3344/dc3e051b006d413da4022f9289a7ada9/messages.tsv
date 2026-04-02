@@ -1,0 +1,12 @@
+timestamp	speaker	message
+2025-12-22 18:59:16	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:59:37	caller	Hi my name is Simone
+2025-12-22 18:59:37	operator	Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:59:55	caller	It's Messkirch
+2025-12-22 18:59:55	operator	Could you please provide the full address, including the street name and house number?
+2025-12-22 19:00:20	caller	It's Siemensweg 10 in Messkirch
+2025-12-22 19:00:20	operator	Thank you. Can you tell me what happened?
+2025-12-22 19:00:55	caller	While cutting onions, I cut my finger. It's bleeding
+2025-12-22 19:00:55	operator	Is the bleeding severe or is it a minor cut?
+2025-12-22 19:01:20	caller	There are so much blo
+2025-12-22 19:01:20	operator	Is the bleeding heavy, or is it a minor cut?

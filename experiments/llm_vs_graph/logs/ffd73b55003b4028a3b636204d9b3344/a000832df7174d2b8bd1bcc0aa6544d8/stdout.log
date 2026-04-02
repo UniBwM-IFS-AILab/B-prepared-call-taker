@@ -1,0 +1,44 @@
+2025-12-22 19:03:41.582	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/a000832df7174d2b8bd1bcc0aa6544d8
+2025-12-22 19:03:41.583	WARNING 	core.py:init_session():158 - Session initialized: a000832d-f717-4d2b-8bd1-bcc0aa6544d8, ffd73b55-003b-4028-a3b6-36204d9b3344, agent
+2025-12-22 19:03:49.372	INFO    	core.py:invoke_agent():316 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=72, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-22 19:03:49.375	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 19:03:49.377	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 19:03:49.379	DEBUG   	core.py:invoke_agent():354 - Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-22 19:03:49.381	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-22 19:04:12.415	INFO    	app.py:stream_policy_messages():113 - User message: Hello my name is Simone
+2025-12-22 19:04:13.504	INFO    	core.py:invoke_agent():316 - agent_history_len=3 usage=RunUsage(input_tokens=2500, output_tokens=39, details={'text_prompt_tokens': 2500}, requests=1)
+2025-12-22 19:04:13.507	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 19:04:13.509	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-22 19:04:13.510	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone'}
+2025-12-22 19:04:13.512	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone'}
+2025-12-22 19:04:13.514	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 19:04:13.517	DEBUG   	core.py:invoke_agent():354 - Thank you, Simone. What is the address of the emergency?
+2025-12-22 19:04:13.518	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you, Simone. What is the address of the emergency?
+2025-12-22 19:04:37.594	INFO    	app.py:stream_policy_messages():113 - User message: The address is Siemensweg 10 in Messkirch
+2025-12-22 19:04:38.674	INFO    	core.py:invoke_agent():316 - agent_history_len=6 usage=RunUsage(input_tokens=2571, output_tokens=53, details={'text_prompt_tokens': 2571}, requests=1)
+2025-12-22 19:04:38.676	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 19:04:38.678	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone'}
+2025-12-22 19:04:38.680	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 19:04:38.682	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 19:04:38.684	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 19:04:38.686	DEBUG   	core.py:invoke_agent():354 - Thank you. Can you tell me what happened?
+2025-12-22 19:04:38.687	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you. Can you tell me what happened?
+2025-12-22 19:05:04.049	INFO    	app.py:stream_policy_messages():113 - User message: While cutting onions, I cut my finger
+2025-12-22 19:05:04.928	INFO    	core.py:invoke_agent():316 - agent_history_len=9 usage=RunUsage(input_tokens=2652, output_tokens=63, details={'text_prompt_tokens': 2652}, requests=1)
+2025-12-22 19:05:04.931	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 19:05:04.933	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 19:05:04.935	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'While cutting onions, I cut my finger'}
+2025-12-22 19:05:04.938	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'While cutting onions, I cut my finger'}
+2025-12-22 19:05:04.941	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 19:05:04.943	DEBUG   	core.py:invoke_agent():354 - Is the bleeding severe?
+2025-12-22 19:05:04.945	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is the bleeding severe?
+2025-12-22 19:05:21.137	INFO    	app.py:stream_policy_messages():113 - User message: There are so much blood
+2025-12-22 19:05:22.228	INFO    	core.py:invoke_agent():316 - agent_history_len=12 usage=RunUsage(input_tokens=2740, output_tokens=81, details={'text_prompt_tokens': 2740}, requests=1)
+2025-12-22 19:05:22.230	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 19:05:22.233	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'While cutting onions, I cut my finger'}
+2025-12-22 19:05:22.235	DEBUG   	agent.py:merge_state():205 - New State:	{'heavy_non_traumatic_bleeding': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'While cutting onions, I cut my finger', 'rd1': True}
+2025-12-22 19:05:22.239	DEBUG   	agent.py:merge_state():216 - Merged State:	{'heavy_non_traumatic_bleeding': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'While cutting onions, I cut my finger', 'rd1': True}
+2025-12-22 19:05:22.241	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 19:05:22.243	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 19:05:22.245	DEBUG   	core.py:invoke_agent():354 - Are you able to stop the bleeding by applying pressure?
+2025-12-22 19:05:22.247	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Are you able to stop the bleeding by applying pressure?

@@ -1,0 +1,15 @@
+policy,metric,question_id,question_label,question_category,question_text,count,mean_score,std_dev
+agent,Q1,1,Scenario Understanding,understanding,I always knew what I could say at each point in the dialogue.,33,4.333333333333333,0.9574271077563381
+graph,Q1,1,Scenario Understanding,understanding,I always knew what I could say at each point in the dialogue.,26,4.269230769230769,1.0791734729020095
+agent,Q2,2,Agents' Understanding,understanding,The agent understood what I said.,33,4.0606060606060606,1.0289373747765804
+graph,Q2,2,Agents' Understanding,understanding,The agent understood what I said.,26,4.230769230769231,1.176696810829104
+agent,Q3,3,Relevance of messages,efficiency,The agent's messages were relevant and focused on the situation.,33,4.121212121212121,1.0234004518508308
+graph,Q3,3,Relevance of messages,efficiency,The agent's messages were relevant and focused on the situation.,26,4.269230769230769,1.0023050357128733
+agent,Q4,4,Response Time,efficiency,The agent responded promptly and avoided unnecessary delays during the conversation.,33,4.242424242424242,1.0316946929174053
+graph,Q4,4,Response Time,efficiency,The agent responded promptly and avoided unnecessary delays during the conversation.,26,4.115384615384615,1.3660724161455886
+agent,Q5,5,Agent adjustment to context,naturalness,The agent's behavior felt appropriate for this conversation.,33,4.212121212121212,0.9603897567386299
+graph,Q5,5,Agent adjustment to context,naturalness,The agent's behavior felt appropriate for this conversation.,26,4.076923076923077,1.1635489477654792
+agent,Q6,6,Human-like responses,naturalness,The agent's messages felt realistic and fluent.,33,4.151515151515151,0.9055803429711565
+graph,Q6,6,Human-like responses,naturalness,The agent's messages felt realistic and fluent.,26,4.153846153846154,1.0466062370273814
+agent,Q7,7,Overall Satisfaction,overall,"Overall, this conversation went well.",33,4.0606060606060606,1.0588730430094635
+graph,Q7,7,Overall Satisfaction,overall,"Overall, this conversation went well.",26,4.076923076923077,1.1286479317511524

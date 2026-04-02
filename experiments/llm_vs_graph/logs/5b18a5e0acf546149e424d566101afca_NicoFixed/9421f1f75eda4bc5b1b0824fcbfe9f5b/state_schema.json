@@ -1,0 +1,858 @@
+{
+  "$defs": {
+    "CPR_Boolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "KnownString": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "RD1_Boolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "RD2_Boolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "TimeCritical_Boolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "description": "Model representing an emergency call with essential details.",
+  "properties": {
+    "heavy_injury": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a heavy injury (severe physical trauma).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Heavy Injury"
+    },
+    "vital_threat_injury": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the injury is life threatening. Examples of vital threats / additions:\n        - Impaired consciousness\n        - impaired breathing\n        - circulatory problems\n        - severe bleeding or severe pain for specific causes:\n            - fall from a height > 3m\n            - stuck or crushed\n            - high-speed trauma (e.g., car accident)\n            - penetrating injury (head, thorax, abdomen)\n        ",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Vital Threat Injury"
+    },
+    "heavy_non_traumatic_bleeding": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing non-traumatic bleeding (bleeding not caused by an injury).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Non-Traumatic Bleeding"
+    },
+    "gastrointestinal_bleeding": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing gastrointestinal bleeding (bleeding from the digestive tract).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Gastrointestinal Bleeding"
+    },
+    "gynecological_bleeding": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing gynecological bleeding (bleeding from the female reproductive tract).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Gynecological Bleeding"
+    },
+    "epistaxis": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing epistaxis (nosebleed).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Epistaxis"
+    },
+    "intoxication": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute poisoning (sudden exposure to a toxic substance).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Poisoning"
+    },
+    "life_threatening_intoxication": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing life-threatening intoxication (severe poisoning that poses a risk to life).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Life-Threatening Intoxication"
+    },
+    "imminent_childbirth": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing imminent childbirth (the baby is about to be born).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Imminent Childbirth"
+    },
+    "frequent_pregnancy_contraction": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing contractions every less than 3 minutes.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pregnancy Contraction Frequency < 3 min"
+    },
+    "ongoing_delivery": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently in the process of delivering the baby.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Ongoing Delivery"
+    },
+    "finisehd_delivery": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient has just finished delivering the baby.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Finished Delivery"
+    },
+    "vaginal_bleeding": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing vaginal bleeding during pregnancy or childbirth.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Vaginal Bleeding"
+    },
+    "severe_pain": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing severe pain.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Pain"
+    },
+    "unbearable_pain": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing unbearable pain (pain that cannot be tolerated).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Unbearable Pain"
+    },
+    "thunderclap_headache": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a thunderclap headache (a sudden and severe headache that comes on quickly).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Thunderclap Headache"
+    },
+    "colicky_pain": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing colicky pain (intermittent and severe abdominal pain).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Colicky Pain"
+    },
+    "mental_health_issue": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute psychiatric disorder (sudden onset of mental health issues).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Issues with Mental Health"
+    },
+    "acute_self_harm_risk": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently at risk of self-harm (intentionally causing harm to oneself).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Self-Harm Risk"
+    },
+    "acute_violence_risk": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently at risk of violence (potential to harm others).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Violence Risk"
+    },
+    "suicidal_tendency": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently exhibiting suicidal tendencies (thoughts or behaviors indicating a desire to harm oneself).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Suicidal Tendency"
+    },
+    "known_metabolic_disorder": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a metabolic disorder (a condition that affects the body's metabolism).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Metabolic Disorder"
+    },
+    "diabetic": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing diabetes (a metabolic disorder characterized by high blood sugar levels).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Diabetic"
+    },
+    "noticable_coldness": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing noticeable coldness (a sensation of being unusually cold)",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Noticable Coldness"
+    },
+    "noticable_heat": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing noticeable heat (a sensation of being hot).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Noticable Heat"
+    },
+    "metabolic_decompensation": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Metabolic Decompensation"
+    },
+    "hyperthermia": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature) with potentially vital threat.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hyperthermia"
+    },
+    "hypothermia": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature) with potentially vital threat.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypothermia"
+    },
+    "acute_paralysis": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute motor deficit (loss of movement or weakness in a limb).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Motor Deficit"
+    },
+    "acute_speech_disorder": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute speech disorder (difficulty speaking or understanding speech).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Speech Disorder"
+    },
+    "acute_speech_comprehension_disorder": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute speech comprehension disorder (difficulty understanding speech).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Speech Comprehension Disorder"
+    },
+    "acute_visual_disturbance": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision). E.g. Blindness, double vision, visual field defects.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Visual Disturbance"
+    },
+    "acute_severe_headache": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute strong headache (unprecedented and severe headache).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Headache"
+    },
+    "acute_hemisensory_loss": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute hemisensory loss (loss of sensation on one side of the body).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Hemisensory Loss"
+    },
+    "acute_vertigo_with_falling_risk": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute vertigo with a fall (sudden dizziness leading to a fall).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Vertigo with Fall"
+    },
+    "seizure": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a seizure (sudden, uncontrolled electrical disturbance in the brain).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Seizure"
+    },
+    "neurological_deficits": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system). Should only be true if consciousness is not normal.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Neurological Deficits"
+    },
+    "prolonged_deadly_seizure": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing ongoing seizures (recurrent episodes of abnormal electrical activity in the brain).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Ongoing Seizures"
+    },
+    "status_epilepticus": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing status epilepticus (a prolonged seizure lasting more than 5 minutes or multiple seizures without recovery in between).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Status Epilepticus"
+    },
+    "acute_chest_discomfort": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing chest discomfort.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Chest Discomfort"
+    },
+    "acute_circulatory_problems": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute circulatory problems.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Circulatory Problems"
+    },
+    "acute_chest_pain": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute chest pain.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Chest Pain"
+    },
+    "cold_sweat": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cold sweat.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cold Sweat"
+    },
+    "pallor": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing pallor (pale skin).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pallor"
+    },
+    "hypertensive_crisis": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypertensive Crisis"
+    },
+    "hypotensive_collapse": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypotensive Collapse"
+    },
+    "tachycardia": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Tachycardia"
+    },
+    "bradycardia": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Bradycardia"
+    },
+    "arrhythmia": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Arrhythmia"
+    },
+    "pacemaker_malfunction": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pacemaker Malfunction"
+    },
+    "allergic_reaction": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Allergic Reaction"
+    },
+    "known_anaphylaxis": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Anaphylaxis"
+    },
+    "now_unresponsive": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently unresponsive unlike normal.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Normal Responsiveness"
+    },
+    "unconscious": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently unconscious.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Unconscious"
+    },
+    "rapidly_progressing_unconsciousness": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing rapidly progressing unconsciousness.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Rapidly Progressing Unconsciousness"
+    },
+    "now_insufficient_air": {
+      "$ref": "#/$defs/RD1_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently breathing irregularly.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Irregular Breathing"
+    },
+    "rapidly_progressive_respiratory_distress": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing rapidly progressive respiratory distress.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Rapidly Progressive Respiratory Distress"
+    },
+    "severe_dyspnoea": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing severe dyspnoea (difficulty breathing).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Dyspnoea"
+    },
+    "cyanosis": {
+      "$ref": "#/$defs/TimeCritical_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cyanosis"
+    },
+    "stridor": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing stridor (a high-pitched wheezing sound caused by disrupted airflow).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Stridor"
+    },
+    "abnormal_breathing_sounds": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing abnormal breath sounds.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Abnormal Breath Sounds"
+    },
+    "aspiration": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing aspiration (inhalation of foreign objects into the airway).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Aspiration"
+    },
+    "abnormal_chest_movement": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing abnormal chest movement during breathing.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Abnormal Chest Movement"
+    },
+    "bradypnea": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing bradypnea (abnormally slow breathing).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Bradypnea"
+    },
+    "tachypnea": {
+      "$ref": "#/$defs/RD2_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing tachypnea (abnormally rapid breathing).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Tachypnea"
+    },
+    "apnea": {
+      "$ref": "#/$defs/CPR_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing apnea (temporary cessation of breathing).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Apnea"
+    },
+    "agonal_respiration": {
+      "$ref": "#/$defs/CPR_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Agonal Breathing"
+    },
+    "cardiac_arrest": {
+      "$ref": "#/$defs/CPR_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cardiac arrest.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cardiac Arrest"
+    },
+    "suffocation": {
+      "$ref": "#/$defs/TimeCritical_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing suffocation (inability to breathe).",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Suffocation"
+    },
+    "severe_accident": {
+      "$ref": "#/$defs/TimeCritical_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently involved in a severe accident.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Accident"
+    },
+    "severe_injury": {
+      "$ref": "#/$defs/TimeCritical_Boolean",
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a severe injury.",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Injury"
+    },
+    "caller_name": {
+      "$ref": "#/$defs/KnownString",
+      "default": null,
+      "description": "Name of the person making the emergency call.",
+      "title": "Caller Name"
+    },
+    "emergency_location": {
+      "$ref": "#/$defs/KnownString",
+      "default": null,
+      "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
+      "title": "Distinctive Location"
+    },
+    "situation_description": {
+      "$ref": "#/$defs/KnownString",
+      "default": null,
+      "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
+      "title": "Situation Description"
+    }
+  },
+  "title": "EmergencyCall",
+  "type": "object"
+}

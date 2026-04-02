@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-12-22T18:58:15.968665",
+  "responses": {
+    "Scenario Understanding": {
+      "category": "understanding",
+      "question": "I always knew what I could say at each point in the dialogue.",
+      "score": 2
+    },
+    "Agents' Understanding": {
+      "category": "understanding",
+      "question": "The agent understood what I said.",
+      "score": 3
+    },
+    "Relevance of messages": {
+      "category": "efficiency",
+      "question": "The agent's messages were relevant and focused on the situation.",
+      "score": 3
+    },
+    "Response Time": {
+      "category": "efficiency",
+      "question": "The agent responded promptly and avoided unnecessary delays during the conversation.",
+      "score": 4
+    },
+    "Agent adjustment to context": {
+      "category": "naturalness",
+      "question": "The agent's behavior felt appropriate for this conversation.",
+      "score": 3
+    },
+    "Human-like responses": {
+      "category": "naturalness",
+      "question": "The agent's messages felt realistic and fluent.",
+      "score": 3
+    },
+    "Overall Satisfaction": {
+      "category": "overall",
+      "question": "Overall, this conversation went well.",
+      "score": 3
+    }
+  },
+  "metadata": {
+    "user_id": "ffd73b55-003b-4028-a3b6-36204d9b3344",
+    "session_id": "79a8803e-44ac-4591-91b9-265faaac9c87",
+    "scenario": "Scenario_07.md"
+  }
+}

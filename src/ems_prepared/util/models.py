@@ -19,21 +19,28 @@ Environment variables:
 
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 import os
+from collections import deque
+from datetime import datetime
+from email.utils import parsedate_to_datetime
+from time import monotonic
 from typing import Any
 
-from httpx._client import AsyncClient
+from httpx._client import AsyncBaseTransport, AsyncClient, AsyncHTTPTransport, Request, Response
 from httpx._exceptions import HTTPStatusError
 from pydantic_ai.agent import Agent
 from pydantic_ai.models import Model, infer_model
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.retries import AsyncTenacityTransport, RetryConfig, wait_retry_after
+from pydantic_ai.retries import RetryConfig
 from pydantic_ai.settings import ModelSettings
+from tenacity import retry
 from tenacity.retry import retry_if_exception_type
-from tenacity.stop import stop_after_attempt
+from tenacity.stop import stop_never
 from tenacity.wait import wait_exponential
 
 # Custom provider prefixes that need special handling
@@ -41,13 +48,195 @@ _OLLAMA_LOCAL_PREFIX = "ollama-local:"
 _OPENWEBUI_PREFIX = "openwebui:"
 
 logger = logging.getLogger(__name__)
+_FALLBACK_WAIT = wait_exponential(multiplier=1, max=60)
+
+
+def _extract_per_minute_quota_limit(body: str) -> int | None:
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    error = payload.get("error", {})
+    message = str(error.get("message", "")).lower()
+    for detail in error.get("details", []):
+        if detail.get("@type") != "type.googleapis.com/google.rpc.QuotaFailure":
+            continue
+        for violation in detail.get("violations", []):
+            quota_value = violation.get("quotaValue")
+            quota_id = str(violation.get("quotaId", "")).lower()
+            if quota_value is None:
+                continue
+            if "perminute" in quota_id.replace("_", "") or "per minute" in message:
+                try:
+                    return int(quota_value)
+                except (TypeError, ValueError):
+                    return None
+    return None
+
+
+def _parse_retry_after_seconds(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return max(float(value), 0.0)
+    except ValueError:
+        pass
+    try:
+        retry_at = parsedate_to_datetime(value)
+    except (TypeError, ValueError, IndexError):
+        return None
+    return max((retry_at - datetime.now(retry_at.tzinfo)).total_seconds(), 0.0)
+
+
+def _extract_retry_delay_seconds(body: str) -> float | None:
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    error = payload.get("error", {})
+    for detail in error.get("details", []):
+        if detail.get("@type") != "type.googleapis.com/google.rpc.RetryInfo":
+            continue
+        retry_delay = detail.get("retryDelay")
+        if not isinstance(retry_delay, str) or not retry_delay.endswith("s"):
+            continue
+        try:
+            return max(float(retry_delay[:-1]), 0.0)
+        except ValueError:
+            return None
+    return None
+
+
+def _retry_sleep_seconds(retry_state) -> float:
+    exc = retry_state.outcome.exception()
+    if isinstance(exc, HTTPStatusError):
+        retry_after = getattr(exc, "retry_after_seconds", None)
+        if retry_after is not None:
+            return retry_after
+        headers = getattr(exc, "response_headers", dict(exc.response.headers))
+        parsed = _parse_retry_after_seconds(headers.get("retry-after") or headers.get("Retry-After"))
+        if parsed is not None:
+            return parsed
+    return _FALLBACK_WAIT(retry_state)
 
 
 def _log_retry(retry_state):
     """Log retry attempts for HTTP requests."""
     exc = retry_state.outcome.exception()
     attempt = retry_state.attempt_number
+    sleep = retry_state.next_action.sleep if retry_state.next_action else None
     logger.info(f"HTTP request failed (attempt {attempt}), retrying after error: {exc}")
+    timestamp = datetime.now().isoformat(timespec="seconds")
+    if isinstance(exc, HTTPStatusError):
+        headers = getattr(exc, "response_headers", dict(exc.response.headers))
+        body = getattr(exc, "response_body", "<unavailable>")
+        print(
+            f"[{timestamp}] [provider_retry] attempt={attempt} status={exc.response.status_code} method={exc.request.method} url={exc.request.url}",
+            flush=True,
+        )
+        print(f"[{timestamp}] [provider_retry] headers={headers}", flush=True)
+        print(f"[{timestamp}] [provider_retry] body={body}", flush=True)
+        learned_limit = getattr(exc, "requests_per_minute", None)
+        if learned_limit is not None:
+            print(
+                f"[{timestamp}] [provider_retry] learned requests_per_minute={learned_limit}",
+                flush=True,
+            )
+    else:
+        print(
+            f"[{timestamp}] [provider_retry] attempt={attempt} error={type(exc).__name__}: {exc}",
+            flush=True,
+        )
+    if sleep is not None:
+        print(f"[{timestamp}] [provider_retry] sleeping {sleep:.0f}s", flush=True)
+
+
+class _RetryingLoggingTransport(AsyncBaseTransport):
+    """Async transport with retry logging and captured response details."""
+
+    def __init__(self, config: RetryConfig, wrapped: AsyncBaseTransport | None = None):
+        self.config = config
+        self.wrapped = wrapped or AsyncHTTPTransport()
+        self._requests_per_minute: int | None = None
+        self._request_timestamps: deque[float] = deque()
+        self._rate_limit_lock = asyncio.Lock()
+
+    def _prune_request_timestamps(self, now: float) -> None:
+        while self._request_timestamps and now - self._request_timestamps[0] >= 60:
+            self._request_timestamps.popleft()
+
+    def _seconds_until_available_slot(self, now: float) -> float:
+        if self._requests_per_minute is None:
+            return 0.0
+        self._prune_request_timestamps(now)
+        if len(self._request_timestamps) < self._requests_per_minute:
+            return 0.0
+        required_expired_index = len(self._request_timestamps) - self._requests_per_minute
+        return max(self._request_timestamps[required_expired_index] + 60 - now, 0.0)
+
+    async def _wait_for_available_slot(self) -> None:
+        if self._requests_per_minute is None:
+            self._request_timestamps.append(monotonic())
+            return
+        async with self._rate_limit_lock:
+            while True:
+                now = monotonic()
+                sleep_for = self._seconds_until_available_slot(now)
+                if sleep_for <= 0:
+                    self._request_timestamps.append(now)
+                    return
+                timestamp = datetime.now().isoformat(timespec="seconds")
+                print(
+                    f"[{timestamp}] [provider_rate_limit] waiting {sleep_for:.0f}s to stay within learned {self._requests_per_minute} RPM",
+                    flush=True,
+                )
+                await asyncio.sleep(sleep_for)
+
+    def _capture_quota_from_error(self, exc: HTTPStatusError) -> None:
+        response_body = getattr(exc, "response_body", "")
+        retry_delay = _extract_retry_delay_seconds(response_body)
+        if retry_delay is not None:
+            exc.retry_after_seconds = retry_delay
+        rpm_limit = _extract_per_minute_quota_limit(response_body)
+        if rpm_limit is not None:
+            self._requests_per_minute = rpm_limit
+            exc.requests_per_minute = rpm_limit
+            exc.retry_after_seconds = max(
+                getattr(exc, "retry_after_seconds", 0.0),
+                self._seconds_until_available_slot(monotonic()),
+                1.0,
+            )
+
+    async def handle_async_request(self, request: Request) -> Response:
+        @retry(**self.config)
+        async def handle(req: Request) -> Response:
+            await self._wait_for_available_slot()
+            response = await self.wrapped.handle_async_request(req)
+            response.request = req
+            if response.status_code in (429, 502, 503, 504):
+                body_bytes = await response.aread()
+                try:
+                    response.raise_for_status()
+                except HTTPStatusError as exc:
+                    exc.response_headers = dict(response.headers)
+                    exc.response_body = body_bytes.decode("utf-8", errors="replace")
+                    if response.status_code == 429:
+                        self._capture_quota_from_error(exc)
+                    await response.aclose()
+                    raise
+            return response
+
+        return await handle(request)
+
+    async def __aenter__(self) -> _RetryingLoggingTransport:
+        await self.wrapped.__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type=None, exc_value=None, traceback=None) -> None:
+        await self.wrapped.__aexit__(exc_type, exc_value, traceback)
+
+    async def aclose(self) -> None:
+        await self.wrapped.aclose()
 
 
 def build_ollama_local_model(
@@ -207,28 +396,19 @@ def get_default_settings(overrides: dict[str, object] | None = None) -> ModelSet
 
 def create_retrying_client():
     """Create a client with smart retry handling for multiple error types."""
-
-    def should_retry_status(response):
-        """Raise exceptions for retryable HTTP status codes."""
-        if response.status_code in (429, 502, 503, 504):
-            response.raise_for_status()  # This will raise HTTPStatusError
-
-    transport = AsyncTenacityTransport(
+    transport = _RetryingLoggingTransport(
         config=RetryConfig(
             # Retry on HTTP errors and connection issues
             retry=retry_if_exception_type((HTTPStatusError, ConnectionError)),
-            # Smart waiting: respects Retry-After headers, falls back to exponential backoff
-            wait=wait_retry_after(
-                fallback_strategy=wait_exponential(multiplier=1, max=60), max_wait=300
-            ),
-            # Stop after 5 attempts
-            stop=stop_after_attempt(5),
+            # Respect provider quota signals first, then Retry-After, then exponential backoff.
+            wait=_retry_sleep_seconds,
+            # Long benchmarks should wait through transient provider failures.
+            stop=stop_never,
             # Re-raise the last exception if all retries fail
             reraise=True,
             # Log retry attempts
             after=_log_retry,
         ),
-        validate_response=should_retry_status,
     )
     return AsyncClient(transport=transport, timeout=10.0)
 
@@ -253,7 +433,7 @@ def get_default_models(
         model_names = overrides
     else:
         model_names = [
-            "google-gla:gemini-2.5-flash",  # https://aistudio.google.com/api-keys
+            "google-gla:gemini-3.1-flash-lite-preview",  # https://aistudio.google.com/api-keys
             # "google-gla:gemini-2.5-pro",
             # "google-gla:gemini-3-flash-preview",
             # "google-gla:gemini-3-pro-preview",

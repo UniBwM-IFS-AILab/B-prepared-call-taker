@@ -1,0 +1,9 @@
+{"timestamp": "2025-12-22 18:48:39", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_06.md"}}
+{"timestamp": "2025-12-22 18:49:34", "event": "state_merged", "state": {"caller_name": "Simone"}}
+{"timestamp": "2025-12-22 18:49:34", "event": "extraction", "result": {"caller_name": "Simone"}, "question": "Thank you, Simone. What is the address of the emergency?", "response": "Hello my name is Simone"}
+{"timestamp": "2025-12-22 18:50:03", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch"}}
+{"timestamp": "2025-12-22 18:50:03", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch"}, "question": "Thank you. Can you please describe what happened?", "response": "The address is Siemensweg 10 in Messkirch"}
+{"timestamp": "2025-12-22 18:50:25", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "situation_description": "My son has a strong cough"}}
+{"timestamp": "2025-12-22 18:50:25", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "situation_description": "My son has a strong cough"}, "question": "Is your son experiencing any difficulty breathing or shortness of breath?", "response": "My son has a strong cough"}
+{"timestamp": "2025-12-22 18:51:37", "event": "state_merged", "state": {"severe_dyspnoea": true, "abnormal_breathing_sounds": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "situation_description": "My son has a strong cough", "rd1": true, "rd2": true}}
+{"timestamp": "2025-12-22 18:51:37", "event": "complete", "state": {"severe_dyspnoea": true, "abnormal_breathing_sounds": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10 in Messkirch", "situation_description": "My son has a strong cough", "rd1": true, "rd2": true}}

@@ -1,0 +1,98 @@
+2025-12-19 15:25:58.922	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/5b18a5e0acf546149e424d566101afca/b94aa670aec04183b426c91fa82a4126
+2025-12-19 15:25:58.924	WARNING 	core.py:init_session():158 - Session initialized: b94aa670-aec0-4183-b426-c91fa82a4126, 5b18a5e0-acf5-4614-9e42-4d566101afca, graph
+2025-12-19 15:26:02.077	INFO    	emergency_main_graph.py:resume_from_persistence():143 - Initializing new graph run...
+2025-12-19 15:26:02.102	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Greeting
+2025-12-19 15:26:02.104	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Hello! You're speaking with the emergency call services.
+2025-12-19 15:26:02.748	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:26:02.750	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Greeting
+2025-12-19 15:26:02.751	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{}
+2025-12-19 15:26:02.787	INFO    	settings.py:async_print():96 - Hello! You're speaking with the emergency call services.
+2025-12-19 15:26:02.811	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-19 15:26:02.896	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-19 15:26:02.898	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='With whom am I speaking, please?')
+2025-12-19 15:26:02.900	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: With whom am I speaking, please?
+2025-12-19 15:26:18.935	INFO    	app.py:stream_policy_messages():113 - User message: Hi, this is Nico calling from the odeonsplatz metro station
+2025-12-19 15:26:18.964	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:26:18.966	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-19 15:26:18.968	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:26:20.729	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-19 15:26:20.763	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-19 15:26:20.764	DEBUG   	nodes.py:run():222 - New extracted state: {'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station'}
+2025-12-19 15:26:20.820	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-19 15:26:20.855	DEBUG   	nodes.py:run():254 - Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:26:20.857	DEBUG   	nodes.py:run():257 - New State:	{'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station'}
+2025-12-19 15:26:20.859	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:26:20.927	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-19 15:26:20.985	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:26:21.043	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-19 15:26:21.134	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-19 15:26:21.136	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Where exactly is the emergency location?')
+2025-12-19 15:26:21.137	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Where exactly is the emergency location?
+2025-12-19 15:27:08.928	INFO    	app.py:stream_policy_messages():113 - User message: at the metro station of odeonsplatz. At the platform for lines U3 and U6. near the emergency pole. that's where I am calling from.
+2025-12-19 15:27:08.987	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:27:08.989	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-19 15:27:08.990	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:10.901	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-19 15:27:10.961	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-19 15:27:10.962	DEBUG   	nodes.py:run():222 - New extracted state: {'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole'}
+2025-12-19 15:27:11.047	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-19 15:27:11.094	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Nico', 'emergency_location': 'odeonsplatz metro station', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:11.096	DEBUG   	nodes.py:run():257 - New State:	{'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole'}
+2025-12-19 15:27:11.097	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Nico', 'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:11.202	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-19 15:27:11.251	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Nico', 'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:11.349	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-19 15:27:11.508	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-19 15:27:11.509	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='What has just happened acutely?')
+2025-12-19 15:27:11.511	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: What has just happened acutely?
+2025-12-19 15:27:54.960	INFO    	app.py:stream_policy_messages():113 - User message: There is a man lying in the middle of the platform in the station. His is lying on his back, but his face looks blue-ish and to be honest very weird and strange.
+2025-12-19 15:27:55.048	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:27:55.050	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-19 15:27:55.052	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'Nico', 'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:58.647	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-19 15:27:58.711	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-19 15:27:58.712	DEBUG   	nodes.py:run():222 - New extracted state: {'cyanosis': True, 'emergency_location': 'platform in the station', 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:27:58.838	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-19 15:27:58.907	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Nico', 'emergency_location': 'metro station of odeonsplatz, platform for lines U3 and U6, near the emergency pole', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-19 15:27:58.909	DEBUG   	nodes.py:run():257 - New State:	{'cyanosis': True, 'emergency_location': 'platform in the station', 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:27:58.911	DEBUG   	nodes.py:run():264 - Merged State:	{'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:27:59.047	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-19 15:27:59.117	DEBUG   	nodes.py:run():286 - Evaluate State:	{'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:27:59.258	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-19 15:27:59.331	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-19 15:27:59.332	INFO    	nodes.py:run():360 - Asking static question for RD2
+2025-12-19 15:27:59.487	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-19 15:27:59.488	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Can you describe the situation with more detail?')
+2025-12-19 15:27:59.490	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Can you describe the situation with more detail?
+2025-12-19 15:28:57.700	INFO    	app.py:stream_policy_messages():113 - User message: that's all I know. He didn't seem to be moving, I didn't want to touch hin. The most striking thing is his blue face color.like of you would hit your leg and get a hematoma
+2025-12-19 15:28:57.815	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:28:57.816	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-19 15:28:57.818	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:00.545	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-19 15:29:00.630	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-19 15:29:00.632	DEBUG   	nodes.py:run():222 - New extracted state: {'now_unresponsive': True, 'cyanosis': True, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:00.803	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-19 15:29:00.893	DEBUG   	nodes.py:run():254 - Old State:	{'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'A man is lying on his back in the middle of the platform in the station. His face looks blue-ish and very weird and strange.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:00.896	DEBUG   	nodes.py:run():257 - New State:	{'now_unresponsive': True, 'cyanosis': True, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:00.898	DEBUG   	nodes.py:run():264 - Merged State:	{'now_unresponsive': True, 'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:01.079	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-19 15:29:01.171	DEBUG   	nodes.py:run():286 - Evaluate State:	{'now_unresponsive': True, 'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:01.356	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-19 15:29:01.450	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-19 15:29:01.452	INFO    	nodes.py:run():370 - Forcing Agent to decide if enough information gathered...
+2025-12-19 15:29:05.079	DEBUG   	nodes.py:run():386 - Enough info result (raw): EnoughInfoOutput(enough_information_gathered=True, next_question=None)
+2025-12-19 15:29:05.081	INFO    	nodes.py:run():389 - Enough information gathered, accepting RD1
+2025-12-19 15:29:05.310	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-19 15:29:05.408	DEBUG   	nodes.py:run():286 - Evaluate State:	{'now_unresponsive': True, 'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:05.604	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-19 15:29:05.704	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-19 15:29:05.705	INFO    	nodes.py:run():366 - No more questions needed, accepting RD1
+2025-12-19 15:29:05.905	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Disposition
+2025-12-19 15:29:05.907	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: A Vehicle is on it's way to you. Please stand by.
+2025-12-19 15:29:06.551	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-19 15:29:06.552	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Disposition
+2025-12-19 15:29:06.554	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'now_unresponsive': True, 'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:06.867	INFO    	nodes.py:run():478 - final state: {'now_unresponsive': True, 'cyanosis': True, 'caller_name': 'Nico', 'emergency_location': 'platform in the station', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'Caller states the person is not moving and has a blue face color.', 'time_critical': True, 'rd1': True}
+2025-12-19 15:29:06.869	INFO    	settings.py:async_print():96 - A Vehicle is on it's way to you. Please stand by.
+2025-12-19 15:29:07.080	INFO    	settings.py:async_print():96 - The emergency call has been processed.
+2025-12-19 15:31:22.320	INFO    	app.py:handle_survey_submit():713 - Survey saved for session b94aa670-aec0-4183-b426-c91fa82a4126

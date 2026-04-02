@@ -1,0 +1,4 @@
+{"timestamp": "2026-01-01 19:27:33", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_01.md"}}
+{"timestamp": "2026-01-01 19:27:46", "event": "extraction", "question": "With whom am I speaking, please?", "response": "There is a man suffering cardiac arrest", "result": {"cardiac_arrest": true, "situation_description": "There is a man suffering cardiac arrest.", "cpr_needed": true, "rd1": true, "rd2": true}}
+{"timestamp": "2026-01-01 19:27:46", "event": "state_merged", "state": {"call_state": {"cardiac_arrest": true, "emergency_type": "intro", "situation_description": "There is a man suffering cardiac arrest.", "cpr_needed": true, "rd1": true, "rd2": true}}}
+{"timestamp": "2026-01-01 19:27:46", "event": "emergency_type_set", "state": {"call_state": {"cardiac_arrest": true, "emergency_type": "medical", "situation_description": "There is a man suffering cardiac arrest.", "cpr_needed": true, "rd1": true, "rd2": true}}}

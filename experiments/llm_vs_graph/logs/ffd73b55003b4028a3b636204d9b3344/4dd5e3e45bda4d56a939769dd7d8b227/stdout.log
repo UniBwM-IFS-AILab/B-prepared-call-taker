@@ -1,0 +1,317 @@
+2025-12-22 19:27:38.072	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/4dd5e3e45bda4d56a939769dd7d8b227
+2025-12-22 19:27:38.075	WARNING 	core.py:init_session():158 - Session initialized: 4dd5e3e4-5bda-4d56-a939-769dd7d8b227, ffd73b55-003b-4028-a3b6-36204d9b3344, graph
+2025-12-22 19:27:41.475	INFO    	emergency_main_graph.py:resume_from_persistence():143 - Initializing new graph run...
+2025-12-22 19:27:41.503	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Greeting
+2025-12-22 19:27:41.505	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello! You're speaking with the emergency call services.
+2025-12-22 19:27:42.159	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:27:42.162	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Greeting
+2025-12-22 19:27:42.163	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{}
+2025-12-22 19:27:42.201	INFO    	settings.py:async_print():96 - Hello! You're speaking with the emergency call services.
+2025-12-22 19:27:42.226	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:27:42.269	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:27:42.271	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='With whom am I speaking, please?')
+2025-12-22 19:27:42.274	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: With whom am I speaking, please?
+2025-12-22 19:27:55.179	INFO    	app.py:stream_policy_messages():113 - User message: Hi my name is Simone
+2025-12-22 19:27:55.211	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:27:55.213	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:27:55.215	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:27:56.774	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:27:56.808	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:27:56.810	DEBUG   	nodes.py:run():222 - New extracted state: {'caller_name': 'Simone'}
+2025-12-22 19:27:56.868	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:27:56.897	DEBUG   	nodes.py:run():254 - Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:27:56.898	DEBUG   	nodes.py:run():257 - New State:	{'caller_name': 'Simone'}
+2025-12-22 19:27:56.900	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Simone', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:27:56.954	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:27:56.984	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Simone', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:27:57.042	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:27:57.135	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:27:57.137	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Where exactly is the emergency location?')
+2025-12-22 19:27:57.139	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Where exactly is the emergency location?
+2025-12-22 19:28:16.414	INFO    	app.py:stream_policy_messages():113 - User message: It is Siemensweg 10 in Messkirch
+2025-12-22 19:28:16.477	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:28:16.479	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:28:16.481	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'Simone', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:17.913	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:28:17.957	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:28:17.958	DEBUG   	nodes.py:run():222 - New extracted state: {'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 19:28:18.043	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:28:18.091	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Simone', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:18.093	DEBUG   	nodes.py:run():257 - New State:	{'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 19:28:18.094	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:18.189	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:28:18.239	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:18.338	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:28:18.491	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:28:18.493	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='What has just happened acutely?')
+2025-12-22 19:28:18.495	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: What has just happened acutely?
+2025-12-22 19:28:53.950	INFO    	app.py:stream_policy_messages():113 - User message: My husband has fallen down
+2025-12-22 19:28:54.037	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:28:54.038	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:28:54.040	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:55.987	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:28:56.052	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:28:56.054	DEBUG   	nodes.py:run():222 - New extracted state: {'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:56.180	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:28:56.250	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-22 19:28:56.252	DEBUG   	nodes.py:run():257 - New State:	{'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:56.253	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:56.396	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:28:56.468	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:56.610	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:28:56.683	DEBUG   	nodes.py:run():135 - No more questions in current set
+2025-12-22 19:28:56.829	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseSubGraph
+2025-12-22 19:28:56.906	INFO    	nodes.py:run():316 - Forcing Agent to decide the Emergency type...
+2025-12-22 19:28:57.527	DEBUG   	nodes.py:run():326 - Result type: <enum 'EmergencyType'>
+2025-12-22 19:28:57.529	DEBUG   	nodes.py:run():327 - Emergency type: medical
+2025-12-22 19:28:57.682	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:28:57.763	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:28:57.764	DEBUG   	nodes.py:run():222 - New extracted state: {'emergency_type': <EmergencyType.MEDICAL: 'medical'>}
+2025-12-22 19:28:57.925	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:28:58.011	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:58.013	DEBUG   	nodes.py:run():257 - New State:	{'emergency_type': <EmergencyType.MEDICAL: 'medical'>}
+2025-12-22 19:28:58.014	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:58.185	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:28:58.272	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:28:58.450	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:28:58.718	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:28:58.720	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is the patient getting enough air now?')
+2025-12-22 19:28:58.722	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is the patient getting enough air now?
+2025-12-22 19:29:27.895	INFO    	app.py:stream_policy_messages():113 - User message: Yes, he can breath
+2025-12-22 19:29:28.028	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:29:28.030	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:29:28.031	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:29:29.981	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:29:30.087	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:29:30.089	DEBUG   	nodes.py:run():222 - New extracted state: {'now_insufficient_air': False}
+2025-12-22 19:29:30.291	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:29:30.398	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:29:30.399	DEBUG   	nodes.py:run():257 - New State:	{'now_insufficient_air': False}
+2025-12-22 19:29:30.401	DEBUG   	nodes.py:run():264 - Merged State:	{'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:29:30.614	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:29:30.722	DEBUG   	nodes.py:run():286 - Evaluate State:	{'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:29:30.943	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:29:31.275	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:29:31.276	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is the patient reacting normally now when spoken to?')
+2025-12-22 19:29:31.278	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is the patient reacting normally now when spoken to?
+2025-12-22 19:30:02.972	INFO    	app.py:stream_policy_messages():113 - User message: Yes, he answers me
+2025-12-22 19:30:03.114	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:30:03.115	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:30:03.116	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:05.135	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:30:05.259	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:30:05.261	DEBUG   	nodes.py:run():222 - New extracted state: {'now_unresponsive': False}
+2025-12-22 19:30:05.510	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:30:05.640	DEBUG   	nodes.py:run():254 - Old State:	{'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:05.642	DEBUG   	nodes.py:run():257 - New State:	{'now_unresponsive': False}
+2025-12-22 19:30:05.643	DEBUG   	nodes.py:run():264 - Merged State:	{'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:05.901	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:30:06.032	DEBUG   	nodes.py:run():286 - Evaluate State:	{'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:06.296	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:30:06.709	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:30:06.710	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?')
+2025-12-22 19:30:06.712	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?
+2025-12-22 19:30:34.368	INFO    	app.py:stream_policy_messages():113 - User message: No, it isn't
+2025-12-22 19:30:34.512	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:30:34.513	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:30:34.514	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:37.053	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:30:37.201	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:30:37.202	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_chest_discomfort': False, 'acute_chest_pain': False}
+2025-12-22 19:30:37.499	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:30:37.653	DEBUG   	nodes.py:run():254 - Old State:	{'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:37.656	DEBUG   	nodes.py:run():257 - New State:	{'acute_chest_discomfort': False, 'acute_chest_pain': False}
+2025-12-22 19:30:37.657	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_chest_discomfort': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:37.964	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:30:38.120	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_chest_discomfort': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:38.438	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:30:38.912	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:30:38.914	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is there an acute circulatory problem?')
+2025-12-22 19:30:38.916	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there an acute circulatory problem?
+2025-12-22 19:30:56.486	INFO    	app.py:stream_policy_messages():113 - User message: No, he has no circulatory problems
+2025-12-22 19:30:56.689	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:30:56.690	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:30:56.692	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_chest_discomfort': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:59.208	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:30:59.380	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:30:59.382	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_circulatory_problems': False}
+2025-12-22 19:30:59.726	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:30:59.902	DEBUG   	nodes.py:run():254 - Old State:	{'acute_chest_discomfort': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:30:59.904	DEBUG   	nodes.py:run():257 - New State:	{'acute_circulatory_problems': False}
+2025-12-22 19:30:59.906	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:00.376	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:31:00.575	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:01.048	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:31:01.661	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:31:01.663	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?')
+2025-12-22 19:31:01.666	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?
+2025-12-22 19:31:49.843	INFO    	app.py:stream_policy_messages():113 - User message: His ankle has swollen to twice its normal size
+2025-12-22 19:31:50.088	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:31:50.089	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:31:50.090	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:54.135	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:31:54.405	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:31:54.407	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_paralysis': False}
+2025-12-22 19:31:54.897	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:31:55.151	DEBUG   	nodes.py:run():254 - Old State:	{'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:55.154	DEBUG   	nodes.py:run():257 - New State:	{'acute_paralysis': False}
+2025-12-22 19:31:55.155	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:55.656	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:31:55.935	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:31:56.442	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:31:57.180	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:31:57.181	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Have there been acute speech, language, or comprehension disturbances?')
+2025-12-22 19:31:57.183	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Have there been acute speech, language, or comprehension disturbances?
+2025-12-22 19:32:52.711	INFO    	app.py:stream_policy_messages():113 - User message: No, there weren't
+2025-12-22 19:32:53.053	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:32:53.055	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:32:53.056	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:32:56.792	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:32:57.146	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:32:57.147	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False}
+2025-12-22 19:32:57.711	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:32:57.993	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:32:57.995	DEBUG   	nodes.py:run():257 - New State:	{'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False}
+2025-12-22 19:32:57.997	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:32:58.491	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:32:58.741	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:32:59.240	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:32:59.993	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:32:59.995	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Have there been acute visual disturbances (double vision, blindness, field of view loss)?')
+2025-12-22 19:32:59.997	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Have there been acute visual disturbances (double vision, blindness, field of view loss)?
+2025-12-22 19:33:16.370	INFO    	app.py:stream_policy_messages():113 - User message: No, there weren't
+2025-12-22 19:33:16.676	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:33:16.678	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:33:16.679	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:20.373	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:33:20.639	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:33:20.641	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_visual_disturbance': False}
+2025-12-22 19:33:21.239	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:33:21.581	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:21.585	DEBUG   	nodes.py:run():257 - New State:	{'acute_visual_disturbance': False}
+2025-12-22 19:33:21.587	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:22.280	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:33:22.614	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:23.392	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:33:24.574	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:33:24.576	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Are there acute and first-time severe headaches?')
+2025-12-22 19:33:24.579	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Are there acute and first-time severe headaches?
+2025-12-22 19:33:41.600	INFO    	app.py:stream_policy_messages():113 - User message: There are no headaches
+2025-12-22 19:33:41.980	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:33:41.982	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:33:41.983	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:45.245	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:33:45.552	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:33:45.553	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_severe_headache': False}
+2025-12-22 19:33:46.166	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:33:46.476	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:46.480	DEBUG   	nodes.py:run():257 - New State:	{'acute_severe_headache': False}
+2025-12-22 19:33:46.481	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:47.124	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:33:47.437	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:33:48.071	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:33:49.026	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:33:49.027	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question="Is there one-sided disturbance with the patient's sensory system?")
+2025-12-22 19:33:49.029	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there one-sided disturbance with the patient's sensory system?
+2025-12-22 19:34:16.453	INFO    	app.py:stream_policy_messages():113 - User message: no, it's  not. His ankle is swollen
+2025-12-22 19:34:16.982	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:34:16.984	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:34:16.985	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:34:22.354	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:34:22.826	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:34:22.828	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_hemisensory_loss': False}
+2025-12-22 19:34:23.501	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:34:23.842	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:34:23.845	DEBUG   	nodes.py:run():257 - New State:	{'acute_hemisensory_loss': False}
+2025-12-22 19:34:23.846	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:34:24.529	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:34:24.869	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:34:25.562	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:34:26.685	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:34:26.686	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is there acute dizziness with tendency to fall?')
+2025-12-22 19:34:26.689	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there acute dizziness with tendency to fall?
+2025-12-22 19:35:13.934	INFO    	app.py:stream_policy_messages():113 - User message: There is no acute dizziness. He is old
+2025-12-22 19:35:14.415	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:35:14.416	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:35:14.418	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:35:18.810	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:35:19.387	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:35:19.388	DEBUG   	nodes.py:run():222 - New extracted state: {'acute_vertigo_with_falling_risk': False}
+2025-12-22 19:35:20.681	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:35:21.345	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:35:21.348	DEBUG   	nodes.py:run():257 - New State:	{'acute_vertigo_with_falling_risk': False}
+2025-12-22 19:35:21.349	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:35:22.734	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:35:23.125	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:35:24.073	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:35:25.531	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:35:25.532	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is there a seizure?')
+2025-12-22 19:35:25.534	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there a seizure?
+2025-12-22 19:35:56.878	INFO    	app.py:stream_policy_messages():113 - User message: There is no seizure
+2025-12-22 19:35:57.366	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:35:57.368	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:35:57.370	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:01.738	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:36:02.278	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:36:02.280	DEBUG   	nodes.py:run():222 - New extracted state: {'seizure': False}
+2025-12-22 19:36:04.117	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:36:04.812	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:04.815	DEBUG   	nodes.py:run():257 - New State:	{'seizure': False}
+2025-12-22 19:36:04.817	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:05.701	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:36:06.121	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:06.983	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-22 19:36:08.452	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:36:08.454	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Is there a serious injury?')
+2025-12-22 19:36:08.456	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there a serious injury?
+2025-12-22 19:36:40.667	INFO    	app.py:stream_policy_messages():113 - User message: Yes his ankle is swollen and he can't walk
+2025-12-22 19:36:41.197	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:36:41.199	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:36:41.200	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:47.401	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:36:47.847	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:36:47.849	DEBUG   	nodes.py:run():222 - New extracted state: {'severe_injury': True, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:36:48.743	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:36:49.194	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': 'My husband has fallen down.'}
+2025-12-22 19:36:49.197	DEBUG   	nodes.py:run():257 - New State:	{'severe_injury': True, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:36:49.198	DEBUG   	nodes.py:run():264 - Merged State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:36:50.177	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:36:50.696	DEBUG   	nodes.py:run():286 - Evaluate State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:36:51.802	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-22 19:36:52.320	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-22 19:36:52.322	INFO    	nodes.py:run():360 - Asking static question for RD2
+2025-12-22 19:36:53.710	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-22 19:36:53.711	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Can you describe the situation with more detail?')
+2025-12-22 19:36:53.713	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Can you describe the situation with more detail?
+2025-12-22 19:38:06.142	INFO    	app.py:stream_policy_messages():113 - User message: His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old. 
+2025-12-22 19:38:06.760	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:38:06.762	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-22 19:38:06.763	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:14.248	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-22 19:38:14.797	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-22 19:38:14.798	DEBUG   	nodes.py:run():222 - New extracted state: {'severe_pain': True, 'severe_injury': True, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:15.907	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-22 19:38:16.521	DEBUG   	nodes.py:run():254 - Old State:	{'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "Ankle is swollen and he can't walk.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:16.533	DEBUG   	nodes.py:run():257 - New State:	{'severe_pain': True, 'severe_injury': True, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:16.535	DEBUG   	nodes.py:run():264 - Merged State:	{'severe_pain': True, 'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:18.351	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:38:19.290	DEBUG   	nodes.py:run():286 - Evaluate State:	{'severe_pain': True, 'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:20.840	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-22 19:38:21.353	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-22 19:38:21.354	INFO    	nodes.py:run():370 - Forcing Agent to decide if enough information gathered...
+2025-12-22 19:38:22.918	DEBUG   	nodes.py:run():386 - Enough info result (raw): EnoughInfoOutput(enough_information_gathered=True, next_question=None)
+2025-12-22 19:38:22.920	INFO    	nodes.py:run():389 - Enough information gathered, accepting RD1
+2025-12-22 19:38:23.994	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-22 19:38:24.512	DEBUG   	nodes.py:run():286 - Evaluate State:	{'severe_pain': True, 'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:25.790	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD1
+2025-12-22 19:38:26.434	INFO    	nodes.py:run():355 - Reached RD1
+2025-12-22 19:38:26.435	INFO    	nodes.py:run():366 - No more questions needed, accepting RD1
+2025-12-22 19:38:28.018	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Disposition
+2025-12-22 19:38:28.021	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: A Vehicle is on it's way to you. Please stand by.
+2025-12-22 19:38:29.295	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-22 19:38:29.297	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Disposition
+2025-12-22 19:38:29.298	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'severe_pain': True, 'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:31.137	INFO    	nodes.py:run():478 - final state: {'severe_pain': True, 'acute_paralysis': False, 'acute_speech_disorder': False, 'acute_speech_comprehension_disorder': False, 'acute_visual_disturbance': False, 'acute_severe_headache': False, 'acute_hemisensory_loss': False, 'acute_vertigo_with_falling_risk': False, 'seizure': False, 'acute_chest_discomfort': False, 'acute_circulatory_problems': False, 'acute_chest_pain': False, 'now_unresponsive': False, 'now_insufficient_air': False, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'emergency_type': <EmergencyType.MEDICAL: 'medical'>, 'situation_description': "His ankle is swollen to twice as normal size. He can't stand on his foot. He is 86 years old.", 'time_critical': True, 'rd1': True}
+2025-12-22 19:38:31.140	INFO    	settings.py:async_print():96 - A Vehicle is on it's way to you. Please stand by.
+2025-12-22 19:38:33.025	INFO    	settings.py:async_print():96 - The emergency call has been processed.
+2025-12-22 19:40:20.627	INFO    	app.py:handle_survey_submit():734 - Survey saved for session 4dd5e3e4-5bda-4d56-a939-769dd7d8b227

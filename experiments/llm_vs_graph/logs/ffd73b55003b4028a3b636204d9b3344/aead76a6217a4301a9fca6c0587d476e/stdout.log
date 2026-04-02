@@ -1,0 +1,44 @@
+2025-12-22 18:48:37.366	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/aead76a6217a4301a9fca6c0587d476e
+2025-12-22 18:48:37.368	WARNING 	core.py:init_session():158 - Session initialized: aead76a6-217a-4301-a9fc-a6c0587d476e, ffd73b55-003b-4028-a3b6-36204d9b3344, agent
+2025-12-22 18:48:40.215	INFO    	core.py:invoke_agent():316 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=65, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-22 18:48:40.218	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:48:40.220	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:48:40.222	DEBUG   	core.py:invoke_agent():354 - Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:48:40.224	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:49:33.705	INFO    	app.py:stream_policy_messages():113 - User message: Hello my name is Simone
+2025-12-22 18:49:34.805	INFO    	core.py:invoke_agent():316 - agent_history_len=3 usage=RunUsage(input_tokens=2493, output_tokens=39, details={'text_prompt_tokens': 2493}, requests=1)
+2025-12-22 18:49:34.807	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:49:34.809	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-22 18:49:34.811	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone'}
+2025-12-22 18:49:34.813	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone'}
+2025-12-22 18:49:34.814	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:49:34.816	DEBUG   	core.py:invoke_agent():354 - Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:49:34.818	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:50:02.073	INFO    	app.py:stream_policy_messages():113 - User message: The address is Siemensweg 10 in Messkirch
+2025-12-22 18:50:03.009	INFO    	core.py:invoke_agent():316 - agent_history_len=6 usage=RunUsage(input_tokens=2564, output_tokens=53, details={'text_prompt_tokens': 2564}, requests=1)
+2025-12-22 18:50:03.012	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:50:03.014	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone'}
+2025-12-22 18:50:03.016	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:50:03.018	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:50:03.020	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:50:03.023	DEBUG   	core.py:invoke_agent():354 - Thank you. Can you please describe what happened?
+2025-12-22 18:50:03.024	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you. Can you please describe what happened?
+2025-12-22 18:50:24.861	INFO    	app.py:stream_policy_messages():113 - User message: My son has a strong cough
+2025-12-22 18:50:25.979	INFO    	core.py:invoke_agent():316 - agent_history_len=9 usage=RunUsage(input_tokens=2643, output_tokens=68, details={'text_prompt_tokens': 2643}, requests=1)
+2025-12-22 18:50:25.982	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:50:25.984	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:50:25.986	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'My son has a strong cough'}
+2025-12-22 18:50:25.989	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'My son has a strong cough'}
+2025-12-22 18:50:25.991	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:50:25.994	DEBUG   	core.py:invoke_agent():354 - Is your son experiencing any difficulty breathing or shortness of breath?
+2025-12-22 18:50:25.996	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is your son experiencing any difficulty breathing or shortness of breath?
+2025-12-22 18:51:35.885	INFO    	app.py:stream_policy_messages():113 - User message: He make whistling breathing sounds. He has problems breathing
+2025-12-22 18:51:37.035	INFO    	core.py:invoke_agent():316 - agent_history_len=12 usage=RunUsage(input_tokens=2741, output_tokens=98, details={'text_prompt_tokens': 2741}, requests=1)
+2025-12-22 18:51:37.038	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:51:37.040	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'My son has a strong cough'}
+2025-12-22 18:51:37.042	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_dyspnoea': True, 'abnormal_breathing_sounds': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'My son has a strong cough', 'rd1': True, 'rd2': True}
+2025-12-22 18:51:37.046	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_dyspnoea': True, 'abnormal_breathing_sounds': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'My son has a strong cough', 'rd1': True, 'rd2': True}
+2025-12-22 18:51:37.048	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 18:51:37.050	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: False, no outcomes: False, rd2: True
+2025-12-22 18:51:37.052	INFO    	core.py:invoke_agent():333 - Outcome reached
+2025-12-22 18:52:37.587	INFO    	app.py:handle_survey_submit():734 - Survey saved for session aead76a6-217a-4301-a9fc-a6c0587d476e

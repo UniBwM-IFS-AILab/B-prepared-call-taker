@@ -1,0 +1,8 @@
+timestamp	speaker	message
+2025-12-14 17:27:45	operator	Hello! You're speaking with the emergency call services.
+2025-12-14 17:28:42	operator	With whom am I speaking, please?
+2025-12-14 17:28:42	caller	My name is Christian. A car crash happend in front of my business building.
+2025-12-14 17:29:37	operator	Where exactly is the emergency location?
+2025-12-14 17:29:37	caller	Close to the Siemensstr. 4, Ottobrunn. There are a lot of people staying around the accident.
+2025-12-14 17:31:00	operator	What has just happened acutely?
+2025-12-14 17:31:00	caller	One car drove two fast and hit another one. The second cars door is open, but the driver stays inside. Im not sure how he is doing

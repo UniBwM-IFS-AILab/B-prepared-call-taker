@@ -1,0 +1,10 @@
+timestamp	speaker	message
+2025-12-22 20:00:32	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 20:00:50	caller	Hello my name is Simone
+2025-12-22 20:00:50	operator	Thank you, Simone. What is the address of the emergency?
+2025-12-22 20:03:16	caller	The address is Siemensweg 10 in Messkirch
+2025-12-22 20:03:16	operator	Thank you. Can you please describe what happened?
+2025-12-22 20:04:09	caller	A customer is fallen down at the floor
+2025-12-22 20:04:09	operator	Is the person conscious?
+2025-12-22 20:05:16	caller	No, he does not react
+2025-12-22 20:05:17	operator	The emergency call has been processed. Thank you.

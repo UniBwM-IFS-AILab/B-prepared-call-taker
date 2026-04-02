@@ -1,0 +1,14 @@
+timestamp	speaker	message
+2025-12-22 19:40:56	operator	Hello! You're speaking with the emergency call services.
+2025-12-22 19:41:06	operator	With whom am I speaking, please?
+2025-12-22 19:41:06	caller	Hi my name is Simone
+2025-12-22 19:41:24	operator	Where exactly is the emergency location?
+2025-12-22 19:41:24	caller	It is Siemensweg 10 in Messkirch
+2025-12-22 19:41:56	operator	What has just happened acutely?
+2025-12-22 19:41:56	caller	There is a drunken man lying in front of my house
+2025-12-22 19:42:24	operator	Can you describe the situation with more detail?
+2025-12-22 19:42:24	caller	The man lays on the sidewalk. He's drunken 
+2025-12-22 19:42:47	operator	Is the man conscious or unconscious?
+2025-12-22 19:42:47	caller	He don't answer.
+2025-12-22 19:42:51	operator	A Vehicle is on it's way to you. Please stand by.
+2025-12-22 19:42:52	operator	The emergency call has been processed. Thank you.

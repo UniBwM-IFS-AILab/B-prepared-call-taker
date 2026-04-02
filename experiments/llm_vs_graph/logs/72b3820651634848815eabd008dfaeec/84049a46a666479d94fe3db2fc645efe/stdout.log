@@ -1,0 +1,32 @@
+2026-01-02 00:03:29.388	INFO    	[logger.py:setup_session_logger:188] Log Path: logs/FLAIRS39/72b3820651634848815eabd008dfaeec/84049a46a666479d94fe3db2fc645efe
+2026-01-02 00:03:29.389	WARNING 	[core.py:init_session:158] Session initialized: 84049a46-a666-479d-94fe-3db2fc645efe, 72b38206-5163-4848-815e-abd008dfaeec, graph
+2026-01-02 00:03:32.927	INFO    	[emergency_main_graph.py:resume_from_persistence:143] Initializing new graph run...
+2026-01-02 00:03:32.952	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] Greeting
+2026-01-02 00:03:32.953	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: Hello! You're speaking with the emergency call services.
+2026-01-02 00:03:33.603	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-02 00:03:33.603	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] Greeting
+2026-01-02 00:03:33.604	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{}
+2026-01-02 00:03:33.638	INFO    	[settings.py:async_print:96] Hello! You're speaking with the emergency call services.
+2026-01-02 00:03:33.662	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] ChooseQuestion
+2026-01-02 00:03:33.706	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] AskCaller
+2026-01-02 00:03:33.706	DEBUG   	[emergency_main_graph.py:run_graph:194] AskCaller(question='With whom am I speaking, please?')
+2026-01-02 00:03:33.707	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: With whom am I speaking, please?
+2026-01-02 00:03:43.518	INFO    	[app.py:stream_policy_messages:113] User message: THere is a man now unresponsive 
+2026-01-02 00:03:43.547	INFO    	[emergency_main_graph.py:resume_from_persistence:131] Resuming from persisted graph state...
+2026-01-02 00:03:43.547	INFO    	[emergency_main_graph.py:resume_from_persistence:132] [Node] AskCaller
+2026-01-02 00:03:43.548	DEBUG   	[emergency_main_graph.py:resume_from_persistence:135] Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2026-01-02 00:03:45.520	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] EvaluateAgentOutput
+2026-01-02 00:03:45.543	INFO    	[nodes.py:run:221] Model returned new data
+2026-01-02 00:03:45.543	DEBUG   	[nodes.py:run:222] New extracted state: {'now_unresponsive': True, 'rd1': True}
+2026-01-02 00:03:45.587	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] MergeState
+2026-01-02 00:03:45.614	DEBUG   	[nodes.py:run:254] Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2026-01-02 00:03:45.614	DEBUG   	[nodes.py:run:257] New State:	{'now_unresponsive': True, 'rd1': True}
+2026-01-02 00:03:45.614	DEBUG   	[nodes.py:run:264] Merged State:	{'now_unresponsive': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True}
+2026-01-02 00:03:45.667	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] EvaluateState
+2026-01-02 00:03:45.696	DEBUG   	[nodes.py:run:286] Evaluate State:	{'now_unresponsive': True, 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True}
+2026-01-02 00:03:45.753	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] RD1
+2026-01-02 00:03:45.784	INFO    	[nodes.py:run:355] Reached RD1
+2026-01-02 00:03:45.785	INFO    	[nodes.py:run:360] Asking static question for RD2
+2026-01-02 00:03:45.846	DEBUG   	[emergency_main_graph.py:run_graph:191] [Node] AskCaller
+2026-01-02 00:03:45.846	DEBUG   	[emergency_main_graph.py:run_graph:194] AskCaller(question='Can you describe the situation with more detail?')
+2026-01-02 00:03:45.848	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: Can you describe the situation with more detail?

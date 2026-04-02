@@ -1,0 +1,364 @@
+[
+    {
+        "parts": [
+            {
+                "content": "You are a professional emergency call taker in an emergency call center. Your job is to calmly ask focused questions and capture structured, factual information about the situation in the provided data model. You do not give medical advice; you only gather information.\nGather the minimum necessary information efficiently. Extract and validate facts from the user's statements. Only ask questions that help populate or verify fields in the data model.\nYou receive a phone call from a caller who wants to report an emergency. \nFirst, present an appropriate greeting. \nThen, begin determining the basic information about the emergency. \nThe outcome and dispatch decisions are determined automatically by other systems. \nThis is time-critical, so keep the conversation efficient and to the point.\nIf something is unclear or ambiguous, ask a short follow-up question to clarify.\nAsk only one question at a time.\nPrefer simple, layperson language and short explanations; avoid jargon.\nDo not repeat questions whose answers are already clearly known, unless you need to verify, resolve ambiguity, or resolve a contradiction.\nMaintain a single language throughout the interaction; use the language of the user's first message and do not switch languages mid-interaction.\nConfirmations like 'okay' or 'yes' are acknowledgements and do not change factual fields unless they clearly answer a question.\nOnly ask questions that help you fill personalia or RD1-related variables; do not ask about anything outside of the schema.\nYou may not ask any questions that target RD2 symptoms directly.\nWhen speaking to the caller, never mention the words 'RD1', 'RD2', 'schema', 'JSON', or 'State'; these are internal concepts.only when at least one outcome is true, decide if you have enough information or need to ask further quesitons.\nIf the caller's reply still does not clearly support setting a field, set it to False.\nDo no repeat questions \nStop asking new questions once the required information has been gathered as far as reasonably possible.\nThis is a time-critical dialogue. Minimize the number of questions asked while ensuring safety and completeness.\nUse the provided schema to understand which fields belong to personalia and which correspond to RD1 and RD2.\nContinue asking targeted questions only as needed to determine and fill RD1-related variables.\nOnly AFTER RD1 is true are you allowed to ask for more details in a single generic and open question.\nDo not mention RD2 or any RD2 symptom names directly in this question.\nDo not ask any additional new questions specifically targeting RD2 symptoms after this generic question.",
+                "timestamp": "2025-12-19T14:22:59.395009Z",
+                "dynamic_ref": null,
+                "part_kind": "system-prompt"
+            },
+            {
+                "content": "",
+                "timestamp": "2025-12-19T14:22:59.395020Z",
+                "part_kind": "user-prompt"
+            }
+        ],
+        "instructions": "Only use the following language: english.",
+        "kind": "request",
+        "run_id": "7a0781c6-a256-4d13-b54f-1e64341fbe45",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "args": {
+                    "next_question": "Hello, thank you for calling the emergency services. What is your name?"
+                },
+                "tool_call_id": "pyd_ai_4fb22c7b664d4b63bc2045fdcdb86739",
+                "id": null,
+                "provider_details": {
+                    "thought_signature": "CsMBAXLI2nza4TGkhgL5cA9YopWFPnydzUi3QNB7A8jwbcoN20rX3gDbt/VQtEuDjaxAdHlgpbt0d13wDJXxQpaOo+8pmw96PErz7eEG0uVK5wu8acAFpgaU+bhiAXndl1gQkfNIm0IlQaqXiRqzdS7nRrzdTeKjwBmG2qwUtqNzrpUqngozZhx8Onny/gM/Ew+i/Ktea73fowKy/XUKrEMUTm8DAUbkS1fcmm2HeKmYg8lDBYykZvecxzLCp61VkM8voWZi"
+                },
+                "part_kind": "tool-call"
+            }
+        ],
+        "usage": {
+            "input_tokens": 2437,
+            "cache_write_tokens": 0,
+            "cache_read_tokens": 0,
+            "output_tokens": 65,
+            "input_audio_tokens": 0,
+            "cache_audio_read_tokens": 0,
+            "output_audio_tokens": 0,
+            "details": {
+                "thoughts_tokens": 34,
+                "text_prompt_tokens": 2437
+            }
+        },
+        "model_name": "gemini-2.5-flash",
+        "timestamp": "2025-12-19T14:23:00.522479Z",
+        "kind": "response",
+        "provider_name": "google-gla",
+        "provider_url": "https://generativelanguage.googleapis.com/",
+        "provider_details": {
+            "finish_reason": "STOP"
+        },
+        "provider_response_id": "xF9FafzaGtvmvdIP2vzNkQo",
+        "finish_reason": "stop",
+        "run_id": "7a0781c6-a256-4d13-b54f-1e64341fbe45",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "content": "Final result processed.",
+                "tool_call_id": "pyd_ai_4fb22c7b664d4b63bc2045fdcdb86739",
+                "metadata": null,
+                "timestamp": "2025-12-19T14:23:00.524053Z",
+                "part_kind": "tool-return"
+            }
+        ],
+        "instructions": null,
+        "kind": "request",
+        "run_id": "7a0781c6-a256-4d13-b54f-1e64341fbe45",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "content": "Hi, this is nico calling.",
+                "timestamp": "2025-12-19T14:23:13.887038Z",
+                "part_kind": "user-prompt"
+            }
+        ],
+        "instructions": "Only use the following language: english.",
+        "kind": "request",
+        "run_id": "fc0d436b-3656-4c2e-a07a-1510844bff7b",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "args": {
+                    "state": {
+                        "caller_name": "nico"
+                    },
+                    "next_question": "Thank you, Nico. What is the address of the emergency?"
+                },
+                "tool_call_id": "pyd_ai_57a66aa766f94bed87cce6a07ea142a5",
+                "id": null,
+                "provider_details": null,
+                "part_kind": "tool-call"
+            }
+        ],
+        "usage": {
+            "input_tokens": 2496,
+            "cache_write_tokens": 0,
+            "cache_read_tokens": 0,
+            "output_tokens": 39,
+            "input_audio_tokens": 0,
+            "cache_audio_read_tokens": 0,
+            "output_audio_tokens": 0,
+            "details": {
+                "text_prompt_tokens": 2496
+            }
+        },
+        "model_name": "gemini-2.5-flash",
+        "timestamp": "2025-12-19T14:23:14.898618Z",
+        "kind": "response",
+        "provider_name": "google-gla",
+        "provider_url": "https://generativelanguage.googleapis.com/",
+        "provider_details": {
+            "finish_reason": "STOP"
+        },
+        "provider_response_id": "0l9Fac_cMPmyvdIPk5iXqAg",
+        "finish_reason": "stop",
+        "run_id": "fc0d436b-3656-4c2e-a07a-1510844bff7b",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "content": "Final result processed.",
+                "tool_call_id": "pyd_ai_57a66aa766f94bed87cce6a07ea142a5",
+                "metadata": null,
+                "timestamp": "2025-12-19T14:23:14.903107Z",
+                "part_kind": "tool-return"
+            }
+        ],
+        "instructions": null,
+        "kind": "request",
+        "run_id": "fc0d436b-3656-4c2e-a07a-1510844bff7b",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "content": "it is Floriansm\u00fchlstra\u00dfe 20 in 80939 M\u00fcnchen in the home for elderly people. Its app. 256",
+                "timestamp": "2025-12-19T14:23:41.673935Z",
+                "part_kind": "user-prompt"
+            }
+        ],
+        "instructions": "Only use the following language: english.",
+        "kind": "request",
+        "run_id": "2a5e5575-9d06-4a14-a040-904149ad153d",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "args": {
+                    "state": {
+                        "caller_name": "nico",
+                        "emergency_location": "Floriansm\u00fchlstra\u00dfe 20, 80939 M\u00fcnchen, home for elderly people, app. 256"
+                    },
+                    "next_question": "Thank you. Can you please describe what happened?"
+                },
+                "tool_call_id": "pyd_ai_4d4752967dac47778b7d8b14c13d235e",
+                "id": null,
+                "provider_details": null,
+                "part_kind": "tool-call"
+            }
+        ],
+        "usage": {
+            "input_tokens": 2587,
+            "cache_write_tokens": 0,
+            "cache_read_tokens": 0,
+            "output_tokens": 71,
+            "input_audio_tokens": 0,
+            "cache_audio_read_tokens": 0,
+            "output_audio_tokens": 0,
+            "details": {
+                "text_prompt_tokens": 2587
+            }
+        },
+        "model_name": "gemini-2.5-flash",
+        "timestamp": "2025-12-19T14:23:42.766901Z",
+        "kind": "response",
+        "provider_name": "google-gla",
+        "provider_url": "https://generativelanguage.googleapis.com/",
+        "provider_details": {
+            "finish_reason": "STOP"
+        },
+        "provider_response_id": "7l9FaZvNKfL-vdIPpvLY0Qk",
+        "finish_reason": "stop",
+        "run_id": "2a5e5575-9d06-4a14-a040-904149ad153d",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "content": "Final result processed.",
+                "tool_call_id": "pyd_ai_4d4752967dac47778b7d8b14c13d235e",
+                "metadata": null,
+                "timestamp": "2025-12-19T14:23:42.770903Z",
+                "part_kind": "tool-return"
+            }
+        ],
+        "instructions": null,
+        "kind": "request",
+        "run_id": "2a5e5575-9d06-4a14-a040-904149ad153d",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "content": "I am visiting my dad and I was in the bathroom. I heard some weird noices 5min ago from the living room. When I came back, I found my 90year old dad lying on the floor.",
+                "timestamp": "2025-12-19T14:24:34.793592Z",
+                "part_kind": "user-prompt"
+            }
+        ],
+        "instructions": "Only use the following language: english.",
+        "kind": "request",
+        "run_id": "b355ec9c-d231-4821-bc14-f1841a7e25a3",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "args": {
+                    "next_question": "Is your father conscious?",
+                    "state": {
+                        "emergency_location": "Floriansm\u00fchlstra\u00dfe 20, 80939 M\u00fcnchen, home for elderly people, app. 256",
+                        "situation_description": "Caller found 90-year-old father lying on the floor after hearing weird noises 5 minutes ago.",
+                        "caller_name": "nico"
+                    }
+                },
+                "tool_call_id": "pyd_ai_d14d22e26f3246228729052d7240e81e",
+                "id": null,
+                "provider_details": null,
+                "part_kind": "tool-call"
+            }
+        ],
+        "usage": {
+            "input_tokens": 2724,
+            "cache_write_tokens": 0,
+            "cache_read_tokens": 0,
+            "output_tokens": 95,
+            "input_audio_tokens": 0,
+            "cache_audio_read_tokens": 0,
+            "output_audio_tokens": 0,
+            "details": {
+                "text_prompt_tokens": 2724
+            }
+        },
+        "model_name": "gemini-2.5-flash",
+        "timestamp": "2025-12-19T14:24:35.907887Z",
+        "kind": "response",
+        "provider_name": "google-gla",
+        "provider_url": "https://generativelanguage.googleapis.com/",
+        "provider_details": {
+            "finish_reason": "STOP"
+        },
+        "provider_response_id": "I2BFaYmbMNvmvdIP2vzNkQo",
+        "finish_reason": "stop",
+        "run_id": "b355ec9c-d231-4821-bc14-f1841a7e25a3",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "content": "Final result processed.",
+                "tool_call_id": "pyd_ai_d14d22e26f3246228729052d7240e81e",
+                "metadata": null,
+                "timestamp": "2025-12-19T14:24:35.911907Z",
+                "part_kind": "tool-return"
+            }
+        ],
+        "instructions": null,
+        "kind": "request",
+        "run_id": "b355ec9c-d231-4821-bc14-f1841a7e25a3",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "content": "no, he is not responding, be is breathing slowly, but there is breath. I straight called you",
+                "timestamp": "2025-12-19T14:25:09.129016Z",
+                "part_kind": "user-prompt"
+            }
+        ],
+        "instructions": "Only use the following language: english.",
+        "kind": "request",
+        "run_id": "bb6426a1-fc70-4fbf-aa8a-cd7fb63ec482",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "args": {
+                    "next_question": "Is he breathing regularly or is it an unusual breathing pattern?",
+                    "state": {
+                        "unconscious": true,
+                        "caller_name": "nico",
+                        "situation_description": "Caller found 90-year-old father lying on the floor after hearing weird noises 5 minutes ago.",
+                        "emergency_location": "Floriansm\u00fchlstra\u00dfe 20, 80939 M\u00fcnchen, home for elderly people, app. 256"
+                    }
+                },
+                "tool_call_id": "pyd_ai_b37975d3bf80435dab24051cc79a6bff",
+                "id": null,
+                "provider_details": null,
+                "part_kind": "tool-call"
+            }
+        ],
+        "usage": {
+            "input_tokens": 2860,
+            "cache_write_tokens": 0,
+            "cache_read_tokens": 0,
+            "output_tokens": 107,
+            "input_audio_tokens": 0,
+            "cache_audio_read_tokens": 0,
+            "output_audio_tokens": 0,
+            "details": {
+                "text_prompt_tokens": 2860
+            }
+        },
+        "model_name": "gemini-2.5-flash",
+        "timestamp": "2025-12-19T14:25:10.511892Z",
+        "kind": "response",
+        "provider_name": "google-gla",
+        "provider_url": "https://generativelanguage.googleapis.com/",
+        "provider_details": {
+            "finish_reason": "STOP"
+        },
+        "provider_response_id": "RmBFaeegGund7M8Pi4DE6QM",
+        "finish_reason": "stop",
+        "run_id": "bb6426a1-fc70-4fbf-aa8a-cd7fb63ec482",
+        "metadata": null
+    },
+    {
+        "parts": [
+            {
+                "tool_name": "final_result",
+                "content": "Final result processed.",
+                "tool_call_id": "pyd_ai_b37975d3bf80435dab24051cc79a6bff",
+                "metadata": null,
+                "timestamp": "2025-12-19T14:25:10.515935Z",
+                "part_kind": "tool-return"
+            }
+        ],
+        "instructions": null,
+        "kind": "request",
+        "run_id": "bb6426a1-fc70-4fbf-aa8a-cd7fb63ec482",
+        "metadata": null
+    }
+]

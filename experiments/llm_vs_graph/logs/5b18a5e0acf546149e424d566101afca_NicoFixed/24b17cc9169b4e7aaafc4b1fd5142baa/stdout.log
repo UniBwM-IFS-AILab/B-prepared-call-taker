@@ -1,0 +1,7 @@
+2025-12-19 14:52:21.623	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/5b18a5e0acf546149e424d566101afca/24b17cc9169b4e7aaafc4b1fd5142baa
+2025-12-19 14:52:21.625	WARNING 	core.py:init_session():158 - Session initialized: 24b17cc9-169b-4e7a-aafc-4b1fd5142baa, 5b18a5e0-acf5-4614-9e42-4d566101afca, agent
+2025-12-19 14:52:27.197	INFO    	core.py:invoke_agent():314 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=65, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-19 14:52:27.199	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-19 14:52:27.201	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-19 14:52:27.203	DEBUG   	core.py:invoke_agent():352 - Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 14:52:27.204	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Hello, thank you for calling the emergency services. What is your name?

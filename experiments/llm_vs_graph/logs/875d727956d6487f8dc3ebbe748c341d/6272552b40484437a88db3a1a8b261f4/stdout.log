@@ -1,0 +1,54 @@
+2025-12-24 11:43:00.251	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/875d727956d6487f8dc3ebbe748c341d/6272552b40484437a88db3a1a8b261f4
+2025-12-24 11:43:00.257	WARNING 	core.py:init_session():158 - Session initialized: 6272552b-4048-4437-a88d-b3a1a8b261f4, 875d7279-56d6-487f-8dc3-ebbe748c341d, agent
+2025-12-24 11:43:04.786	INFO    	core.py:invoke_agent():316 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=72, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-24 11:43:04.789	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:43:04.790	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-24 11:43:04.792	DEBUG   	core.py:invoke_agent():354 - Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-24 11:43:04.793	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-24 11:43:39.127	INFO    	app.py:stream_policy_messages():113 - User message: My name is Tobi
+2025-12-24 11:43:39.956	INFO    	core.py:invoke_agent():316 - agent_history_len=3 usage=RunUsage(input_tokens=2500, output_tokens=41, details={'text_prompt_tokens': 2500}, requests=1)
+2025-12-24 11:43:39.958	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:43:39.960	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-24 11:43:39.962	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Tobi'}
+2025-12-24 11:43:39.964	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Tobi'}
+2025-12-24 11:43:39.966	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-24 11:43:39.968	DEBUG   	core.py:invoke_agent():354 - Thank you, Tobi. What is the address of the emergency?
+2025-12-24 11:43:39.970	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you, Tobi. What is the address of the emergency?
+2025-12-24 11:43:47.537	INFO    	app.py:stream_policy_messages():113 - User message: I am at home
+2025-12-24 11:43:48.353	INFO    	core.py:invoke_agent():316 - agent_history_len=6 usage=RunUsage(input_tokens=2565, output_tokens=54, details={'text_prompt_tokens': 2565}, requests=1)
+2025-12-24 11:43:48.356	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:43:48.358	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Tobi'}
+2025-12-24 11:43:48.360	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Tobi', 'emergency_location': 'at home'}
+2025-12-24 11:43:48.362	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Tobi', 'emergency_location': 'at home'}
+2025-12-24 11:43:48.364	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-24 11:43:48.366	DEBUG   	core.py:invoke_agent():354 - Can you please provide the full address, including street name, house number, and city?
+2025-12-24 11:43:48.367	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Can you please provide the full address, including street name, house number, and city?
+2025-12-24 11:44:07.489	INFO    	app.py:stream_policy_messages():113 - User message: I AM at Ridleravenue, 40, munihc
+2025-12-24 11:44:08.524	INFO    	core.py:invoke_agent():316 - agent_history_len=9 usage=RunUsage(input_tokens=2654, output_tokens=54, details={'text_prompt_tokens': 2654}, requests=1)
+2025-12-24 11:44:08.527	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:44:08.528	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Tobi', 'emergency_location': 'at home'}
+2025-12-24 11:44:08.530	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich'}
+2025-12-24 11:44:08.532	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich'}
+2025-12-24 11:44:08.534	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-24 11:44:08.536	DEBUG   	core.py:invoke_agent():354 - Thank you. Can you tell me what happened?
+2025-12-24 11:44:08.537	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you. Can you tell me what happened?
+2025-12-24 11:44:24.660	INFO    	app.py:stream_policy_messages():113 - User message: I just witnessed a car accident form my window
+2025-12-24 11:44:25.695	INFO    	core.py:invoke_agent():316 - agent_history_len=12 usage=RunUsage(input_tokens=2737, output_tokens=74, details={'text_prompt_tokens': 2737}, requests=1)
+2025-12-24 11:44:25.697	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:44:25.699	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich'}
+2025-12-24 11:44:25.701	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_accident': True, 'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich', 'situation_description': 'witnessed a car accident from my window', 'time_critical': True, 'rd1': True}
+2025-12-24 11:44:25.703	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_accident': True, 'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich', 'situation_description': 'witnessed a car accident from my window', 'time_critical': True, 'rd1': True}
+2025-12-24 11:44:25.706	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-24 11:44:25.707	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-24 11:44:25.709	DEBUG   	core.py:invoke_agent():354 - Was anyone injured in the car accident?
+2025-12-24 11:44:25.710	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Was anyone injured in the car accident?
+2025-12-24 11:44:46.579	INFO    	app.py:stream_policy_messages():113 - User message: I cant really see but one of the drivers is not moving
+2025-12-24 11:44:47.447	INFO    	core.py:invoke_agent():316 - agent_history_len=15 usage=RunUsage(input_tokens=2843, output_tokens=76, details={'text_prompt_tokens': 2843}, requests=1)
+2025-12-24 11:44:47.449	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-24 11:44:47.451	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_accident': True, 'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich', 'situation_description': 'witnessed a car accident from my window', 'time_critical': True, 'rd1': True}
+2025-12-24 11:44:47.453	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': True, 'severe_accident': True, 'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich', 'situation_description': 'witnessed a car accident from my window', 'time_critical': True, 'rd1': True, 'rd2': True}
+2025-12-24 11:44:47.456	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': True, 'severe_accident': True, 'caller_name': 'Tobi', 'emergency_location': 'Ridleravenue, 40, Munich', 'situation_description': 'witnessed a car accident from my window', 'time_critical': True, 'rd1': True, 'rd2': True}
+2025-12-24 11:44:47.459	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-24 11:44:47.460	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: False, no outcomes: False, rd2: True
+2025-12-24 11:44:47.462	INFO    	core.py:invoke_agent():333 - Outcome reached
+2025-12-24 11:45:23.831	INFO    	app.py:handle_survey_submit():735 - Survey saved for session 6272552b-4048-4437-a88d-b3a1a8b261f4

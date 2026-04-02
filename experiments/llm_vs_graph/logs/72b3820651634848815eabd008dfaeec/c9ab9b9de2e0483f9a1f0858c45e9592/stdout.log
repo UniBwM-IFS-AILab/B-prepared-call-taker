@@ -1,0 +1,7 @@
+2026-01-01 23:40:22.033	INFO    	[logger.py:setup_session_logger:188] Log Path: logs/FLAIRS39/72b3820651634848815eabd008dfaeec/c9ab9b9de2e0483f9a1f0858c45e9592
+2026-01-01 23:40:22.034	WARNING 	[core.py:init_session:158] Session initialized: c9ab9b9d-e2e0-483f-9a1f-0858c45e9592, 72b38206-5163-4848-815e-abd008dfaeec, agent
+2026-01-01 23:40:25.657	INFO    	[core.py:invoke_agent:316] agent_history_len=0 usage=RunUsage(input_tokens=2535, cache_read_tokens=1906, output_tokens=79, details={'cached_content_tokens': 1906, 'thoughts_tokens': 49, 'text_prompt_tokens': 2535, 'text_cache_tokens': 1906}, requests=1)
+2026-01-01 23:40:25.657	INFO    	[core.py:invoke_agent:321] provider=google-gla model=gemini-2.5-flash
+2026-01-01 23:40:25.658	DEBUG   	[agent.py:update_history_and_merge_state:160] Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2026-01-01 23:40:25.658	DEBUG   	[core.py:invoke_agent:354] Hello, this is an emergency call center. What is your name?
+2026-01-01 23:40:25.659	DEBUG   	[app.py:stream_policy_messages:135] Streaming message: Hello, this is an emergency call center. What is your name?

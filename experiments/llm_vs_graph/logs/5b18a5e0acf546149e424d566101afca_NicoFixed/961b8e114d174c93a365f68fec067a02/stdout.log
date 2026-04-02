@@ -1,0 +1,35 @@
+2025-12-19 15:31:59.639	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/5b18a5e0acf546149e424d566101afca/961b8e114d174c93a365f68fec067a02
+2025-12-19 15:31:59.641	WARNING 	core.py:init_session():158 - Session initialized: 961b8e11-4d17-4c93-a365-f68fec067a02, 5b18a5e0-acf5-4614-9e42-4d566101afca, agent
+2025-12-19 15:32:04.320	INFO    	core.py:invoke_agent():314 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=72, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-19 15:32:04.323	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-19 15:32:04.325	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-19 15:32:04.327	DEBUG   	core.py:invoke_agent():352 - Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-19 15:32:04.329	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-19 15:32:20.903	INFO    	app.py:stream_policy_messages():113 - User message: Hi, this is Nico Michel calling. thanks for picking up.
+2025-12-19 15:32:21.894	INFO    	core.py:invoke_agent():314 - agent_history_len=3 usage=RunUsage(input_tokens=2508, output_tokens=41, details={'text_prompt_tokens': 2508}, requests=1)
+2025-12-19 15:32:21.896	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-19 15:32:21.898	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-19 15:32:21.900	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Nico Michel'}
+2025-12-19 15:32:21.902	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Nico Michel'}
+2025-12-19 15:32:21.904	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-19 15:32:21.906	DEBUG   	core.py:invoke_agent():352 - Thank you, Nico. What is the address of the emergency?
+2025-12-19 15:32:21.908	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Thank you, Nico. What is the address of the emergency?
+2025-12-19 15:32:39.206	INFO    	app.py:stream_policy_messages():113 - User message: it is the elderly home at the entenbachweg 27 in München Kieferngarten.
+2025-12-19 15:32:40.222	INFO    	core.py:invoke_agent():314 - agent_history_len=6 usage=RunUsage(input_tokens=2589, output_tokens=57, details={'text_prompt_tokens': 2589}, requests=1)
+2025-12-19 15:32:40.225	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-19 15:32:40.227	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Nico Michel'}
+2025-12-19 15:32:40.229	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Nico Michel', 'emergency_location': 'entenbachweg 27 in München Kieferngarten'}
+2025-12-19 15:32:40.231	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Nico Michel', 'emergency_location': 'entenbachweg 27 in München Kieferngarten'}
+2025-12-19 15:32:40.233	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-19 15:32:40.235	DEBUG   	core.py:invoke_agent():352 - Thank you. Can you tell me what happened?
+2025-12-19 15:32:40.237	DEBUG   	app.py:stream_policy_messages():128 - Streaming message: Thank you. Can you tell me what happened?
+2025-12-19 15:34:49.429	INFO    	app.py:stream_policy_messages():113 - User message: my neighbor on the first loor of my house, he is having always issues with his heart. I fear that he is having cardiac arrest right now. I called the caretakers, but nobody comes.
+2025-12-19 15:34:50.407	INFO    	core.py:invoke_agent():314 - agent_history_len=9 usage=RunUsage(input_tokens=2707, output_tokens=62, details={'text_prompt_tokens': 2707}, requests=1)
+2025-12-19 15:34:50.409	INFO    	core.py:invoke_agent():319 - provider=google-gla model=gemini-2.5-flash
+2025-12-19 15:34:50.411	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Nico Michel', 'emergency_location': 'entenbachweg 27 in München Kieferngarten'}
+2025-12-19 15:34:50.412	DEBUG   	agent.py:merge_state():205 - New State:	{'cardiac_arrest': True, 'caller_name': 'Nico Michel', 'emergency_location': 'entenbachweg 27 in München Kieferngarten', 'cpr_needed': True, 'rd1': True, 'rd2': True}
+2025-12-19 15:34:50.415	DEBUG   	agent.py:merge_state():216 - Merged State:	{'cardiac_arrest': True, 'caller_name': 'Nico Michel', 'emergency_location': 'entenbachweg 27 in München Kieferngarten', 'cpr_needed': True, 'rd1': True, 'rd2': True}
+2025-12-19 15:34:50.417	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-19 15:34:50.419	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: False, no outcomes: False, rd2: True
+2025-12-19 15:34:50.420	INFO    	core.py:invoke_agent():331 - Outcome reached
+2025-12-19 15:35:25.859	INFO    	app.py:handle_survey_submit():713 - Survey saved for session 961b8e11-4d17-4c93-a365-f68fec067a02

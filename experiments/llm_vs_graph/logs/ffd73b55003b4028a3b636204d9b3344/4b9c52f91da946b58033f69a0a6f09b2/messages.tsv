@@ -1,0 +1,32 @@
+timestamp	speaker	message
+2025-12-22 20:09:14	operator	Hello! You're speaking with the emergency call services.
+2025-12-22 20:09:47	operator	With whom am I speaking, please?
+2025-12-22 20:09:47	caller	Hi my name is Simone
+2025-12-22 20:10:09	operator	Where exactly is the emergency location?
+2025-12-22 20:10:09	caller	It's at Siemensweg 10 in Messkirch
+2025-12-22 20:10:49	operator	What has just happened acutely?
+2025-12-22 20:10:49	caller	I found my father lying on the floor
+2025-12-22 20:11:13	operator	Is the patient getting enough air now?
+2025-12-22 20:11:13	caller	Yes he can breath
+2025-12-22 20:11:52	operator	Is the patient reacting normally now when spoken to?
+2025-12-22 20:11:52	caller	He is reacting, but he is 90 years old
+2025-12-22 20:12:28	operator	Is there now acute burning, pressure, tightness or pain in the chest area (possibly radiating to the neck, jaw, upper abdomen or arms)?
+2025-12-22 20:12:28	caller	No, it's not
+2025-12-22 20:13:02	operator	Is there an acute circulatory problem?
+2025-12-22 20:13:02	caller	No, it's not
+2025-12-22 20:13:47	operator	Have there been acute occurrences of paralysis (arms, legs, drooping mouth corner)?
+2025-12-22 20:13:47	caller	No there aren't
+2025-12-22 20:14:41	operator	Have there been acute speech, language, or comprehension disturbances?
+2025-12-22 20:14:41	caller	No, there isn't. But he feels dizzy
+2025-12-22 20:15:09	operator	Have there been acute visual disturbances (double vision, blindness, field of view loss)?
+2025-12-22 20:15:09	caller	There are no visual disturbances
+2025-12-22 20:16:01	operator	Are there acute and first-time severe headaches?
+2025-12-22 20:16:01	caller	No headaches but he is 90 years old and he feels dizzy
+2025-12-22 20:16:25	operator	Is there one-sided disturbance with the patient's sensory system?
+2025-12-22 20:16:25	caller	NO disturbances
+2025-12-22 20:17:20	operator	Is there acute dizziness with tendency to fall?
+2025-12-22 20:17:20	caller	Yes he feels dizzy and he has fallen down
+2025-12-22 20:18:18	operator	Can you describe the situation with more detail?
+2025-12-22 20:18:18	caller	I found my father lying on the floor. Minutes ago I heard some noise. He is 90 years old.
+2025-12-22 20:18:38	operator	A Vehicle is on it's way to you. Please stand by.
+2025-12-22 20:18:40	operator	The emergency call has been processed. Thank you.

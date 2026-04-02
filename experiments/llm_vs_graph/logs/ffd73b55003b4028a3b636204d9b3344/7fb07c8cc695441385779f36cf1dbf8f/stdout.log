@@ -1,0 +1,84 @@
+2025-12-22 20:21:51.984	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/7fb07c8cc695441385779f36cf1dbf8f
+2025-12-22 20:21:51.987	WARNING 	core.py:init_session():158 - Session initialized: 7fb07c8c-c695-4413-8577-9f36cf1dbf8f, ffd73b55-003b-4028-a3b6-36204d9b3344, agent
+2025-12-22 20:21:55.845	INFO    	core.py:invoke_agent():316 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=65, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-22 20:21:55.847	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:21:55.849	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:21:55.850	DEBUG   	core.py:invoke_agent():354 - Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 20:21:55.851	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 20:22:33.784	INFO    	app.py:stream_policy_messages():113 - User message: Hello my name is Simone
+2025-12-22 20:22:34.666	INFO    	core.py:invoke_agent():316 - agent_history_len=3 usage=RunUsage(input_tokens=2493, output_tokens=39, details={'text_prompt_tokens': 2493}, requests=1)
+2025-12-22 20:22:34.669	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:22:34.671	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-22 20:22:34.673	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone'}
+2025-12-22 20:22:34.675	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone'}
+2025-12-22 20:22:34.677	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:22:34.679	DEBUG   	core.py:invoke_agent():354 - Thank you, Simone. What is the address of the emergency?
+2025-12-22 20:22:34.680	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you, Simone. What is the address of the emergency?
+2025-12-22 20:23:06.991	INFO    	app.py:stream_policy_messages():113 - User message: It's at the train station Messkirch
+2025-12-22 20:23:07.784	INFO    	core.py:invoke_agent():316 - agent_history_len=6 usage=RunUsage(input_tokens=2562, output_tokens=48, details={'text_prompt_tokens': 2562}, requests=1)
+2025-12-22 20:23:07.786	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:23:07.788	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone'}
+2025-12-22 20:23:07.790	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch'}
+2025-12-22 20:23:07.792	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch'}
+2025-12-22 20:23:07.794	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:23:07.796	DEBUG   	core.py:invoke_agent():354 - Thank you. Can you please describe what happened?
+2025-12-22 20:23:07.797	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you. Can you please describe what happened?
+2025-12-22 20:23:29.400	INFO    	app.py:stream_policy_messages():113 - User message: I found a man lying on the platform
+2025-12-22 20:23:30.389	INFO    	core.py:invoke_agent():316 - agent_history_len=9 usage=RunUsage(input_tokens=2638, output_tokens=58, details={'text_prompt_tokens': 2638}, requests=1)
+2025-12-22 20:23:30.392	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:23:30.394	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch'}
+2025-12-22 20:23:30.396	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform'}
+2025-12-22 20:23:30.399	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform'}
+2025-12-22 20:23:30.401	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:23:30.403	DEBUG   	core.py:invoke_agent():354 - Is the man conscious?
+2025-12-22 20:23:30.405	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is the man conscious?
+2025-12-22 20:23:55.746	INFO    	app.py:stream_policy_messages():113 - User message: Yes, but his face is blue
+2025-12-22 20:23:56.657	INFO    	core.py:invoke_agent():316 - agent_history_len=12 usage=RunUsage(input_tokens=2723, output_tokens=68, details={'text_prompt_tokens': 2723}, requests=1)
+2025-12-22 20:23:56.660	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:23:56.661	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform'}
+2025-12-22 20:23:56.663	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:23:56.666	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:23:56.668	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 20:23:56.669	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:23:56.671	DEBUG   	core.py:invoke_agent():354 - Is he breathing?
+2025-12-22 20:23:56.672	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is he breathing?
+2025-12-22 20:24:09.042	INFO    	app.py:stream_policy_messages():113 - User message: Yes he is breathing
+2025-12-22 20:24:09.947	INFO    	core.py:invoke_agent():316 - agent_history_len=15 usage=RunUsage(input_tokens=2815, output_tokens=72, details={'text_prompt_tokens': 2815}, requests=1)
+2025-12-22 20:24:09.949	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:24:09.951	DEBUG   	agent.py:merge_state():204 - Old State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:09.953	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:09.956	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:09.958	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 20:24:09.959	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:24:09.961	DEBUG   	core.py:invoke_agent():354 - Is he breathing normally or with difficulty?
+2025-12-22 20:24:09.962	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is he breathing normally or with difficulty?
+2025-12-22 20:24:32.384	INFO    	app.py:stream_policy_messages():113 - User message: He is breathing without difficulty
+2025-12-22 20:24:33.467	INFO    	core.py:invoke_agent():316 - agent_history_len=18 usage=RunUsage(input_tokens=2912, output_tokens=82, details={'text_prompt_tokens': 2912}, requests=1)
+2025-12-22 20:24:33.470	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:24:33.472	DEBUG   	agent.py:merge_state():204 - Old State:	{'unconscious': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:33.475	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:33.479	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:24:33.482	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 20:24:33.484	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:24:33.486	DEBUG   	core.py:invoke_agent():354 - Is there any bleeding or obvious injury?
+2025-12-22 20:24:33.488	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there any bleeding or obvious injury?
+2025-12-22 20:25:04.526	INFO    	app.py:stream_policy_messages():113 - User message: His face looks blue-ish
+2025-12-22 20:25:05.790	INFO    	core.py:invoke_agent():316 - agent_history_len=21 usage=RunUsage(input_tokens=3020, output_tokens=86, details={'text_prompt_tokens': 3020}, requests=1)
+2025-12-22 20:25:05.792	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:25:05.794	DEBUG   	agent.py:merge_state():204 - Old State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:05.797	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:05.800	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:05.803	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 20:25:05.805	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 20:25:05.807	DEBUG   	core.py:invoke_agent():354 - Is there any other information you can provide about his condition?
+2025-12-22 20:25:05.808	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is there any other information you can provide about his condition?
+2025-12-22 20:25:22.730	INFO    	app.py:stream_policy_messages():113 - User message: Unfortunatelly not
+2025-12-22 20:25:24.049	INFO    	core.py:invoke_agent():316 - agent_history_len=24 usage=RunUsage(input_tokens=3131, output_tokens=77, details={'text_prompt_tokens': 3131}, requests=1)
+2025-12-22 20:25:24.052	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 20:25:24.054	DEBUG   	agent.py:merge_state():204 - Old State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:24.057	DEBUG   	agent.py:merge_state():205 - New State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:24.060	DEBUG   	agent.py:merge_state():216 - Merged State:	{'unconscious': False, 'now_insufficient_air': False, 'cyanosis': True, 'caller_name': 'Simone', 'emergency_location': 'train station Messkirch', 'situation_description': 'I found a man lying on the platform', 'time_critical': True, 'rd1': True}
+2025-12-22 20:25:24.063	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 20:25:24.064	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: True, no outcomes: False, rd2: None
+2025-12-22 20:25:24.066	INFO    	core.py:invoke_agent():333 - Outcome reached
+2025-12-22 20:26:28.607	INFO    	app.py:handle_survey_submit():734 - Survey saved for session 7fb07c8c-c695-4413-8577-9f36cf1dbf8f

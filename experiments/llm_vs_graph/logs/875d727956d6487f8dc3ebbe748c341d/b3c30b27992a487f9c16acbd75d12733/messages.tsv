@@ -1,0 +1,24 @@
+timestamp	speaker	message
+2025-12-24 11:51:50	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
+2025-12-24 11:52:02	caller	Hi am ms Collio
+2025-12-24 11:52:02	operator	Thank you, Ms. Collio. What is the address of the emergency?
+2025-12-24 11:52:41	caller	I am at home, in Wernerheisenbergweg 13 munich, but the emergency happened somewhere in the woods 
+2025-12-24 11:52:41	operator	Can you please provide a more precise location in the woods where the emergency occurred?
+2025-12-24 11:53:18	caller	my friend fell off a horse somewhere in a forest. i dont have a locaiton yet
+2025-12-24 11:53:18	operator	What happened to your friend after they fell?
+2025-12-24 11:53:32	caller	she cant not walk
+2025-12-24 11:53:32	operator	Can your friend walk, or are they unable to walk?
+2025-12-24 11:53:50	caller	she is unable to walk now, becuase of the fall
+2025-12-24 11:53:50	operator	Is your friend experiencing severe pain?
+2025-12-24 11:54:03	caller	i dont know but i guess so 
+2025-12-24 11:54:03	operator	Has your friend told you if they are in severe pain?
+2025-12-24 11:54:13	caller	no she did not
+2025-12-24 11:54:13	operator	Are there any visible heavy injuries?
+2025-12-24 11:54:27	caller	i dont know i am just on the phone with her
+2025-12-24 11:54:27	operator	Is your friend conscious and responsive?
+2025-12-24 11:54:35	caller	yes
+2025-12-24 11:54:35	operator	Is your friend having any difficulty breathing?
+2025-12-24 11:54:50	caller	no i think not she sounds normal
+2025-12-24 11:54:50	operator	Can you tell me any other details about your friend's condition, and if you have any updates on her exact location?
+2025-12-24 11:55:16	caller	i only know that she cannot walk
+2025-12-24 11:55:17	operator	The emergency call has been processed. Thank you.

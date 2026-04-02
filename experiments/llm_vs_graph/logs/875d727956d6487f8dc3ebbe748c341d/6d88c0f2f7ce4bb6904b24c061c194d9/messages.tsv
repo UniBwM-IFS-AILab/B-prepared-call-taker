@@ -1,0 +1,12 @@
+timestamp	speaker	message
+2025-12-24 12:10:43	operator	Hello! You're speaking with the emergency call services.
+2025-12-24 12:10:54	operator	With whom am I speaking, please?
+2025-12-24 12:10:54	caller	My name is dead mother
+2025-12-24 12:11:18	operator	Where exactly is the emergency location?
+2025-12-24 12:11:18	caller	its at my moms home, wernerstreet 2in Neubiberg
+2025-12-24 12:11:38	operator	What has just happened acutely?
+2025-12-24 12:11:38	caller	my old mother is just lying on the floor
+2025-12-24 12:11:59	operator	Is the patient getting enough air now?
+2025-12-24 12:11:59	caller	she doesnt breath
+2025-12-24 12:12:03	operator	A Vehicle is on it's way to you. Please stand by.
+2025-12-24 12:12:04	operator	The emergency call has been processed. Thank you.

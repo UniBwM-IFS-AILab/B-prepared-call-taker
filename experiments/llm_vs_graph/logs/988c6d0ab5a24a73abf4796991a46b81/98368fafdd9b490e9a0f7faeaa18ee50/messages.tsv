@@ -1,0 +1,14 @@
+timestamp	speaker	message
+2025-12-25 11:39:57	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-25 11:40:08	caller	My name is Fabi Katabi
+2025-12-25 11:40:08	operator	Thank you, Fabi. What is the address of the emergency?
+2025-12-25 11:40:24	caller	Its in cooler street name 43 cityname
+2025-12-25 11:40:24	operator	Thank you. Can you please describe what happened?
+2025-12-25 11:40:37	caller	my wife does behave very strangely
+2025-12-25 11:40:37	operator	Can you describe how your wife is behaving strangely?
+2025-12-25 11:40:57	caller	she can hardly move, and her speech sounds slurred
+2025-12-25 11:40:57	operator	Is she conscious?
+2025-12-25 11:41:09	caller	yes she is repsodning to me
+2025-12-25 11:41:09	operator	Is she experiencing any weakness or numbness on one side of her body?
+2025-12-25 11:41:22	caller	left side paralysis
+2025-12-25 11:41:23	operator	The emergency call has been processed. Thank you.

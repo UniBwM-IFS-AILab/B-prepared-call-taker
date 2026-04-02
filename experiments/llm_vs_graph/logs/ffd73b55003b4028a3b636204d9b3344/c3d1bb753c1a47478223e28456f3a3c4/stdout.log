@@ -1,0 +1,65 @@
+2025-12-22 18:31:52.225	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/c3d1bb753c1a47478223e28456f3a3c4
+2025-12-22 18:31:52.227	WARNING 	core.py:init_session():158 - Session initialized: c3d1bb75-3c1a-4747-8223-e28456f3a3c4, ffd73b55-003b-4028-a3b6-36204d9b3344, agent
+2025-12-22 18:31:57.464	INFO    	core.py:invoke_agent():316 - agent_history_len=0 usage=RunUsage(input_tokens=2437, output_tokens=65, details={'thoughts_tokens': 34, 'text_prompt_tokens': 2437}, requests=1)
+2025-12-22 18:31:57.466	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:31:57.469	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:31:57.471	DEBUG   	core.py:invoke_agent():354 - Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:31:57.473	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:32:13.224	INFO    	app.py:stream_policy_messages():113 - User message: Hello my name is Simone
+2025-12-22 18:32:14.340	INFO    	core.py:invoke_agent():316 - agent_history_len=3 usage=RunUsage(input_tokens=2493, output_tokens=39, details={'text_prompt_tokens': 2493}, requests=1)
+2025-12-22 18:32:14.343	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:32:14.345	DEBUG   	agent.py:merge_state():204 - Old State:	{}
+2025-12-22 18:32:14.347	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone'}
+2025-12-22 18:32:14.349	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone'}
+2025-12-22 18:32:14.351	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:32:14.353	DEBUG   	core.py:invoke_agent():354 - Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:32:14.355	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:32:31.739	INFO    	app.py:stream_policy_messages():113 - User message: It's Siemensweg 10 in Messkirch
+2025-12-22 18:32:32.884	INFO    	core.py:invoke_agent():316 - agent_history_len=6 usage=RunUsage(input_tokens=2564, output_tokens=53, details={'text_prompt_tokens': 2564}, requests=1)
+2025-12-22 18:32:32.886	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:32:32.888	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone'}
+2025-12-22 18:32:32.889	DEBUG   	agent.py:merge_state():205 - New State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:32:32.891	DEBUG   	agent.py:merge_state():216 - Merged State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:32:32.893	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:32:32.895	DEBUG   	core.py:invoke_agent():354 - Thank you. Can you tell me what happened?
+2025-12-22 18:32:32.896	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Thank you. Can you tell me what happened?
+2025-12-22 18:32:51.082	INFO    	app.py:stream_policy_messages():113 - User message: I have an accident at work
+2025-12-22 18:32:51.878	INFO    	core.py:invoke_agent():316 - agent_history_len=9 usage=RunUsage(input_tokens=2643, output_tokens=54, details={'text_prompt_tokens': 2643}, requests=1)
+2025-12-22 18:32:51.881	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:32:51.882	DEBUG   	agent.py:merge_state():204 - Old State:	{'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch'}
+2025-12-22 18:32:51.884	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_accident': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'time_critical': True, 'rd1': True}
+2025-12-22 18:32:51.887	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_accident': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'time_critical': True, 'rd1': True}
+2025-12-22 18:32:51.889	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 18:32:51.890	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:32:51.892	DEBUG   	core.py:invoke_agent():354 - Are you severely injured?
+2025-12-22 18:32:51.893	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Are you severely injured?
+2025-12-22 18:33:22.079	INFO    	app.py:stream_policy_messages():113 - User message: A forklift drove over my feet
+2025-12-22 18:33:23.101	INFO    	core.py:invoke_agent():316 - agent_history_len=12 usage=RunUsage(input_tokens=2723, output_tokens=76, details={'text_prompt_tokens': 2723}, requests=1)
+2025-12-22 18:33:23.104	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:33:23.106	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_accident': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'time_critical': True, 'rd1': True}
+2025-12-22 18:33:23.109	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:33:23.112	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:33:23.114	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 18:33:23.116	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:33:23.118	DEBUG   	core.py:invoke_agent():354 - Are you experiencing severe pain?
+2025-12-22 18:33:23.119	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Are you experiencing severe pain?
+2025-12-22 18:35:21.014	INFO    	app.py:stream_policy_messages():113 - User message: Yes, I have greate pain and my foot is bleeding
+2025-12-22 18:35:22.065	INFO    	core.py:invoke_agent():316 - agent_history_len=15 usage=RunUsage(input_tokens=2831, output_tokens=82, details={'text_prompt_tokens': 2831}, requests=1)
+2025-12-22 18:35:22.067	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:35:22.069	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:22.071	DEBUG   	agent.py:merge_state():205 - New State:	{'severe_pain': True, 'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:22.074	DEBUG   	agent.py:merge_state():216 - Merged State:	{'severe_pain': True, 'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:22.076	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 18:35:22.078	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: False, enough_info: False, no outcomes: False, rd2: None
+2025-12-22 18:35:22.080	DEBUG   	core.py:invoke_agent():354 - Is the bleeding heavy?
+2025-12-22 18:35:22.081	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Is the bleeding heavy?
+2025-12-22 18:35:38.447	INFO    	app.py:stream_policy_messages():113 - User message: Yes, very heavy
+2025-12-22 18:35:39.657	INFO    	core.py:invoke_agent():316 - agent_history_len=18 usage=RunUsage(input_tokens=2937, output_tokens=92, details={'text_prompt_tokens': 2937}, requests=1)
+2025-12-22 18:35:39.660	INFO    	core.py:invoke_agent():321 - provider=google-gla model=gemini-2.5-flash
+2025-12-22 18:35:39.661	DEBUG   	agent.py:merge_state():204 - Old State:	{'severe_pain': True, 'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:39.664	DEBUG   	agent.py:merge_state():205 - New State:	{'heavy_non_traumatic_bleeding': True, 'severe_pain': True, 'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:39.667	DEBUG   	agent.py:merge_state():216 - Merged State:	{'heavy_non_traumatic_bleeding': True, 'severe_pain': True, 'severe_accident': True, 'severe_injury': True, 'caller_name': 'Simone', 'emergency_location': 'Siemensweg 10 in Messkirch', 'situation_description': 'A forklift drove over my feet', 'time_critical': True, 'rd1': True}
+2025-12-22 18:35:39.669	INFO    	agent.py:check_completion():236 - reached RD1
+2025-12-22 18:35:39.670	DEBUG   	agent.py:update_history_and_merge_state():160 - Completion check: True, enough_info: True, no outcomes: False, rd2: None
+2025-12-22 18:35:39.672	INFO    	core.py:invoke_agent():333 - Outcome reached
+2025-12-22 18:42:43.304	INFO    	app.py:handle_survey_submit():734 - Survey saved for session c3d1bb75-3c1a-4747-8223-e28456f3a3c4

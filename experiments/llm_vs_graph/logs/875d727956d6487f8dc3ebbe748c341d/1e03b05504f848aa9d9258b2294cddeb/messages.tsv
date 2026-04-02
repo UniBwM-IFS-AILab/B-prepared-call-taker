@@ -1,0 +1,20 @@
+timestamp	speaker	message
+2025-12-24 12:17:46	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-24 12:17:57	caller	hi my name is man ager
+2025-12-24 12:17:57	operator	Thank you, Man Ager. What is the location of the emergency?
+2025-12-24 12:18:18	caller	its at the subways station neuperlach süd munihc
+2025-12-24 12:18:18	operator	Thank you. Can you please describe what happened?
+2025-12-24 12:18:36	caller	there is a man lying on the platform, he looks kinda blueish
+2025-12-24 12:18:36	operator	Is the man awake?
+2025-12-24 12:18:45	caller	i dont know
+2025-12-24 12:18:45	operator	Is he responsive to you?
+2025-12-24 12:18:53	caller	i dont know
+2025-12-24 12:18:53	operator	Is he completely unresponsive now?
+2025-12-24 12:19:03	caller	i guess so
+2025-12-24 12:19:03	operator	Is he breathing?
+2025-12-24 12:19:11	caller	i dont know
+2025-12-24 12:19:11	operator	Is he breathing normally?
+2025-12-24 12:19:23	caller	no
+2025-12-24 12:19:23	operator	Can you tell me anything else about his condition or what happened?
+2025-12-24 12:19:34	caller	no i dont know more
+2025-12-24 12:19:34	operator	The emergency call has been processed. Thank you.

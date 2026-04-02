@@ -1,0 +1,14 @@
+timestamp	speaker	message
+2025-12-22 18:31:57	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-22 18:32:14	caller	Hello my name is Simone
+2025-12-22 18:32:14	operator	Thank you, Simone. What is the address of the emergency?
+2025-12-22 18:32:32	caller	It's Siemensweg 10 in Messkirch
+2025-12-22 18:32:32	operator	Thank you. Can you tell me what happened?
+2025-12-22 18:32:51	caller	I have an accident at work
+2025-12-22 18:32:51	operator	Are you severely injured?
+2025-12-22 18:33:23	caller	A forklift drove over my feet
+2025-12-22 18:33:23	operator	Are you experiencing severe pain?
+2025-12-22 18:35:22	caller	Yes, I have greate pain and my foot is bleeding
+2025-12-22 18:35:22	operator	Is the bleeding heavy?
+2025-12-22 18:35:39	caller	Yes, very heavy
+2025-12-22 18:35:40	operator	The emergency call has been processed. Thank you.

@@ -1,0 +1,2 @@
+2025-12-22 18:48:34.326	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/ffd73b55003b4028a3b636204d9b3344/634a9a81284146fa874bb98ef5bd3842
+2025-12-22 18:48:34.333	WARNING 	core.py:init_session():158 - Session initialized: 634a9a81-2841-46fa-874b-b98ef5bd3842, ffd73b55-003b-4028-a3b6-36204d9b3344, agent

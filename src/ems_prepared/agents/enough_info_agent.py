@@ -17,7 +17,6 @@ enough_info_prompt = extend_system_prompt(
     BASE_SYSTEM_PROMPT,
     task=(
         "Decide if enough information has been gathered based on the current state to make a final decision. "
-        "Decide if enough information has been gathered "
         "If not, provide a contextual and concise follow-up question."
         "Try to ensure that you undertand the situation well enough to make a decision."
     ),
@@ -31,15 +30,6 @@ enough_info_prompt = extend_system_prompt(
         "This is a time-critical dialogue. Minimize the number of questions asked while ensuring safety and completeness."
     ),
 )
-
-
-class EnoughInfoGathered(BaseModel):
-    """
-    Agent output: indicates whether enough information has been gathered
-    and provides a `next_question` when more info is needed.
-    """
-
-    enough_information_gathered: bool
 
 
 class EnoughInfoOutput(BaseModel):
@@ -71,7 +61,7 @@ class EnoughInfoOutput(BaseModel):
 @lru_cache(maxsize=1)
 def get_enough_info_agent():
     return build_fallback_agent(
-        output_type=EnoughInfoOutput,  # [EnoughInfoGathered, NonEmptyStr],
+        output_type=EnoughInfoOutput,
         instructions=(enough_info_prompt.full_prompt),
         history_processors=[remove_before_extracion_processor],
     )

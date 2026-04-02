@@ -1,0 +1,9 @@
+timestamp	speaker	message
+2025-12-19 14:15:00	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-19 14:15:14	caller	Hi I am Nico, there has been an accident at work
+2025-12-19 14:15:16	operator	Okay Nico, can you tell me the location of this accident?
+2025-12-19 14:15:45	caller	At University of the Bundeswehr at the Werner Heisenberg street in Munich, building 150
+2025-12-19 14:15:46	operator	Thank you. Can you describe what happened?
+2025-12-19 14:16:06	caller	The forklift pushed back and ran over my right foot.
+2025-12-19 14:16:07	operator	Is your foot bleeding heavily?
+2025-12-19 14:16:25	caller	Yes, I can see the inner side of my foot!

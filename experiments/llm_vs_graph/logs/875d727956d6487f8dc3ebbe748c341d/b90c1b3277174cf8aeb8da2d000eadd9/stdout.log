@@ -1,0 +1,70 @@
+2025-12-24 11:58:03.519	INFO    	logger.py:setup_session_logger():150 - Log Path: logs/FLAIRS39/875d727956d6487f8dc3ebbe748c341d/b90c1b3277174cf8aeb8da2d000eadd9
+2025-12-24 11:58:03.522	WARNING 	core.py:init_session():158 - Session initialized: b90c1b32-7717-4cf8-aeb8-da2d000eadd9, 875d7279-56d6-487f-8dc3-ebbe748c341d, graph
+2025-12-24 11:58:06.901	INFO    	emergency_main_graph.py:resume_from_persistence():143 - Initializing new graph run...
+2025-12-24 11:58:06.980	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Greeting
+2025-12-24 11:58:06.983	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Hello! You're speaking with the emergency call services.
+2025-12-24 11:58:07.628	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:58:07.629	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Greeting
+2025-12-24 11:58:07.631	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{}
+2025-12-24 11:58:07.665	INFO    	settings.py:async_print():96 - Hello! You're speaking with the emergency call services.
+2025-12-24 11:58:07.692	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:58:07.735	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:58:07.736	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='With whom am I speaking, please?')
+2025-12-24 11:58:07.739	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: With whom am I speaking, please?
+2025-12-24 11:58:16.170	INFO    	app.py:stream_policy_messages():113 - User message: he i am ger many
+2025-12-24 11:58:16.201	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:58:16.203	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 11:58:16.205	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:17.775	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 11:58:17.799	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 11:58:17.801	DEBUG   	nodes.py:run():222 - New extracted state: {'caller_name': 'ger many'}
+2025-12-24 11:58:17.845	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 11:58:17.927	DEBUG   	nodes.py:run():254 - Old State:	{'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:17.929	DEBUG   	nodes.py:run():257 - New State:	{'caller_name': 'ger many'}
+2025-12-24 11:58:17.930	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'ger many', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:17.984	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 11:58:18.013	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'ger many', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:18.074	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:58:18.205	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:58:18.207	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='Where exactly is the emergency location?')
+2025-12-24 11:58:18.209	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: Where exactly is the emergency location?
+2025-12-24 11:58:34.700	INFO    	app.py:stream_policy_messages():113 - User message: its in fictiouslocation, at streetname 45
+2025-12-24 11:58:34.762	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:58:34.764	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 11:58:34.766	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'ger many', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:36.370	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 11:58:36.415	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 11:58:36.417	DEBUG   	nodes.py:run():222 - New extracted state: {'emergency_location': 'fictiouslocation, at streetname 45'}
+2025-12-24 11:58:36.501	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 11:58:36.548	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'ger many', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:36.550	DEBUG   	nodes.py:run():257 - New State:	{'emergency_location': 'fictiouslocation, at streetname 45'}
+2025-12-24 11:58:36.551	DEBUG   	nodes.py:run():264 - Merged State:	{'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:36.658	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 11:58:36.708	DEBUG   	nodes.py:run():286 - Evaluate State:	{'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:36.817	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] ChooseQuestion
+2025-12-24 11:58:36.971	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] AskCaller
+2025-12-24 11:58:36.972	DEBUG   	emergency_main_graph.py:run_graph():194 - AskCaller(question='What has just happened acutely?')
+2025-12-24 11:58:36.974	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: What has just happened acutely?
+2025-12-24 11:58:50.890	INFO    	app.py:stream_policy_messages():113 - User message: i have really bad breathing problems
+2025-12-24 11:58:50.976	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:58:50.977	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] AskCaller
+2025-12-24 11:58:50.979	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:52.864	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateAgentOutput
+2025-12-24 11:58:52.929	INFO    	nodes.py:run():221 - Model returned new data
+2025-12-24 11:58:52.930	DEBUG   	nodes.py:run():222 - New extracted state: {'severe_dyspnoea': True, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:53.056	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] MergeState
+2025-12-24 11:58:53.124	DEBUG   	nodes.py:run():254 - Old State:	{'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>}
+2025-12-24 11:58:53.125	DEBUG   	nodes.py:run():257 - New State:	{'severe_dyspnoea': True, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:53.127	DEBUG   	nodes.py:run():264 - Merged State:	{'severe_dyspnoea': True, 'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:53.263	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] EvaluateState
+2025-12-24 11:58:53.333	DEBUG   	nodes.py:run():286 - Evaluate State:	{'severe_dyspnoea': True, 'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:53.474	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] RD2
+2025-12-24 11:58:53.690	DEBUG   	emergency_main_graph.py:run_graph():191 - [Node] Disposition
+2025-12-24 11:58:53.692	DEBUG   	app.py:stream_policy_messages():135 - Streaming message: A Vehicle is on it's way to you. Please stand by.
+2025-12-24 11:58:54.304	INFO    	emergency_main_graph.py:resume_from_persistence():131 - Resuming from persisted graph state...
+2025-12-24 11:58:54.306	INFO    	emergency_main_graph.py:resume_from_persistence():132 - [Node] Disposition
+2025-12-24 11:58:54.307	DEBUG   	emergency_main_graph.py:resume_from_persistence():135 - Resumed State:	{'severe_dyspnoea': True, 'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:54.542	INFO    	nodes.py:run():478 - final state: {'severe_dyspnoea': True, 'caller_name': 'ger many', 'emergency_location': 'fictiouslocation, at streetname 45', 'emergency_type': <EmergencyType.INTRO: 'intro'>, 'rd1': True, 'rd2': True}
+2025-12-24 11:58:54.544	INFO    	settings.py:async_print():96 - A Vehicle is on it's way to you. Please stand by.
+2025-12-24 11:58:54.698	INFO    	settings.py:async_print():96 - The emergency call has been processed.
+2025-12-24 11:59:06.289	INFO    	app.py:handle_survey_submit():735 - Survey saved for session b90c1b32-7717-4cf8-aeb8-da2d000eadd9

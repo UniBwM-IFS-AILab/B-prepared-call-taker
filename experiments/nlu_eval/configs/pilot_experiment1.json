@@ -1,0 +1,7 @@
+{
+  "experiment_id": "experiment1",
+  "dataset_path": "experiments/nlu_eval/datasets/pilot_master.jsonl",
+  "results_root": "experiments/nlu_eval/results",
+  "repeats": 10,
+  "run_id": "pilot-experiment1"
+}

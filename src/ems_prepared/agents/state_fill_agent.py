@@ -1,10 +1,9 @@
 from functools import lru_cache
 from typing import TypedDict
 
-from deepdiff.diff import DeepDiff
 from pydantic_ai.agent import Agent, AgentRunResult
+from pydantic_ai.messages import ModelMessage
 from pydantic_graph import GraphRunContext
-from rich import print
 
 from ems_prepared.agents.history_processors import remove_before_extracion_processor
 from ems_prepared.agents.reusable_prompts import (
@@ -21,11 +20,36 @@ from ems_prepared.model.context import Settings
 from ems_prepared.util.models import build_fallback_agent
 
 type StateFillOutput = NonEmptyEmergencyCall | NonEmptyStr
+type StateFillRunResult = AgentRunResult[StateFillOutput] | AgentRunResult[NonEmptyStr]
+
+
+class _StateFillRunArgs(TypedDict):
+    user_prompt: str
+    instructions: str
+
+
+def build_state_fill_run_args(
+    *,
+    question: str,
+    user_response: str,
+    locale: str,
+) -> _StateFillRunArgs:
+    return {
+        "user_prompt": (
+            f"Last question from you: {question}.\n"
+            f"Answer from caller: {user_response}.\n"
+        ),
+        "instructions": (
+            "Try to extract structured information from the user's answer.\n"
+            "Decide if you need any more questions you need to ask.\n"
+            f"Only use the following language: {locale}.\n"
+        ),
+    }
 
 
 def _record_state_fill_result(
     ctx: GraphRunContext[GraphState, Settings],
-    result: AgentRunResult[StateFillOutput],
+    result: StateFillRunResult,
 ) -> StateFillOutput:
     result_data = (
         result.output.model_dump(exclude_none=True)
@@ -52,7 +76,6 @@ state_fill_prompt = extend_system_prompt(
     ),
     decisions=(
         "Verify whether the caller answered the last question; if not, you may re-ask it once. "
-        "If message history is provided and you already asked that question (or a close paraphrase), "
     ),
 )
 
@@ -76,45 +99,45 @@ def get_contextual_question_agent() -> Agent[Settings, NonEmptyStr]:
     )
 
 
+async def run_state_fill(
+    *,
+    question: str,
+    user_response: str,
+    deps: Settings,
+    message_history: list[ModelMessage] | None = None,
+) -> StateFillRunResult:
+    run_args = build_state_fill_run_args(
+        question=question,
+        user_response=user_response,
+        locale=deps.locale.value,
+    )
+    initial_result: AgentRunResult[StateFillOutput] = await get_state_fill_agent().run(
+        **run_args,
+        deps=deps,
+    )
+    if isinstance(initial_result.output, str) and message_history is not None:
+        deps.telemetry.logger.info(
+            "Retrying with full message history, current result %s",
+            initial_result.output,
+        )
+        return await get_contextual_question_agent().run(
+            **run_args,
+            deps=deps,
+            message_history=message_history,
+        )
+    return initial_result
+
+
 async def state_fill_task(
     question: str,
     user_response: str,
     ctx: GraphRunContext[GraphState, Settings],
 ) -> StateFillOutput:
     """Extract structured information from a user's response using AI."""
-
-    class AgentTask(TypedDict):
-        user_prompt: str
-        instructions: str
-
-    agent_task: AgentTask = {
-        "user_prompt": (
-            f"Last question from you: {question}.\n"
-            f"Answer from caller: {user_response}.\n"
-        ),
-        "instructions": (
-            "Try to extract structured information from the user's answer.\n"
-            "Decide if you need any more questions you need to ask.\n"
-            f"Only use the following language: {ctx.deps.locale.value}.\n"
-        ),
-    }
-
-    initial_result: AgentRunResult[StateFillOutput] = await get_state_fill_agent().run(
-        **agent_task,
+    result = await run_state_fill(
+        question=question,
+        user_response=user_response,
         deps=ctx.deps,
+        message_history=ctx.state.message_history,
     )
-    if isinstance(initial_result.output, str):  # message_history is None and
-        ctx.deps.telemetry.logger.info(
-            "Retrying with full message history, current result %s",
-            initial_result.output,
-        )
-        retry_result: AgentRunResult[
-            NonEmptyStr
-        ] = await get_contextual_question_agent().run(
-            **agent_task,
-            deps=ctx.deps,
-            message_history=ctx.state.message_history,
-        )
-        return _record_state_fill_result(ctx, retry_result)
-
-    return _record_state_fill_result(ctx, initial_result)
+    return _record_state_fill_result(ctx, result)

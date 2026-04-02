@@ -1,0 +1,9 @@
+{"timestamp": "2025-12-22 18:53:02", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_07.md"}}
+{"timestamp": "2025-12-22 18:53:39", "event": "extraction", "question": "With whom am I speaking, please?", "response": "Hello my name is Simone", "result": {"caller_name": "Simone"}}
+{"timestamp": "2025-12-22 18:53:39", "event": "state_merged", "state": {"call_state": {"caller_name": "Simone", "emergency_type": "intro"}}}
+{"timestamp": "2025-12-22 18:53:57", "event": "extraction", "question": "Where exactly is the emergency location?", "response": "It's in Messkirch", "result": {"emergency_location": "Messkirch"}}
+{"timestamp": "2025-12-22 18:53:58", "event": "state_merged", "state": {"call_state": {"caller_name": "Simone", "emergency_location": "Messkirch", "emergency_type": "intro"}}}
+{"timestamp": "2025-12-22 18:54:28", "event": "extraction", "question": "What has just happened acutely?", "response": "I have problems to breath. I can't get any air", "result": {"now_insufficient_air": true, "rd1": true}}
+{"timestamp": "2025-12-22 18:54:28", "event": "state_merged", "state": {"call_state": {"now_insufficient_air": true, "caller_name": "Simone", "emergency_location": "Messkirch", "emergency_type": "intro", "rd1": true}}}
+{"timestamp": "2025-12-22 18:55:29", "event": "extraction", "question": "Can you describe the situation with more detail?", "response": "I gasp for air", "result": {"now_insufficient_air": true, "situation_description": "I gasp for air.", "rd1": true}}
+{"timestamp": "2025-12-22 18:55:30", "event": "state_merged", "state": {"call_state": {"now_insufficient_air": true, "caller_name": "Simone", "emergency_location": "Messkirch", "emergency_type": "intro", "situation_description": "I gasp for air.", "rd1": true}, "enough_information_gathered": false}}

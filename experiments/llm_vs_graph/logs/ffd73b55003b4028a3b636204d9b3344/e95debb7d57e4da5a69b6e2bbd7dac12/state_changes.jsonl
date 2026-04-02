@@ -1,0 +1,15 @@
+{"timestamp": "2025-12-22 18:02:32", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_02.md"}}
+{"timestamp": "2025-12-22 18:02:50", "event": "state_merged", "state": {"caller_name": "Simone"}}
+{"timestamp": "2025-12-22 18:02:50", "event": "extraction", "result": {"caller_name": "Simone"}, "question": "Thank you, Simone. What is the address of the emergency?", "response": "Hello my name is Simone"}
+{"timestamp": "2025-12-22 18:03:09", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Messkirch"}}
+{"timestamp": "2025-12-22 18:03:09", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Messkirch"}, "question": "Can you please provide the full address, including street name and house number?", "response": "It's in Messkirch"}
+{"timestamp": "2025-12-22 18:03:43", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch"}}
+{"timestamp": "2025-12-22 18:03:43", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch"}, "question": "Thank you. Can you tell me what happened?", "response": "It's Siemensweg 10 in Messkirch"}
+{"timestamp": "2025-12-22 18:04:08", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}}
+{"timestamp": "2025-12-22 18:04:08", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}, "question": "Is anyone injured?", "response": "There was a car accident in front of my house"}
+{"timestamp": "2025-12-22 18:04:33", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}}
+{"timestamp": "2025-12-22 18:04:33", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}, "question": "Are there any heavy injuries or vital threats?", "response": "I don't now how many people are injured"}
+{"timestamp": "2025-12-22 18:05:44", "event": "state_merged", "state": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}}
+{"timestamp": "2025-12-22 18:05:44", "event": "extraction", "result": {"caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident"}, "question": "Is the driver unconscious?", "response": "I don't know. One car door is open but the driver is not exit"}
+{"timestamp": "2025-12-22 18:06:22", "event": "state_merged", "state": {"unconscious": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident", "rd1": true, "rd2": true}}
+{"timestamp": "2025-12-22 18:06:22", "event": "complete", "state": {"unconscious": true, "caller_name": "Simone", "emergency_location": "Siemensweg 10, Messkirch", "situation_description": "car accident", "rd1": true, "rd2": true}}
