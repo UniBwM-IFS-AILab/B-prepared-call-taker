@@ -10,7 +10,7 @@ uv = "latest"
 ruff = "latest"
 sops = "latest"
 ttyd = "latest"
-pre-commit = "latest"
+pre-commit =  { version = "latest", os = ["linux", "darwin"] }
 ollama = "latest"
 python = "3.13"
 node = "latest"
