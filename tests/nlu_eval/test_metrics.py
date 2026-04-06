@@ -4,8 +4,10 @@ import pandas as pd
 import pytest
 
 from experiments.nlu_eval.common.constants import MEDICAL_FIELDS
-from experiments.nlu_eval.common.metrics import experiment1_summary, experiment2_summary, slot_metrics
+from experiments.nlu_eval.common.metrics import slot_metrics
 from experiments.nlu_eval.common.models import PredictionRecord
+from experiments.nlu_eval.experiment1_metrics import experiment1_summary
+from experiments.nlu_eval.experiment2_metrics import experiment2_summary
 
 
 def test_experiment1_summary_treats_tied_majority_as_none() -> None:
@@ -63,18 +65,24 @@ def test_experiment1_summary_treats_tied_majority_as_none() -> None:
 
     summary = experiment1_summary(records=records, items=items)
 
-    assert summary["full_agent"]["outcome_subset_accuracy"] == 0.0
-    assert summary["full_agent"]["final_outcome_accuracy"] == 0.0
-    assert summary["full_agent"]["outcome_hamming_loss"] == 1 / 3
-    assert summary["full_agent"]["outcome_jaccard"] == 0.0
-    assert summary["outcome_baseline"]["outcome_subset_accuracy"] == 1.0
-    assert summary["outcome_baseline"]["final_outcome_accuracy"] == 1.0
-    assert summary["outcome_baseline"]["outcome_hamming_loss"] == 0.0
-    assert summary["outcome_baseline"]["outcome_jaccard"] == 1.0
+    assert summary["full_agent"]["subset_accuracy"] == 0.0
+    assert summary["full_agent"]["final_accuracy"] == 0.0
+    assert summary["full_agent"]["hamming_loss"] == 1 / 3
+    assert summary["full_agent"]["jaccard"] == 0.0
+    assert summary["full_agent"]["precision"] == 0.0
+    assert summary["full_agent"]["recall"] == 0.0
+    assert summary["full_agent"]["f1"] == 0.0
+    assert summary["outcome_baseline"]["subset_accuracy"] == 1.0
+    assert summary["outcome_baseline"]["final_accuracy"] == 1.0
+    assert summary["outcome_baseline"]["hamming_loss"] == 0.0
+    assert summary["outcome_baseline"]["jaccard"] == 1.0
+    assert summary["outcome_baseline"]["precision"] == 1.0
+    assert summary["outcome_baseline"]["recall"] == 1.0
+    assert summary["outcome_baseline"]["f1"] == 1.0
     assert "comparison" not in summary
 
 
-def test_experiment1_summary_reports_subset_and_final_outcome_accuracy() -> None:
+def test_experiment1_summary_reports_subset_and_final_accuracy() -> None:
     items = pd.DataFrame(
         [
             {
@@ -167,17 +175,21 @@ def test_experiment1_summary_reports_subset_and_final_outcome_accuracy() -> None
 
     summary = experiment1_summary(records=records, items=items)
 
-    assert summary["full_agent"]["outcome_subset_accuracy"] == 1 / 3
-    assert summary["full_agent"]["final_outcome_accuracy"] == 1.0
-    assert summary["full_agent"]["outcome_hamming_loss"] == 1 / 3
-    assert summary["full_agent"]["outcome_jaccard"] == pytest.approx(11 / 18)
-    assert summary["outcome_baseline"]["outcome_subset_accuracy"] == 2 / 3
-    assert summary["outcome_baseline"]["final_outcome_accuracy"] == 2 / 3
-    assert summary["outcome_baseline"]["outcome_hamming_loss"] == pytest.approx(1 / 9)
-    assert summary["outcome_baseline"]["outcome_jaccard"] == pytest.approx(5 / 6)
+    assert summary["full_agent"]["subset_accuracy"] == 1 / 3
+    assert summary["full_agent"]["final_accuracy"] == 1.0
+    assert summary["full_agent"]["hamming_loss"] == 1 / 3
+    assert summary["full_agent"]["jaccard"] == pytest.approx(11 / 18)
+    assert summary["outcome_baseline"]["subset_accuracy"] == 2 / 3
+    assert summary["outcome_baseline"]["final_accuracy"] == 2 / 3
+    assert summary["outcome_baseline"]["hamming_loss"] == pytest.approx(1 / 9)
+    assert summary["outcome_baseline"]["jaccard"] == pytest.approx(5 / 6)
+
+    for system_id in ("full_agent", "outcome_baseline"):
+        for metric_name in ("precision", "recall", "f1"):
+            assert 0.0 <= summary[system_id][metric_name] <= 1.0
 
 
-def test_slot_metrics_weight_slots_equally() -> None:
+def test_slot_metrics_report_prf_metrics() -> None:
     items = pd.DataFrame(
         [
             {
@@ -221,11 +233,12 @@ def test_slot_metrics_weight_slots_equally() -> None:
 
     metrics = slot_metrics(records=records, items=items)
 
-    assert metrics["macro_precision"] == 0.5
-    assert metrics["macro_recall"] == 0.5
-    assert metrics["macro_f1"] == 0.5
-    expected_accuracy = ((len(MEDICAL_FIELDS) - 1) + len(MEDICAL_FIELDS)) / (2 * len(MEDICAL_FIELDS))
-    assert metrics["medical_slot_accuracy"] == expected_accuracy
+    assert metrics["precision"] == 0.5
+    assert metrics["recall"] == 0.5
+    assert metrics["f1"] == 0.5
+    assert metrics["accuracy"] == 0.5
+    assert metrics["hamming_loss"] == 1 / (2 * len(MEDICAL_FIELDS))
+    assert metrics["jaccard"] == 0.5
 
 
 def test_experiment2_summary_ignores_false_for_medical_slot_set_metrics() -> None:
@@ -256,10 +269,9 @@ def test_experiment2_summary_ignores_false_for_medical_slot_set_metrics() -> Non
 
     summary = experiment2_summary(records=records, items=items)
 
-    assert summary["medical_slot_accuracy"] == 1.0
-    assert summary["medical_hamming_loss"] == 0.0
-    assert summary["medical_subset_accuracy"] == 1.0
-    assert summary["medical_slot_jaccard"] == 1.0
+    assert summary["accuracy"] == 1.0
+    assert summary["hamming_loss"] == 0.0
+    assert summary["jaccard"] == 1.0
 
 
 def test_experiment2_summary_reports_accuracy_by_slot_count() -> None:
@@ -314,37 +326,31 @@ def test_experiment2_summary_reports_accuracy_by_slot_count() -> None:
 
     summary = experiment2_summary(records=records, items=items)
 
-    assert summary["medical_subset_accuracy"] == 0.5
+    assert summary["accuracy"] == 0.5
     assert summary["per_slot_count"] == {
         "1": {
             "item_count": 1,
-            "medical_slot_accuracy": (len(MEDICAL_FIELDS) - 1) / len(MEDICAL_FIELDS),
-            "medical_hamming_loss": 1 / len(MEDICAL_FIELDS),
-            "medical_subset_accuracy": 0.0,
-            "medical_slot_jaccard": 0.0,
-            "non_medical_exact_match_accuracy": None,
-            "macro_precision": 0.0,
-            "macro_recall": 0.0,
-            "macro_f1": 0.0,
-            "followup_rate": 0.0,
-            "parse_failure_rate": 0.0,
-            "repeat_instability_rate": 0.0,
+            "accuracy": 0.0,
+            "hamming_loss": 1 / len(MEDICAL_FIELDS),
+            "jaccard": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
         },
         "2": {
             "item_count": 1,
-            "medical_slot_accuracy": 1.0,
-            "medical_hamming_loss": 0.0,
-            "medical_subset_accuracy": 1.0,
-            "medical_slot_jaccard": 1.0,
-            "non_medical_exact_match_accuracy": None,
-            "macro_precision": 1.0,
-            "macro_recall": 1.0,
-            "macro_f1": 1.0,
-            "followup_rate": 0.0,
-            "parse_failure_rate": 0.0,
-            "repeat_instability_rate": 0.0,
+            "accuracy": 1.0,
+            "hamming_loss": 0.0,
+            "jaccard": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
         },
     }
+    assert "non_medical_exact_match_accuracy" not in summary["per_slot_count"]["1"]
+    assert "followup_rate" not in summary["per_slot_count"]["1"]
+    assert "parse_failure_rate" not in summary["per_slot_count"]["1"]
+    assert "repeat_instability_rate" not in summary["per_slot_count"]["1"]
 
 
 def test_experiment2_summary_reports_jaccard_as_partial_overlap() -> None:
@@ -376,9 +382,9 @@ def test_experiment2_summary_reports_jaccard_as_partial_overlap() -> None:
 
     summary = experiment2_summary(records=records, items=items)
 
-    assert summary["medical_subset_accuracy"] == 0.0
-    assert summary["medical_hamming_loss"] == 2 / len(MEDICAL_FIELDS)
-    assert summary["medical_slot_jaccard"] == 1 / 3
+    assert summary["accuracy"] == 0.0
+    assert summary["hamming_loss"] == 2 / len(MEDICAL_FIELDS)
+    assert summary["jaccard"] == 1 / 3
 
 
 def test_experiment2_summary_reports_false_positive_and_negative_fields() -> None:
