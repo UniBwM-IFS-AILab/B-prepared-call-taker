@@ -2,6 +2,7 @@
 """Run Experiment 1: outcome comparison between full agent and outcome baseline."""
 
 from __future__ import annotations
+from typing import Literal
 
 import argparse
 import asyncio
@@ -15,20 +16,24 @@ from pydantic import BaseModel, Field
 from pydantic_ai.agent import Agent
 from pydantic_core import to_jsonable_python
 
-from ems_prepared.agents.state_fill_agent import build_state_fill_run_args, state_fill_prompt
+from ems_prepared.agents.state_fill_agent import (
+    build_state_fill_run_args,
+    state_fill_prompt,
+)
 from ems_prepared.dialogue_state.structured_output import NonEmptyStr
 from ems_prepared.model.context import Settings
-from ems_prepared.util.models import build_fallback_agent
-from experiments.nlu_eval.common.metrics import experiment1_summary
+from ems_prepared.util.models import RequestRateLimiter, build_fallback_agent
 from experiments.nlu_eval.common.models import PredictionRecord, RunConfig
 from experiments.nlu_eval.common.runner import (
     FULL_AGENT_ID,
     append_jsonl,
+    build_parse_error_record,
     build_session_settings,
     init_run,
     normalize_existing_predictions,
     run_full_agent_once,
 )
+from experiments.nlu_eval.experiment1_metrics import experiment1_summary
 
 OUTCOME_BASELINE_ID = "outcome_baseline"
 
@@ -46,15 +51,11 @@ class OutcomeOnlyDecision(BaseModel):
 
     rd1: bool | None = Field(
         default=None,
-        description=(
-            "Defines if an ambulance response is required. "
-        ),
+        description=("Defines if an ambulance response is required. "),
     )
     rd2: bool | None = Field(
         default=None,
-        description=(
-            "Defines if an emergency physician response is required. "
-        ),
+        description=("Defines if an emergency physician response is required. "),
     )
     cpr_needed: bool | None = Field(
         default=None,
@@ -63,7 +64,7 @@ class OutcomeOnlyDecision(BaseModel):
         ),
     )
 
-    def get_outcome(self) -> str | None:
+    def get_outcome(self) -> OutcomeLabel:
         if self.cpr_needed:
             return "cpr"
         if self.rd2:
@@ -73,11 +74,14 @@ class OutcomeOnlyDecision(BaseModel):
         return None
 
 
-def build_outcome_baseline_agent() -> Agent[Settings, OutcomeOnlyDecision | NonEmptyStr]:
+def build_outcome_baseline_agent(
+    *, rate_limiter: RequestRateLimiter | None = None
+) -> Agent[Settings, OutcomeOnlyDecision | NonEmptyStr]:
     return build_fallback_agent(
         output_type=[OutcomeOnlyDecision, NonEmptyStr],
         instructions=state_fill_prompt.full_prompt,
         deps_type=Settings,
+        rate_limiter=rate_limiter,
     )
 
 
@@ -85,7 +89,7 @@ async def run_outcome_baseline_once(
     *,
     agent: Agent[Settings, OutcomeOnlyDecision | NonEmptyStr],
     deps: Settings,
-    experiment_id: str,
+    experiment_id: Literal["experiment1", "experiment2"],
     item_id: str,
     repeat_index: int,
     operator_question: str,
@@ -121,14 +125,17 @@ async def run_outcome_baseline_once(
         repeat_index=repeat_index,
         response_kind="followup",
         followup_text=str(output),
-        raw_output=str(output) if isinstance(output, str) else to_jsonable_python(output),
+        raw_output={},
         latency_ms=latency_ms,
         token_usage=to_jsonable_python(result.usage()),
     )
 
 
 async def run_experiment1(*, run_config: RunConfig) -> Path:
-    run_id, results_dir, raw_predictions_path = init_run(run_config, "experiment1_outcomes")
+    run_id, results_dir, raw_predictions_path = init_run(
+        run_config,
+        "experiment1_raw_predictions.jsonl",
+    )
     items = pd.read_json(run_config.dataset_path, lines=True)
     existing_records = normalize_existing_predictions(raw_predictions_path)
     completed = set(
@@ -136,8 +143,9 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
             index=False, name=None
         )
     )
+    rate_limiter = RequestRateLimiter(run_config.requests_per_minute)
     print(
-        f"[{datetime.now().isoformat(timespec='seconds')}] [nlu_eval] starting experiment1 run_id={run_id} items={len(items)} repeats={run_config.repeats}",
+        f"[{datetime.now().isoformat(timespec='seconds')}] [nlu_eval] starting experiment1 run_id={run_id} items={len(items)} repeats={run_config.repeats} requests_per_minute={run_config.requests_per_minute or 'none'}",
         flush=True,
     )
     if completed:
@@ -146,14 +154,11 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
             flush=True,
         )
 
-    baseline_agent = build_outcome_baseline_agent()
+    baseline_agent: Agent[Settings, OutcomeOnlyDecision | NonEmptyStr] | None = None
 
     total_calls = len(items) * run_config.repeats * 2
     call_index = 0
-    for system_id, run_once, agent in (
-        (FULL_AGENT_ID, run_full_agent_once, None),
-        (OUTCOME_BASELINE_ID, run_outcome_baseline_once, baseline_agent),
-    ):
+    for system_id in (FULL_AGENT_ID, OUTCOME_BASELINE_ID):
         for item_index, item in enumerate(items.itertuples(index=False), start=1):
             for repeat_index in range(run_config.repeats):
                 call_index += 1
@@ -176,15 +181,17 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
                     item_id=item.id,
                     repeat_index=repeat_index,
                 )
+                attempt_started = perf_counter()
                 if system_id == FULL_AGENT_ID:
                     try:
-                        record = await run_once(
+                        record = await run_full_agent_once(
                             deps=deps,
                             experiment_id=run_config.experiment_id,
                             item_id=item.id,
                             repeat_index=repeat_index,
                             operator_question=item.operator_question,
                             caller_utterance=item.caller_utterance,
+                            rate_limiter=rate_limiter,
                         )
                     except Exception as exc:
                         print(
@@ -193,11 +200,22 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
                             f"error={type(exc).__name__}: {exc}",
                             flush=True,
                         )
-                        raise
+                        record = build_parse_error_record(
+                            experiment_id=run_config.experiment_id,
+                            system_id=system_id,
+                            item_id=item.id,
+                            repeat_index=repeat_index,
+                            exc=exc,
+                            latency_ms=(perf_counter() - attempt_started) * 1000,
+                        )
                 else:
+                    if baseline_agent is None:
+                        baseline_agent = build_outcome_baseline_agent(
+                            rate_limiter=rate_limiter
+                        )
                     try:
-                        record = await run_once(
-                            agent=agent,
+                        record = await run_outcome_baseline_once(
+                            agent=baseline_agent,
                             deps=deps,
                             experiment_id=run_config.experiment_id,
                             item_id=item.id,
@@ -212,7 +230,14 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
                             f"error={type(exc).__name__}: {exc}",
                             flush=True,
                         )
-                        raise
+                        record = build_parse_error_record(
+                            experiment_id=run_config.experiment_id,
+                            system_id=system_id,
+                            item_id=item.id,
+                            repeat_index=repeat_index,
+                            exc=exc,
+                            latency_ms=(perf_counter() - attempt_started) * 1000,
+                        )
                 append_jsonl(raw_predictions_path, record)
                 completed.add(key)
                 message = (
@@ -234,9 +259,7 @@ async def run_experiment1(*, run_config: RunConfig) -> Path:
             "raw_predictions": str(raw_predictions_path),
         },
     }
-    summaries_dir = results_dir / "summaries"
-    summaries_dir.mkdir(parents=True, exist_ok=True)
-    (summaries_dir / "experiment1_summary.json").write_text(
+    (results_dir / "experiment1_summary.json").write_text(
         json.dumps(summary, indent=2, default=str),
         encoding="utf-8",
     )
@@ -251,7 +274,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-config", required=True, type=Path)
     args = parser.parse_args()
-    run_config = RunConfig.model_validate(json.loads(args.run_config.read_text(encoding="utf-8")))
+    run_config = RunConfig.model_validate(
+        json.loads(args.run_config.read_text(encoding="utf-8"))
+    )
     results_dir = asyncio.run(run_experiment1(run_config=run_config))
     print(results_dir)
     return 0

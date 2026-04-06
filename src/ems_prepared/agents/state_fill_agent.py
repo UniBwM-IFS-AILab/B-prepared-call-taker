@@ -17,7 +17,7 @@ from ems_prepared.dialogue_state.structured_output import (
     NonEmptyStr,
 )
 from ems_prepared.model.context import Settings
-from ems_prepared.util.models import build_fallback_agent
+from ems_prepared.util.models import RequestRateLimiter, build_fallback_agent
 
 type StateFillOutput = NonEmptyEmergencyCall | NonEmptyStr
 type StateFillRunResult = AgentRunResult[StateFillOutput] | AgentRunResult[NonEmptyStr]
@@ -81,21 +81,27 @@ state_fill_prompt = extend_system_prompt(
 
 
 @lru_cache(maxsize=1)
-def get_state_fill_agent() -> Agent[Settings, NonEmptyEmergencyCall | NonEmptyStr]:
+def get_state_fill_agent(
+    rate_limiter: RequestRateLimiter | None = None,
+) -> Agent[Settings, NonEmptyEmergencyCall | NonEmptyStr]:
     return build_fallback_agent(
         output_type=[NonEmptyEmergencyCall, NonEmptyStr],  # DialogueOutput
         instructions=state_fill_prompt.full_prompt,
         deps_type=Settings,
+        rate_limiter=rate_limiter,
     )
 
 
 @lru_cache(maxsize=1)
-def get_contextual_question_agent() -> Agent[Settings, NonEmptyStr]:
+def get_contextual_question_agent(
+    rate_limiter: RequestRateLimiter | None = None,
+) -> Agent[Settings, NonEmptyStr]:
     return build_fallback_agent(
         output_type=NonEmptyStr,  # DialogueOutput
         instructions=BASE_SYSTEM_PROMPT.full_prompt,
         history_processors=[remove_before_extracion_processor],
         deps_type=Settings,
+        rate_limiter=rate_limiter,
     )
 
 
@@ -105,13 +111,16 @@ async def run_state_fill(
     user_response: str,
     deps: Settings,
     message_history: list[ModelMessage] | None = None,
+    rate_limiter: RequestRateLimiter | None = None,
 ) -> StateFillRunResult:
     run_args = build_state_fill_run_args(
         question=question,
         user_response=user_response,
         locale=deps.locale.value,
     )
-    initial_result: AgentRunResult[StateFillOutput] = await get_state_fill_agent().run(
+    initial_result: AgentRunResult[StateFillOutput] = await get_state_fill_agent(
+        rate_limiter=rate_limiter
+    ).run(
         **run_args,
         deps=deps,
     )
@@ -120,7 +129,7 @@ async def run_state_fill(
             "Retrying with full message history, current result %s",
             initial_result.output,
         )
-        return await get_contextual_question_agent().run(
+        return await get_contextual_question_agent(rate_limiter=rate_limiter).run(
             **run_args,
             deps=deps,
             message_history=message_history,

@@ -3,5 +3,6 @@
   "dataset_path": "experiments/nlu_eval/datasets/pilot_master.jsonl",
   "results_root": "experiments/nlu_eval/results",
   "repeats": 10,
+  "requests_per_minute": 10,
   "run_id": "pilot-experiment2"
 }

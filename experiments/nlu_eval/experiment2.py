@@ -8,23 +8,29 @@ import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 
 import pandas as pd
 
-from experiments.nlu_eval.common.metrics import experiment2_summary
+from ems_prepared.util.models import RequestRateLimiter
 from experiments.nlu_eval.common.models import RunConfig
 from experiments.nlu_eval.common.runner import (
     FULL_AGENT_ID,
     append_jsonl,
+    build_parse_error_record,
     build_session_settings,
     init_run,
     normalize_existing_predictions,
     run_full_agent_once,
 )
+from experiments.nlu_eval.experiment2_metrics import experiment2_summary
 
 
 async def run_experiment2(*, run_config: RunConfig) -> Path:
-    run_id, results_dir, raw_predictions_path = init_run(run_config, "experiment2_slots")
+    run_id, results_dir, raw_predictions_path = init_run(
+        run_config,
+        "experiment2_raw_predictions.jsonl",
+    )
     items = pd.read_json(run_config.dataset_path, lines=True)
     existing_records = normalize_existing_predictions(raw_predictions_path)
     completed = set(
@@ -32,8 +38,9 @@ async def run_experiment2(*, run_config: RunConfig) -> Path:
             index=False, name=None
         )
     )
+    rate_limiter = RequestRateLimiter(run_config.requests_per_minute)
     print(
-        f"[{datetime.now().isoformat(timespec='seconds')}] [nlu_eval] starting experiment2 run_id={run_id} items={len(items)} repeats={run_config.repeats}",
+        f"[{datetime.now().isoformat(timespec='seconds')}] [nlu_eval] starting experiment2 run_id={run_id} items={len(items)} repeats={run_config.repeats} requests_per_minute={run_config.requests_per_minute or 'none'}",
         flush=True,
     )
     if completed:
@@ -66,6 +73,7 @@ async def run_experiment2(*, run_config: RunConfig) -> Path:
                 item_id=item.id,
                 repeat_index=repeat_index,
             )
+            attempt_started = perf_counter()
             try:
                 record = await run_full_agent_once(
                     deps=deps,
@@ -74,6 +82,7 @@ async def run_experiment2(*, run_config: RunConfig) -> Path:
                     repeat_index=repeat_index,
                     operator_question=item.operator_question,
                     caller_utterance=item.caller_utterance,
+                    rate_limiter=rate_limiter,
                 )
             except Exception as exc:
                 print(
@@ -82,7 +91,14 @@ async def run_experiment2(*, run_config: RunConfig) -> Path:
                     f"error={type(exc).__name__}: {exc}",
                     flush=True,
                 )
-                raise
+                record = build_parse_error_record(
+                    experiment_id=run_config.experiment_id,
+                    system_id=FULL_AGENT_ID,
+                    item_id=item.id,
+                    repeat_index=repeat_index,
+                    exc=exc,
+                    latency_ms=(perf_counter() - attempt_started) * 1000,
+                )
             append_jsonl(raw_predictions_path, record)
             completed.add(key)
             message = (
@@ -104,9 +120,7 @@ async def run_experiment2(*, run_config: RunConfig) -> Path:
             "raw_predictions": str(raw_predictions_path),
         },
     }
-    summaries_dir = results_dir / "summaries"
-    summaries_dir.mkdir(parents=True, exist_ok=True)
-    (summaries_dir / "experiment2_summary.json").write_text(
+    (results_dir / "experiment2_summary.json").write_text(
         json.dumps(summary, indent=2, default=str),
         encoding="utf-8",
     )
@@ -121,7 +135,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-config", required=True, type=Path)
     args = parser.parse_args()
-    run_config = RunConfig.model_validate(json.loads(args.run_config.read_text(encoding="utf-8")))
+    run_config = RunConfig.model_validate(
+        json.loads(args.run_config.read_text(encoding="utf-8"))
+    )
     results_dir = asyncio.run(run_experiment2(run_config=run_config))
     print(results_dir)
     return 0

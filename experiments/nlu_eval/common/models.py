@@ -23,6 +23,7 @@ class RunConfig(BaseModel):
     results_root: Path = Path("experiments/nlu_eval/results")
     repeats: int = 5
     run_id: str | None = None
+    requests_per_minute: int | None = None
 
 
 class PredictionRecord(BaseModel):
@@ -37,7 +38,7 @@ class PredictionRecord(BaseModel):
     predicted_medical_state: SparseMedicalState = Field(default_factory=dict)
     predicted_non_medical_state: SparseNonMedicalState = Field(default_factory=dict)
     predicted_outcome: OutcomeLabel = None
-    raw_output: dict[str, Any] | str | None = None
+    raw_output: dict[str, Any] = Field(default_factory=dict)
     latency_ms: float = 0.0
     token_usage: dict[str, Any] | None = None
     scoring_notes: list[str] = Field(default_factory=list)

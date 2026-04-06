@@ -23,7 +23,9 @@ It is not intended for comparing different foundation models against each other.
 - `experiment1.py`: Experiment 1 entrypoint
 - `experiment2.py`: Experiment 2 entrypoint
 - `METRICS.md`: metric definitions, calculation details, and interpretation notes
-- `results/`: raw predictions, summaries, and per-run artifacts
+- `results/`: per-run artifacts. Each `results/<run_id>/` directory contains
+  `manifest.json`, one `experiment*_raw_predictions.jsonl`, and one
+  `experiment*_summary.json`.
 
 ## Dataset Contract
 
@@ -41,8 +43,10 @@ the JSONL files.
 Config files are JSON rather than YAML so the benchmark can use the repo's
 existing standard-library JSON tooling without adding a new parser dependency.
 
-The runner uses a single shared runtime configuration per run. Experiment 1
-always evaluates the fixed pair of system variants:
+The runner uses a single shared runtime configuration per run. Configs may set
+`requests_per_minute` to proactively cap model calls for the run before any
+provider-side `429` is observed. Experiment 1 always evaluates the fixed pair of
+system variants:
 
 - `full_agent`
 - `outcome_baseline`

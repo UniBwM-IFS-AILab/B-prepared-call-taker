@@ -29,9 +29,17 @@ from email.utils import parsedate_to_datetime
 from time import monotonic
 from typing import Any
 
-from httpx._client import AsyncBaseTransport, AsyncClient, AsyncHTTPTransport, Request, Response
+import httpx
+from httpx._client import (
+    AsyncBaseTransport,
+    AsyncClient,
+    AsyncHTTPTransport,
+    Request,
+    Response,
+)
 from httpx._exceptions import HTTPStatusError
 from pydantic_ai.agent import Agent
+from pydantic_ai.exceptions import ModelAPIError
 from pydantic_ai.models import Model, infer_model
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
@@ -39,8 +47,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.retries import RetryConfig
 from pydantic_ai.settings import ModelSettings
 from tenacity import retry
-from tenacity.retry import retry_if_exception_type
-from tenacity.stop import stop_never
+from tenacity.retry import retry_if_exception
 from tenacity.wait import wait_exponential
 
 # Custom provider prefixes that need special handling
@@ -49,6 +56,68 @@ _OPENWEBUI_PREFIX = "openwebui:"
 
 logger = logging.getLogger(__name__)
 _FALLBACK_WAIT = wait_exponential(multiplier=1, max=60)
+_MAX_TRANSIENT_ATTEMPTS = 3
+_DEFAULT_REQUEST_TIMEOUT = httpx.Timeout(connect=30.0, read=300.0, write=30.0, pool=30.0)
+
+
+class RequestRateLimiter:
+    """Coordinate a shared requests-per-minute budget across model clients."""
+
+    def __init__(self, requests_per_minute: int | None = None):
+        if requests_per_minute is not None and requests_per_minute <= 0:
+            raise ValueError("requests_per_minute must be positive")
+        self._requests_per_minute = requests_per_minute
+        self._request_timestamps: deque[float] = deque()
+        self._rate_limit_lock = asyncio.Lock()
+
+    @property
+    def requests_per_minute(self) -> int | None:
+        return self._requests_per_minute
+
+    def maybe_reduce_limit(self, requests_per_minute: int | None) -> int | None:
+        if requests_per_minute is None:
+            return self._requests_per_minute
+        if requests_per_minute <= 0:
+            raise ValueError("requests_per_minute must be positive")
+        if (
+            self._requests_per_minute is None
+            or requests_per_minute < self._requests_per_minute
+        ):
+            self._requests_per_minute = requests_per_minute
+        return self._requests_per_minute
+
+    def _prune_request_timestamps(self, now: float) -> None:
+        while self._request_timestamps and now - self._request_timestamps[0] >= 60:
+            self._request_timestamps.popleft()
+
+    def seconds_until_available_slot(self, now: float) -> float:
+        if self._requests_per_minute is None:
+            return 0.0
+        self._prune_request_timestamps(now)
+        if len(self._request_timestamps) < self._requests_per_minute:
+            return 0.0
+        required_expired_index = (
+            len(self._request_timestamps) - self._requests_per_minute
+        )
+        return max(self._request_timestamps[required_expired_index] + 60 - now, 0.0)
+
+    async def wait_for_available_slot(self) -> None:
+        if self._requests_per_minute is None:
+            self._request_timestamps.append(monotonic())
+            return
+        async with self._rate_limit_lock:
+            while True:
+                now = monotonic()
+                sleep_for = self.seconds_until_available_slot(now)
+                if sleep_for <= 0:
+                    self._request_timestamps.append(now)
+                    return
+                timestamp = datetime.now().isoformat(timespec="seconds")
+                print(
+                    f"[{timestamp}] [provider_rate_limit] waiting {sleep_for:.0f}s to stay within active {self._requests_per_minute} RPM",
+                    flush=True,
+                )
+                await asyncio.sleep(sleep_for)
 
 
 def _extract_per_minute_quota_limit(body: str) -> int | None:
@@ -88,12 +157,21 @@ def _parse_retry_after_seconds(value: str | None) -> float | None:
     return max((retry_at - datetime.now(retry_at.tzinfo)).total_seconds(), 0.0)
 
 
-def _extract_retry_delay_seconds(body: str) -> float | None:
+def _get_google_error_payload(body: str) -> dict[str, Any] | None:
     try:
         payload = json.loads(body)
     except json.JSONDecodeError:
         return None
-    error = payload.get("error", {})
+    error = payload.get("error")
+    if isinstance(error, dict):
+        return error
+    return None
+
+
+def _extract_retry_delay_seconds(body: str) -> float | None:
+    error = _get_google_error_payload(body)
+    if error is None:
+        return None
     for detail in error.get("details", []):
         if detail.get("@type") != "type.googleapis.com/google.rpc.RetryInfo":
             continue
@@ -107,6 +185,43 @@ def _extract_retry_delay_seconds(body: str) -> float | None:
     return None
 
 
+def _has_google_rate_limit_details(body: str) -> bool:
+    error = _get_google_error_payload(body)
+    if error is None:
+        return False
+    for detail in error.get("details", []):
+        detail_type = detail.get("@type")
+        if detail_type in (
+            "type.googleapis.com/google.rpc.QuotaFailure",
+            "type.googleapis.com/google.rpc.RetryInfo",
+        ):
+            return True
+    return False
+
+
+def _response_indicates_rate_limit(status_code: int, body: str) -> bool:
+    if status_code == 429:
+        return True
+    error = _get_google_error_payload(body)
+    if error is None:
+        return False
+    status = str(error.get("status", "")).upper()
+    message = str(error.get("message", "")).lower()
+    if status == "RESOURCE_EXHAUSTED":
+        return True
+    if _has_google_rate_limit_details(body):
+        return "quota" in message or "too many requests" in message or status in {
+            "RESOURCE_EXHAUSTED",
+            "RATE_LIMIT_EXCEEDED",
+        }
+    return False
+
+
+def _is_rate_limit_http_error(exc: HTTPStatusError) -> bool:
+    body = getattr(exc, "response_body", "")
+    return _response_indicates_rate_limit(exc.response.status_code, body)
+
+
 def _retry_sleep_seconds(retry_state) -> float:
     exc = retry_state.outcome.exception()
     if isinstance(exc, HTTPStatusError):
@@ -114,10 +229,25 @@ def _retry_sleep_seconds(retry_state) -> float:
         if retry_after is not None:
             return retry_after
         headers = getattr(exc, "response_headers", dict(exc.response.headers))
-        parsed = _parse_retry_after_seconds(headers.get("retry-after") or headers.get("Retry-After"))
+        parsed = _parse_retry_after_seconds(
+            headers.get("retry-after") or headers.get("Retry-After")
+        )
         if parsed is not None:
             return parsed
     return _FALLBACK_WAIT(retry_state)
+
+
+def _should_retry_provider_exception(exc: BaseException) -> bool:
+    if isinstance(exc, HTTPStatusError):
+        return _is_rate_limit_http_error(exc)
+    return isinstance(exc, (httpx.TransportError, ConnectionError))
+
+
+def _stop_retrying_provider_exception(retry_state) -> bool:
+    exc = retry_state.outcome.exception()
+    if isinstance(exc, HTTPStatusError) and _is_rate_limit_http_error(exc):
+        return False
+    return retry_state.attempt_number >= _MAX_TRANSIENT_ATTEMPTS
 
 
 def _log_retry(retry_state):
@@ -154,74 +284,47 @@ def _log_retry(retry_state):
 class _RetryingLoggingTransport(AsyncBaseTransport):
     """Async transport with retry logging and captured response details."""
 
-    def __init__(self, config: RetryConfig, wrapped: AsyncBaseTransport | None = None):
+    def __init__(
+        self,
+        config: RetryConfig,
+        rate_limiter: RequestRateLimiter | None = None,
+        wrapped: AsyncBaseTransport | None = None,
+    ):
         self.config = config
         self.wrapped = wrapped or AsyncHTTPTransport()
-        self._requests_per_minute: int | None = None
-        self._request_timestamps: deque[float] = deque()
-        self._rate_limit_lock = asyncio.Lock()
+        self.rate_limiter = rate_limiter or RequestRateLimiter()
 
-    def _prune_request_timestamps(self, now: float) -> None:
-        while self._request_timestamps and now - self._request_timestamps[0] >= 60:
-            self._request_timestamps.popleft()
-
-    def _seconds_until_available_slot(self, now: float) -> float:
-        if self._requests_per_minute is None:
-            return 0.0
-        self._prune_request_timestamps(now)
-        if len(self._request_timestamps) < self._requests_per_minute:
-            return 0.0
-        required_expired_index = len(self._request_timestamps) - self._requests_per_minute
-        return max(self._request_timestamps[required_expired_index] + 60 - now, 0.0)
-
-    async def _wait_for_available_slot(self) -> None:
-        if self._requests_per_minute is None:
-            self._request_timestamps.append(monotonic())
+    def _capture_rate_limit_from_error(self, exc: HTTPStatusError) -> None:
+        if not _is_rate_limit_http_error(exc):
             return
-        async with self._rate_limit_lock:
-            while True:
-                now = monotonic()
-                sleep_for = self._seconds_until_available_slot(now)
-                if sleep_for <= 0:
-                    self._request_timestamps.append(now)
-                    return
-                timestamp = datetime.now().isoformat(timespec="seconds")
-                print(
-                    f"[{timestamp}] [provider_rate_limit] waiting {sleep_for:.0f}s to stay within learned {self._requests_per_minute} RPM",
-                    flush=True,
-                )
-                await asyncio.sleep(sleep_for)
-
-    def _capture_quota_from_error(self, exc: HTTPStatusError) -> None:
         response_body = getattr(exc, "response_body", "")
         retry_delay = _extract_retry_delay_seconds(response_body)
         if retry_delay is not None:
             exc.retry_after_seconds = retry_delay
         rpm_limit = _extract_per_minute_quota_limit(response_body)
-        if rpm_limit is not None:
-            self._requests_per_minute = rpm_limit
-            exc.requests_per_minute = rpm_limit
+        active_limit = self.rate_limiter.maybe_reduce_limit(rpm_limit)
+        if active_limit is not None:
+            exc.requests_per_minute = active_limit
             exc.retry_after_seconds = max(
                 getattr(exc, "retry_after_seconds", 0.0),
-                self._seconds_until_available_slot(monotonic()),
+                self.rate_limiter.seconds_until_available_slot(monotonic()),
                 1.0,
             )
 
     async def handle_async_request(self, request: Request) -> Response:
         @retry(**self.config)
         async def handle(req: Request) -> Response:
-            await self._wait_for_available_slot()
+            await self.rate_limiter.wait_for_available_slot()
             response = await self.wrapped.handle_async_request(req)
             response.request = req
-            if response.status_code in (429, 502, 503, 504):
+            if response.is_error:
                 body_bytes = await response.aread()
                 try:
                     response.raise_for_status()
                 except HTTPStatusError as exc:
                     exc.response_headers = dict(response.headers)
                     exc.response_body = body_bytes.decode("utf-8", errors="replace")
-                    if response.status_code == 429:
-                        self._capture_quota_from_error(exc)
+                    self._capture_rate_limit_from_error(exc)
                     await response.aclose()
                     raise
             return response
@@ -394,23 +497,36 @@ def get_default_settings(overrides: dict[str, object] | None = None) -> ModelSet
     return default_settings
 
 
-def create_retrying_client():
+def create_retrying_client(
+    *,
+    requests_per_minute: int | None = None,
+    rate_limiter: RequestRateLimiter | None = None,
+    timeout: httpx.Timeout | None = None,
+):
     """Create a client with smart retry handling for multiple error types."""
+    if rate_limiter is None:
+        rate_limiter = RequestRateLimiter(requests_per_minute=requests_per_minute)
+    else:
+        rate_limiter.maybe_reduce_limit(requests_per_minute)
     transport = _RetryingLoggingTransport(
         config=RetryConfig(
-            # Retry on HTTP errors and connection issues
-            retry=retry_if_exception_type((HTTPStatusError, ConnectionError)),
+            # Retry rate limits indefinitely and retry generic transport failures a few times.
+            retry=retry_if_exception(_should_retry_provider_exception),
             # Respect provider quota signals first, then Retry-After, then exponential backoff.
             wait=_retry_sleep_seconds,
-            # Long benchmarks should wait through transient provider failures.
-            stop=stop_never,
+            # Let 429s wait as long as needed, but bound transport-error retries.
+            stop=_stop_retrying_provider_exception,
             # Re-raise the last exception if all retries fail
             reraise=True,
             # Log retry attempts
             after=_log_retry,
         ),
+        rate_limiter=rate_limiter,
     )
-    return AsyncClient(transport=transport, timeout=10.0)
+    return AsyncClient(
+        transport=transport,
+        timeout=timeout or _DEFAULT_REQUEST_TIMEOUT,
+    )
 
 
 def get_default_models(
@@ -460,6 +576,9 @@ def build_fallback_agent(
     model_overrides: list[str] | None = None,
     model_extras: list[str] | None = None,
     setting_overrides: dict[str, object] | None = None,
+    requests_per_minute: int | None = None,
+    rate_limiter: RequestRateLimiter | None = None,
+    request_timeout: httpx.Timeout | None = None,
     **kwargs: Any,
 ) -> Agent[Any, Any]:
     """Build a FallbackModel agent with default models and settings.
@@ -473,11 +592,18 @@ def build_fallback_agent(
     """
     from pydantic_ai.models.fallback import FallbackModel
 
-    http_client = create_retrying_client()
+    http_client = create_retrying_client(
+        requests_per_minute=requests_per_minute,
+        rate_limiter=rate_limiter,
+        timeout=request_timeout,
+    )
     default_models = get_default_models(
         overrides=model_overrides, extras=model_extras, http_client=http_client
     )
-    fallback_model = FallbackModel(*default_models)
+    fallback_model = FallbackModel(
+        *default_models,
+        fallback_on=(ModelAPIError, HTTPStatusError, httpx.TransportError, ConnectionError),
+    )
 
     settings: ModelSettings = get_default_settings(overrides=setting_overrides)
     return Agent(
