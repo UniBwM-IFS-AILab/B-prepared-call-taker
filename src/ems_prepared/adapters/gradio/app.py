@@ -16,14 +16,20 @@ import gradio as gr
 import requests
 from gradio import ChatMessage
 
-from ems_prepared.adapters.gradio.args import (
-    GradioAppArgs,
-)
-from ems_prepared.adapters.gradio.args import (
-    from_namespace as gradio_args_from_namespace,
-)
+from ems_prepared.adapters.gradio.args import GradioAppArgs
+from ems_prepared.adapters.gradio.args import from_namespace as gradio_args_from_namespace
 from ems_prepared.adapters.gradio.args import (
     register_arguments as register_gradio_arguments,
+)
+from ems_prepared.adapters.gradio.components import (
+    CallStepView,
+    ContextPanelView,
+    IntroStepView,
+    SurveyStepView,
+    build_chat_section,
+    build_context_panel,
+    build_intro_section,
+    build_survey_section,
 )
 from ems_prepared.adapters.gradio.core import (
     COMPLETION_MESSAGE,
@@ -46,7 +52,23 @@ logger = logging.getLogger(__name__)
 
 GRADIO_CSS = """
     .icon-button-wrapper.top-panel { display: none !important; }
-    #chat_walkthrough > div:first-child { display: none !important; }
+
+    .guided-outer-walkthrough {
+        margin-bottom: 0.75rem;
+    }
+
+    .guided-phase > .guidance {
+        margin-bottom: 0.75rem;
+    }
+
+    .guided-call-status {
+        margin-bottom: 0.5rem;
+    }
+
+    .guided-continue-button[disabled],
+    .guided-continue-button:disabled {
+        display: none !important;
+    }
 
     #session_info_display {
         position: fixed !important;
@@ -81,29 +103,21 @@ class ActiveSession(TypedDict):
 
 
 @dataclass(slots=True)
-class DemoUI:
-    """Collection of key Gradio components used for event wiring."""
+class StandardDemoUI:
+    """Collection of standard-mode components used for event wiring."""
 
     demo: gr.Blocks
     walkthrough: gr.Walkthrough
     md_picker: gr.Dropdown
-    chatbot: gr.Chatbot
-    input_box: gr.Textbox
-    send: gr.Button
-    reset: gr.Button
-    next_step_1: gr.Button
-    next_step_2: gr.Button
-    next_step_3: gr.Button
-    md_view: gr.Markdown
     session_info_display: gr.Markdown
     active_session_state: gr.State
     initial_events_state: gr.State
     user_msg_state: gr.State
     user_id_state: gr.BrowserState
-    survey_radios: list[gr.Radio]
-    survey_feedback: gr.Textbox
-    survey_submit: gr.Button
-    survey_thanks: gr.Markdown
+    intro: IntroStepView
+    context: ContextPanelView
+    chat: CallStepView
+    survey: SurveyStepView
 
 
 async def stream_message_to_history(
@@ -137,7 +151,8 @@ async def stream_backend_events(
         for event in events:
             if event.kind == "completed":
                 async for updated_history in stream_message_to_history(
-                    history, COMPLETION_MESSAGE
+                    history,
+                    COMPLETION_MESSAGE,
                 ):
                     yield updated_history
                 continue
@@ -152,7 +167,8 @@ async def stream_backend_events(
             if not text.strip():
                 continue
             async for updated_history in stream_message_to_history(
-                history, ChatMessage(role="assistant", content=text)
+                history,
+                ChatMessage(role="assistant", content=text),
             ):
                 yield updated_history
     except Exception as ex:
@@ -164,17 +180,16 @@ async def stream_backend_events(
             error_msg,
             traceback.format_exc(),
         )
-        history.append(
-            ChatMessage(
-                role="assistant",
-                content="❌ **Fatal Error**\n\nPlease click 'Reset session' to recover.",
-            )
+        fatal_message = ChatMessage(
+            role="assistant",
+            content="❌ **Fatal Error**\n\nPlease click 'Reset session' to recover.",
         )
+        history.append(fatal_message)
         gr.Error(error_msg, duration=None)
         yield history
 
 
-async def _bot_respond(
+async def bot_respond(
     history: list[ChatMessageDict | ChatMessage],
     session_data: ActiveSession | None,
     user_msg: str,
@@ -262,7 +277,7 @@ def format_session_info(
     )
 
 
-def _session_info_text(args: GradioAppArgs, **kwargs: str | None) -> str:
+def session_info_text(args: GradioAppArgs, **kwargs: str | None) -> str:
     """Bind `format_session_info` defaults to the active Gradio args."""
     return format_session_info(
         **kwargs,
@@ -271,7 +286,90 @@ def _session_info_text(args: GradioAppArgs, **kwargs: str | None) -> str:
     )
 
 
-def _set_input_and_controls(
+def history_is_complete(history) -> bool:
+    """Check whether the chat history already contains the completion marker."""
+    items = getattr(history, "root", history)
+    for item in reversed(list(items)):
+        metadata = None
+        content = None
+        if isinstance(item, dict):
+            maybe_metadata = item.get("metadata")
+            if isinstance(maybe_metadata, dict):
+                metadata = maybe_metadata
+            maybe_content = item.get("content")
+            if isinstance(maybe_content, str):
+                content = maybe_content
+        elif isinstance(item, ChatMessage):
+            if isinstance(item.metadata, dict):
+                metadata = item.metadata
+            if isinstance(item.content, str):
+                content = item.content
+        else:
+            maybe_metadata = getattr(item, "metadata", None)
+            if isinstance(maybe_metadata, dict):
+                metadata = maybe_metadata
+            maybe_content = getattr(item, "content", None)
+            if isinstance(maybe_content, str):
+                content = maybe_content
+            elif isinstance(maybe_content, list):
+                text_parts = [
+                    part.text
+                    for part in maybe_content
+                    if isinstance(getattr(part, "text", None), str)
+                ]
+                if text_parts:
+                    content = "\n".join(text_parts)
+
+        if metadata and metadata.get("id") == "completion_message":
+            return True
+        if content and content.strip() == COMPLETION_MESSAGE.content:
+            return True
+    return False
+
+
+def resolve_or_create_user_id(stored_user_id: str) -> UUID:
+    """Resolve a persisted browser user ID or create a fresh UUID."""
+    if stored_user_id:
+        try:
+            return UUID(stored_user_id)
+        except ValueError:
+            logger.warning("Invalid stored user_id: %s, generating new", stored_user_id)
+    return uuid4()
+
+
+def resolve_session_user_id(stored_user_id: str, forced_user_id: int) -> UUID | None:
+    """Resolve the user ID used for session creation."""
+    if forced_user_id:
+        return UUID(int=forced_user_id)
+    if stored_user_id:
+        try:
+            return UUID(stored_user_id)
+        except ValueError:
+            logger.warning(
+                "Invalid stored user_id: %s, generating new one", stored_user_id
+            )
+    return None
+
+
+def initialize_user_id(
+    stored_user_id: str,
+    scenario_name: str | None,
+    *,
+    args: GradioAppArgs,
+):
+    """Initialize browser user ID and debug session info."""
+    user_id = resolve_or_create_user_id(stored_user_id)
+    return str(user_id), gr.update(
+        value=session_info_text(
+            args,
+            user_id=str(user_id),
+            scenario=scenario_name,
+        ),
+        visible=args.is_debug_enabled(),
+    )
+
+
+def set_input_and_controls(
     *,
     input_enabled: bool,
     controls_enabled: bool,
@@ -287,33 +385,7 @@ def _set_input_and_controls(
     )
 
 
-def _initialize_user_id(
-    stored_user_id: str,
-    scenario_name: str | None,
-    *,
-    args: GradioAppArgs,
-):
-    """Initialize user_id on page load, creating one if needed."""
-    if stored_user_id:
-        try:
-            user_id = UUID(stored_user_id)
-        except ValueError:
-            logger.warning("Invalid stored user_id: %s, generating new", stored_user_id)
-            user_id = uuid4()
-    else:
-        user_id = uuid4()
-
-    return str(user_id), gr.update(
-        value=_session_info_text(
-            args,
-            user_id=str(user_id),
-            scenario=scenario_name,
-        ),
-        visible=args.is_debug_enabled(),
-    )
-
-
-async def _start_session(
+async def start_standard_session(
     scenario_name: str | None,
     stored_user_id: str,
     old_session: ActiveSession | None,
@@ -321,7 +393,7 @@ async def _start_session(
     session_manager: SessionManager,
     args: GradioAppArgs,
 ):
-    """Initialize session and prepare to switch to chat step."""
+    """Initialize one standard-mode session and switch to chat."""
     if old_session is not None:
         _ = await session_manager.end_session(UUID(old_session["session_id"]))
 
@@ -330,17 +402,7 @@ async def _start_session(
         selected_scenario = get_random_scenario(scenario_dir=args.scenario_dir)
         logger.info("Random scenario selection: chose '%s'", selected_scenario)
 
-    user_id: UUID | None = None
-    if args.user_id:
-        user_id = UUID(int=args.user_id)
-    elif stored_user_id:
-        try:
-            user_id = UUID(stored_user_id)
-        except ValueError:
-            logger.warning(
-                "Invalid stored user_id: %s, generating new one", stored_user_id
-            )
-
+    user_id = resolve_session_user_id(stored_user_id, args.user_id)
     policy_setting = args.resolve_policy()
     experiment_name = args.experiment_name or ""
     try:
@@ -364,11 +426,11 @@ async def _start_session(
         }
 
         info_update = gr.update(
-            value=_session_info_text(
+            value=session_info_text(
                 args,
                 user_id=active["user_id"],
                 session_id=active["session_id"],
-                scenario=selected_scenario,
+                scenario=active["scenario_name"],
                 experiment_name=active["experiment_name"],
                 policy=active["policy_name"],
             ),
@@ -393,13 +455,13 @@ async def _start_session(
         raise
 
 
-async def _stream_initial_events(history: list, events: list[BackendEvent]):
+async def stream_initial_events(history: list, events: list[BackendEvent]):
     """Stream initial greeting events from the session manager."""
     async for updated in stream_backend_events(history=history, events=events):
         yield updated
 
 
-async def _reset_session(
+async def reset_standard_session(
     old_session: ActiveSession | None,
     user_id: str,
     scenario_name: str | None,
@@ -407,7 +469,7 @@ async def _reset_session(
     session_manager: SessionManager,
     args: GradioAppArgs,
 ):
-    """Reset the active session and restore initial UI state."""
+    """Reset the active session and restore initial standard-mode UI state."""
     num_radios = len(DEFAULT_SURVEY.questions)
     if old_session is None:
         return (
@@ -424,7 +486,7 @@ async def _reset_session(
 
     _ = await session_manager.end_session(UUID(old_session["session_id"]))
     info_update = gr.update(
-        value=_session_info_text(
+        value=session_info_text(
             args,
             user_id=user_id,
             scenario=scenario_name,
@@ -444,7 +506,7 @@ async def _reset_session(
     )
 
 
-def _update_scenario_view(
+def update_scenario_view(
     scenario_name: str | None,
     user_id: str,
     *,
@@ -457,7 +519,7 @@ def _update_scenario_view(
             scenario_dir=args.scenario_dir,
         ),
         gr.update(
-            value=_session_info_text(
+            value=session_info_text(
                 args,
                 user_id=user_id,
                 scenario=scenario_name,
@@ -467,20 +529,20 @@ def _update_scenario_view(
     )
 
 
-def _capture_user_submit(
+def capture_standard_user_submit(
     user_message: str,
     history: list,
     *,
     picker_interactive: bool,
 ):
-    """Append user message and disable controls while processing the turn."""
+    """Append a caller message and disable controls while processing."""
     if not user_message or not user_message.strip():
         return None, history, gr.skip(), gr.skip(), gr.skip(), gr.skip()
     history.append(ChatMessage(role="user", content=user_message))
     return (
         user_message,
         history,
-        *_set_input_and_controls(
+        *set_input_and_controls(
             input_enabled=False,
             controls_enabled=False,
             picker_interactive=picker_interactive,
@@ -488,19 +550,13 @@ def _capture_user_submit(
     )
 
 
-def _restore_controls_after_response(
+def restore_standard_controls_after_response(
     history: list[ChatMessageDict | ChatMessage],
     *,
     picker_interactive: bool,
 ):
-    """Enable controls after response unless conversation is complete."""
-    metadata = None
-    last_item = history[-1] if history else None
-    if isinstance(last_item, dict):
-        maybe_metadata = last_item.get("metadata")
-        if isinstance(maybe_metadata, dict):
-            metadata = maybe_metadata
-    is_complete = bool(metadata and metadata.get("id") == "completion_message")
+    """Enable controls after response unless the conversation is complete."""
+    is_complete = history_is_complete(history)
     return (
         *set_input_interactive(not is_complete),
         gr.update(visible=not is_complete, interactive=not is_complete),
@@ -509,12 +565,12 @@ def _restore_controls_after_response(
     )
 
 
-def _check_all_survey_answers(*values):
+def check_all_survey_answers(*values):
     """Enable submit only when all survey questions are answered."""
     return gr.update(interactive=all(value is not None for value in values))
 
 
-async def _save_survey(
+async def save_standard_survey(
     session_data: ActiveSession | None,
     feedback: str,
     *responses,
@@ -527,11 +583,11 @@ async def _save_survey(
             *[gr.update() for _ in responses],
             gr.update(),
             gr.update(),
+            gr.update(visible=True),
             gr.update(
-                visible=True,
                 value="### ⚠️ Session expired. Please start a new session.",
             ),
-            gr.update(visible=True),
+            gr.update(value="Start New Session ->", interactive=True),
         )
 
     response = [
@@ -543,7 +599,6 @@ async def _save_survey(
         }
         for question, score in zip(DEFAULT_SURVEY.questions, responses)
     ]
-
     normalized_feedback = feedback.strip() if feedback and feedback.strip() else None
 
     try:
@@ -558,11 +613,11 @@ async def _save_survey(
             *[gr.update() for _ in responses],
             gr.update(),
             gr.update(),
+            gr.update(visible=True),
             gr.update(
-                visible=True,
                 value="### ⚠️ Session expired. Please start a new session.",
             ),
-            gr.update(visible=True),
+            gr.update(value="Start New Session ->", interactive=True),
         )
     logger.info("Survey saved for session %s", session_data["session_id"])
 
@@ -571,12 +626,13 @@ async def _save_survey(
         gr.update(interactive=False),
         gr.update(interactive=False),
         gr.update(visible=True),
-        gr.update(visible=True),
+        gr.update(value="### ✓ Thank you for your feedback!"),
+        gr.update(value="Start New Session ->", interactive=True),
     )
 
 
-def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Blocks:
-    """Build and return the Gradio Blocks app with injected dependencies."""
+def build_standard_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Blocks:
+    """Build the existing single-scenario Gradio demo."""
     scenario_choices = list_md_files(scenario_dir=args.scenario_dir)
     initial_scenario = scenario_choices[0] if scenario_choices else None
 
@@ -593,11 +649,9 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
         user_msg_state = gr.State(value="")
         user_id_state = gr.BrowserState(default_value="", storage_key="ems_user_id")
 
-        with gr.Row():
-            with gr.Column(scale=2):
-                with gr.Walkthrough(
-                    selected=1, elem_id="chat_walkthrough"
-                ) as walkthrough:
+        with gr.Row(equal_height=False):
+            with gr.Column(scale=8):
+                with gr.Walkthrough(selected=1, elem_id="chat_walkthrough") as walkthrough:
                     with gr.Step("Scenario Selection", id=1):
                         md_picker = gr.Dropdown(
                             choices=scenario_choices,
@@ -607,136 +661,94 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
                             allow_custom_value=False,
                             filterable=False,
                         )
-                        gr.Markdown(
-                            """
+                        intro = build_intro_section(
+                            intro_markdown="""
                             ### ⚠️ Before You Begin
 
                             #### Please read the scenario description on the right carefully.
 
                             Once you understand the scenario, click the button below to start the emergency call simulation.
-                            """
-                        )
-                        next_step_1 = gr.Button(
-                            "Start Emergency Call",
-                            variant="secondary",
-                            size="lg",
+                            """,
+                            start_label="Start Emergency Call",
+                            button_variant="secondary",
                         )
 
                     with gr.Step("Emergency Call", id=2):
-                        chatbot = gr.Chatbot(
-                            height="60vh",
-                            label="112",
-                            group_consecutive_messages=False,
-                        )
-                        with gr.Row():
-                            input_box = gr.Textbox(
-                                placeholder="Type your message and press Enter…",
-                                show_label=False,
-                                scale=4,
-                                max_lines=5,
-                                interactive=False,
-                            )
-                            send = gr.Button(
-                                "Send", variant="primary", scale=1, interactive=False
-                            )
-                        reset = gr.Button("Reset session", variant="secondary")
-                        next_step_2 = gr.Button(
-                            "Continue to Survey", variant="primary", visible=False
+                        chat = build_chat_section(
+                            reset_label="Reset session",
+                            continue_label="Continue to Survey",
                         )
 
                     with gr.Step("Survey", id=3):
-                        gr.Markdown(
-                            """
+                        survey = build_survey_section(
+                            survey=DEFAULT_SURVEY,
+                            intro_markdown="""
                             ### Please rate your experience
 
                             Your feedback helps us improve the emergency call system.
                             All questions are required.
-                            """
-                        )
-                        survey_radios: list[gr.Radio] = []
-                        for q in DEFAULT_SURVEY.questions:
-                            radio = gr.Radio(
-                                choices=DEFAULT_SURVEY.get_choices(),
-                                label=q.text,
-                                type="value",
-                                interactive=True,
-                            )
-                            survey_radios.append(radio)
-
-                        survey_feedback = gr.Textbox(
-                            label="Additional feedback (optional)",
-                            placeholder="Share any additional comments about your experience...",
-                            lines=3,
-                            max_lines=6,
-                            interactive=True,
+                            """,
+                            feedback_label="Additional feedback (optional)",
+                            feedback_placeholder="Share any additional comments about your experience...",
+                            submit_label="Submit Survey",
+                            thanks_markdown="### ✓ Thank you for your feedback!",
+                            restart_label="Start New Session ->",
                         )
 
-                        survey_submit = gr.Button(
-                            "Submit Survey", variant="primary", interactive=False
-                        )
-                        survey_thanks = gr.Markdown(
-                            "### ✓ Thank you for your feedback!",
-                            visible=False,
-                        )
-                        next_step_3 = gr.Button(
-                            "Start New Session →", variant="primary", visible=False
-                        )
-
-            with gr.Column(scale=2):
-                md_view = gr.Markdown(
-                    construct_scenario_desc(
+            with gr.Column(scale=4):
+                context = build_context_panel(
+                    scenario_markdown=construct_scenario_desc(
                         initial_scenario,
                         scenario_dir=args.scenario_dir,
                     )
                 )
 
         session_info_display = gr.Markdown(
-            _session_info_text(args),
+            session_info_text(args),
             visible=args.is_debug_enabled(),
             elem_id="session_info_display",
         )
 
-    ui = DemoUI(
+    ui = StandardDemoUI(
         demo=demo,
         walkthrough=walkthrough,
         md_picker=md_picker,
-        chatbot=chatbot,
-        input_box=input_box,
-        send=send,
-        reset=reset,
-        next_step_1=next_step_1,
-        next_step_2=next_step_2,
-        next_step_3=next_step_3,
-        md_view=md_view,
         session_info_display=session_info_display,
         active_session_state=active_session_state,
         initial_events_state=initial_events_state,
         user_msg_state=user_msg_state,
         user_id_state=user_id_state,
-        survey_radios=survey_radios,
-        survey_feedback=survey_feedback,
-        survey_submit=survey_submit,
-        survey_thanks=survey_thanks,
+        intro=intro,
+        context=context,
+        chat=chat,
+        survey=survey,
     )
 
-    respond_with_manager = partial(_bot_respond, session_manager=session_manager)
-    on_initialize_user_id = partial(_initialize_user_id, args=args)
+    assert ui.chat.continue_button is not None
+    assert ui.survey.restart_button is not None
+
+    respond_with_manager = partial(bot_respond, session_manager=session_manager)
+    on_initialize_user_id = partial(initialize_user_id, args=args)
     on_start_session = partial(
-        _start_session, session_manager=session_manager, args=args
+        start_standard_session,
+        session_manager=session_manager,
+        args=args,
     )
     on_reset_session = partial(
-        _reset_session, session_manager=session_manager, args=args
+        reset_standard_session,
+        session_manager=session_manager,
+        args=args,
     )
-    on_update_scenario_view = partial(_update_scenario_view, args=args)
+    on_update_scenario_view = partial(update_scenario_view, args=args)
     on_capture_user_submit = partial(
-        _capture_user_submit,
+        capture_standard_user_submit,
         picker_interactive=args.picker_interactive,
     )
     on_restore_controls = partial(
-        _restore_controls_after_response,
+        restore_standard_controls_after_response,
         picker_interactive=args.picker_interactive,
     )
-    on_save_survey = partial(_save_survey, session_manager=session_manager)
+    on_save_survey = partial(save_standard_survey, session_manager=session_manager)
 
     with ui.demo:
         ui.demo.load(
@@ -746,24 +758,24 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
         )
 
         confirm_event = (
-            ui.next_step_1.click(
+            ui.intro.start_button.click(
                 on_start_session,
                 inputs=[ui.md_picker, ui.user_id_state, ui.active_session_state],
                 outputs=[
                     ui.active_session_state,
                     ui.initial_events_state,
                     ui.user_id_state,
-                    ui.chatbot,
+                    ui.chat.chatbot,
                     ui.session_info_display,
                 ],
             )
             .then(
-                lambda: _set_input_and_controls(
+                lambda: set_input_and_controls(
                     input_enabled=False,
                     controls_enabled=False,
                     picker_interactive=args.picker_interactive,
                 ),
-                outputs=[ui.input_box, ui.send, ui.reset, ui.md_picker],
+                outputs=[ui.chat.input_box, ui.chat.send, ui.chat.reset, ui.md_picker],
             )
             .then(
                 lambda: gr.Walkthrough(selected=2),
@@ -772,45 +784,46 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
         )
 
         greeting_event = confirm_event.then(
-            _stream_initial_events,
-            inputs=[ui.chatbot, ui.initial_events_state],
-            outputs=[ui.chatbot],
+            stream_initial_events,
+            inputs=[ui.chat.chatbot, ui.initial_events_state],
+            outputs=[ui.chat.chatbot],
         ).then(
             lambda: [],
             outputs=[ui.initial_events_state],
         )
 
         greeting_event.success(
-            lambda: _set_input_and_controls(
+            lambda: set_input_and_controls(
                 input_enabled=True,
                 controls_enabled=True,
                 picker_interactive=args.picker_interactive,
             ),
-            outputs=[ui.input_box, ui.send, ui.reset, ui.md_picker],
+            outputs=[ui.chat.input_box, ui.chat.send, ui.chat.reset, ui.md_picker],
         )
 
         greeting_event.failure(
-            lambda: _set_input_and_controls(
+            lambda: set_input_and_controls(
                 input_enabled=False,
                 controls_enabled=True,
                 picker_interactive=args.picker_interactive,
             ),
-            outputs=[ui.input_box, ui.send, ui.reset, ui.md_picker],
+            outputs=[ui.chat.input_box, ui.chat.send, ui.chat.reset, ui.md_picker],
         )
 
-        gr.on(  # pyright: ignore[reportArgumentType]
-            triggers=[ui.reset.click],  # pyright: ignore[reportArgumentType]
+        gr.on(
+            triggers=[ui.chat.reset.click],
             fn=on_reset_session,
             inputs=[ui.active_session_state, ui.user_id_state, ui.md_picker],
             outputs=[
                 ui.active_session_state,
                 ui.initial_events_state,
-                ui.chatbot,
-                *ui.survey_radios,
-                ui.survey_feedback,
-                ui.survey_submit,
-                ui.survey_thanks,
-                ui.next_step_3,
+                ui.chat.chatbot,
+                *ui.survey.survey_radios,
+                ui.survey.survey_feedback,
+                ui.survey.survey_submit,
+                ui.survey.completion_group,
+                ui.survey.survey_thanks,
+                ui.survey.restart_button,
                 ui.session_info_display,
             ],
             queue=False,
@@ -820,98 +833,100 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
                 gr.update(visible=False),
                 gr.Walkthrough(selected=1),
             ),
-            outputs=[ui.reset, ui.next_step_2, ui.walkthrough],
+            outputs=[ui.chat.reset, ui.chat.continue_button, ui.walkthrough],
         )
 
         ui.md_picker.input(
             on_update_scenario_view,
             inputs=[ui.md_picker, ui.user_id_state],
-            outputs=[ui.md_view, ui.session_info_display],
+            outputs=[ui.context.scenario_markdown, ui.session_info_display],
         )
 
-        ui.input_box.input(
-            lambda text: gr.update(interactive=bool(text and text.strip())),
-            inputs=[ui.input_box],
-            outputs=[ui.send],
-        )
+        ui.chat.bind_send_interactivity()
 
         submit_event = (
-            gr.on(  # pyright: ignore[reportArgumentType]
-                triggers=[ui.input_box.submit, ui.send.click],  # pyright: ignore[reportArgumentType]
+            gr.on(
+                triggers=ui.chat.submit_triggers(),
                 fn=lambda: None,
             )
             .then(
                 on_capture_user_submit,
-                inputs=[ui.input_box, ui.chatbot],
+                inputs=[ui.chat.input_box, ui.chat.chatbot],
                 outputs=[
                     ui.user_msg_state,
-                    ui.chatbot,
-                    ui.input_box,
-                    ui.send,
-                    ui.reset,
+                    ui.chat.chatbot,
+                    ui.chat.input_box,
+                    ui.chat.send,
+                    ui.chat.reset,
                     ui.md_picker,
                 ],
             )
             .then(
                 respond_with_manager,
-                inputs=[ui.chatbot, ui.active_session_state, ui.user_msg_state],
-                outputs=[ui.chatbot],
+                inputs=[ui.chat.chatbot, ui.active_session_state, ui.user_msg_state],
+                outputs=[ui.chat.chatbot],
             )
         )
 
         submit_event.then(
             on_restore_controls,
-            inputs=[ui.chatbot],
-            outputs=[ui.input_box, ui.send, ui.reset, ui.md_picker, ui.next_step_2],
+            inputs=[ui.chat.chatbot],
+            outputs=[
+                ui.chat.input_box,
+                ui.chat.send,
+                ui.chat.reset,
+                ui.md_picker,
+                ui.chat.continue_button,
+            ],
         ).failure(
-            lambda: _set_input_and_controls(
+            lambda: set_input_and_controls(
                 input_enabled=False,
                 controls_enabled=True,
                 picker_interactive=args.picker_interactive,
             ),
-            outputs=[ui.input_box, ui.send, ui.reset, ui.md_picker],
+            outputs=[ui.chat.input_box, ui.chat.send, ui.chat.reset, ui.md_picker],
         )
 
-        gr.on(  # pyright: ignore[reportArgumentType]
-            triggers=[radio.change for radio in ui.survey_radios],  # pyright: ignore[reportArgumentType]
-            fn=_check_all_survey_answers,
-            inputs=ui.survey_radios,
-            outputs=ui.survey_submit,
-            queue=False,
-            trigger_mode="always_last",
-            concurrency_limit=1,
+        ui.survey.bind_validation(
+            fn=check_all_survey_answers,
             concurrency_id="survey_validation",
         )
 
-        ui.survey_submit.click(
+        ui.survey.survey_submit.click(
             on_save_survey,
-            inputs=[ui.active_session_state, ui.survey_feedback, *ui.survey_radios],
+            inputs=[
+                ui.active_session_state,
+                ui.survey.survey_feedback,
+                *ui.survey.survey_radios,
+            ],
             outputs=[
-                *ui.survey_radios,
-                ui.survey_feedback,
-                ui.survey_submit,
-                ui.survey_thanks,
-                ui.next_step_3,
+                *ui.survey.survey_radios,
+                ui.survey.survey_feedback,
+                ui.survey.survey_submit,
+                ui.survey.completion_group,
+                ui.survey.survey_thanks,
+                ui.survey.restart_button,
             ],
         )
 
-        ui.next_step_2.click(
+        ui.chat.continue_button.click(
             lambda: gr.Walkthrough(selected=3),
             outputs=ui.walkthrough,
         )
 
-        ui.next_step_3.click(
+        ui.survey.restart_button.click(
             on_reset_session,
             inputs=[ui.active_session_state, ui.user_id_state, ui.md_picker],
             outputs=[
                 ui.active_session_state,
                 ui.initial_events_state,
-                ui.chatbot,
-                *ui.survey_radios,
-                ui.survey_feedback,
-                ui.survey_submit,
-                ui.survey_thanks,
-                ui.next_step_3,
+                ui.chat.chatbot,
+                *ui.survey.survey_radios,
+                ui.survey.survey_feedback,
+                ui.survey.survey_submit,
+                ui.survey.completion_group,
+                ui.survey.survey_thanks,
+                ui.survey.restart_button,
                 ui.session_info_display,
             ],
         ).then(
@@ -921,10 +936,19 @@ def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Block
                 gr.update(interactive=args.picker_interactive),
                 gr.Walkthrough(selected=1),
             ),
-            outputs=[ui.reset, ui.next_step_2, ui.md_picker, ui.walkthrough],
+            outputs=[ui.chat.reset, ui.chat.continue_button, ui.md_picker, ui.walkthrough],
         )
 
     return ui.demo
+
+
+def build_demo(session_manager: SessionManager, args: GradioAppArgs) -> gr.Blocks:
+    """Build the selected Gradio demo for the configured UI mode."""
+    if args.ui == "guided":
+        from ems_prepared.adapters.gradio.guided import build_guided_demo
+
+        return build_guided_demo(session_manager=session_manager, args=args)
+    return build_standard_demo(session_manager=session_manager, args=args)
 
 
 def _notify_share_url(share_url: str) -> None:
@@ -993,7 +1017,6 @@ def run_gradio_app(session_manager: SessionManager, args: GradioAppArgs) -> None
 class GradioFrontend(FrontendPlugin):
     """Frontend plugin that launches the Gradio UI."""
 
-    # TODO: Replace this staticmethod bridge during full Gradio adapter restructure.
     def register_arguments(self, subparser: ArgumentParser, /) -> None:
         """Register Gradio frontend specific arguments."""
         register_gradio_arguments(subparser)

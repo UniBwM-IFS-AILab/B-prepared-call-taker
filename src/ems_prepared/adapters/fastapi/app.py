@@ -362,12 +362,6 @@ class FastAPIFrontend(FrontendPlugin):
         """Register FastAPI frontend specific arguments."""
         _ = subparser.add_argument("-H", "--host", default="127.0.0.1")
         _ = subparser.add_argument("--port", type=int, default=8000)
-        _ = subparser.add_argument(
-            "-r",
-            "--reload",
-            action="store_true",
-            help="Enable uvicorn auto-reload.",
-        )
 
     def run(
         self,
@@ -384,10 +378,5 @@ class FastAPIFrontend(FrontendPlugin):
         )
         import uvicorn
 
-        uvicorn.run(
-            app,
-            host=parsed_args.host,
-            port=parsed_args.port,
-            reload=parsed_args.reload,
-        )
+        uvicorn.run(app, host=parsed_args.host, port=parsed_args.port, reload=False)
         return 0

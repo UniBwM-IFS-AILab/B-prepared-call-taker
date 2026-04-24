@@ -20,17 +20,18 @@ class GradioAppArgs:
     locale: str
     debug: bool
     random_scenario: bool
-    experiment_name: str | None
-    exit_on_launch: bool
+    experiment_name: str | None = None
+    exit_on_launch: bool = False
+    ui: str = "standard"
+    guided_scenarios: tuple[str, ...] = ()
 
     @property
     def picker_interactive(self) -> bool:
         """Whether the scenario picker should be interactive.
 
         Disabled when random scenario mode is enabled.
-        Can be extended with other conditions in the future.
         """
-        return not self.random_scenario
+        return self.ui == "standard" and not self.random_scenario
 
     def is_debug_enabled(self) -> bool:
         """Determine whether debug visuals should be shown.
@@ -46,6 +47,17 @@ class GradioAppArgs:
     def resolve_policy(self) -> str:
         """Resolve the policy setting for the session start request."""
         return self.policy
+
+    def validate(self) -> GradioAppArgs:
+        """Validate mode-specific argument combinations."""
+        if self.ui != "guided":
+            return self
+
+        if self.random_scenario:
+            raise ValueError("--random-scenario is not supported with --ui guided.")
+        if self.scenario_dir is None:
+            raise ValueError("--ui guided requires --scenario-dir.")
+        return self
 
 
 def register_arguments(subparser: argparse.ArgumentParser) -> None:
@@ -81,6 +93,19 @@ def register_arguments(subparser: argparse.ArgumentParser) -> None:
         help="Enable random scenario selection on each session reset.",
     )
     _ = subparser.add_argument(
+        "--ui",
+        choices=["standard", "guided"],
+        default="standard",
+        help="Select the Gradio UI mode.",
+    )
+    _ = subparser.add_argument(
+        "--guided-scenario",
+        dest="guided_scenarios",
+        action="append",
+        default=[],
+        help="Optional guided-mode scenario filename. Repeat to control the run order.",
+    )
+    _ = subparser.add_argument(
         "-x",
         "--exit-on-launch",
         action="store_true",
@@ -99,4 +124,6 @@ def from_namespace(args: argparse.Namespace) -> GradioAppArgs:
         random_scenario=args.random_scenario,
         experiment_name=args.experiment_name,
         exit_on_launch=args.exit_on_launch,
-    )
+        ui=args.ui,
+        guided_scenarios=tuple(args.guided_scenarios),
+    ).validate()
