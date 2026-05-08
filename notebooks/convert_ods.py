@@ -12,7 +12,7 @@
 # ]
 # requires-python = ">=3.13"
 # [tool.uv.sources]
-# ems-prepared = { path = "../", editable = true }
+# ems-prepared = { path = "..", editable = true }
 # ///
 
 import marimo
@@ -23,6 +23,7 @@ app = marimo.App(width="medium")
 with app.setup:
     import re
     from pathlib import Path
+    import os
     from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
     import polars as pl
     import fastexcel
@@ -34,7 +35,7 @@ with app.setup:
 
 @app.cell
 def _():
-    search_dir = Path(r"F:\ODS")
+    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/"))
     pl_schema = {
         "dialog_id": pl.UInt32,
         "turn_id": pl.UInt32,
@@ -50,9 +51,9 @@ def _():
 
 
 @app.cell
-def _(search_dir, valid_speakers):
+def _(valid_speakers):
     def state_is_valid(value: str | None) -> bool:
-        if value is None or str(value).strip() == "":
+        if value is None:
             return True
 
         try:
@@ -67,13 +68,17 @@ def _(search_dir, valid_speakers):
 
 
     def non_empty(value: str | None) -> bool:
-        return value is not None and str(value).strip() != ""
+        return value is not None 
+
+    return non_empty, speaker_is_valid, state_is_valid
 
 
+@app.cell
+def _(non_empty, speaker_is_valid, state_is_valid):
     pa_schema = pa.DataFrameSchema(
         {
-            "start": pa.Column(float, nullable=True),
-            "end": pa.Column(float, nullable=True),
+            "start": pa.Column(str, nullable=True),
+            "end": pa.Column(str, nullable=True),
             "speaker": pa.Column(
                 str,
                 checks=pa.Check(speaker_is_valid, element_wise=True),
@@ -89,41 +94,51 @@ def _(search_dir, valid_speakers):
                 checks=pa.Check(state_is_valid, element_wise=True),
                 nullable=True,
             ),
-            "line_number": pa.Column(int),
+            "approx_line_number": pa.Column(int),
         },
         strict=False,
         coerce=True,
     )
+    return (pa_schema,)
 
 
+@app.cell
+def _():
     report_schema = {
         "source_file": pl.String,
-        "line_number": pl.Int32,
+        "approx_line_number": pl.Int32,
+        "origin": pl.String,
+        "exception_class": pl.String,
         "description": pl.String,
         "cell_value": pl.String,
     }
+    return (report_schema,)
 
 
+@app.cell
+def _(pa_schema, report_schema, search_dir):
+    correct_paths = []
     errors = []
 
-    for path in search_dir.rglob("[!~$]*.ods"):
-        file_id = f"{path.parent.name}/{path.name}"
+    for _path in search_dir.rglob("[!~$]*.ods"):
+        contains_error: bool = False
+        file_id = f"{_path.parent.name}/{_path.name}"
 
-        ods_df = pl.read_ods(path).with_row_index("line_number", offset=2)
+        _ods_df = pl.read_ods(_path).with_row_index("approx_line_number", offset=2)
 
-        body_df = ods_df.slice(0, ods_df.height - 1)
-        final_row = ods_df.tail(1)
+        body_df = _ods_df.slice(0, _ods_df.height - 1)
+        final_row = _ods_df.tail(1)
 
         try:
             pa_schema.validate(body_df, lazy=True)
         except pa.errors.SchemaErrors as exc:
+            contains_error = True
             errors.append(
                 exc.failure_cases.with_columns(
                     pl.lit(file_id).alias("source_file"),
-                    pl.when(pl.col("index").is_null())
-                    .then(1)
-                    .otherwise(pl.col("index") + 2)
-                    .alias("line_number"),
+                    (pl.col("index") + 2).alias("approx_line_number"),
+                    pl.lit("transcript").alias("origin"),
+                    pl.lit("SchemaErrors").alias("exception_class"),
                     pl.concat_str(
                         [
                             pl.lit("column: "),
@@ -136,17 +151,23 @@ def _(search_dir, valid_speakers):
                     pl.col("failure_case").alias("cell_value"),
                 ).select(
                     "source_file",
-                    "line_number",
+                    "approx_line_number",
+                    "origin",
+                    "exception_class",
                     "description",
                     "cell_value",
                 )
             )
+            # continue
         except pl.exceptions.ColumnNotFoundError as exc:
+            contains_error = True
             errors.append(
                 pl.DataFrame(
                     {
                         "source_file": [file_id],
-                        "line_number": [1],
+                        "approx_line_number": [1],
+                        "origin": "transcript",
+                        "exception_class": "ColumnNotFoundError",
                         "description": [str(exc)],
                         "cell_value": [None],
                     },
@@ -156,22 +177,26 @@ def _(search_dir, valid_speakers):
             continue
 
         final_state = final_row["State"][0]
-
         try:
             EmergencyCall.model_validate_json(final_state)
         except ValidationError as exc:
-            final_line_number = final_row["line_number"][0]
+            contains_error = True
+            final_line_number = final_row["approx_line_number"][0]
             errors.append(
                 pl.DataFrame(
                     {
                         "source_file": [file_id],
-                        "line_number": [final_line_number],
+                        "origin": "final_row",
+                        "approx_line_number": [final_line_number],
+                        "exception_class": "ValidationError",
                         "description": [str(exc)],
-                        "cell_value": [final_row["State"][0]],
+                        "cell_value": [final_state or f"last line:{_ods_df.height + 2}"],
                     },
                     schema=report_schema,
                 )
             )
+        if not contains_error:
+            correct_paths.append(_path)
 
     errors = (
         pl.concat(errors, how="diagonal")
@@ -181,134 +206,7 @@ def _(search_dir, valid_speakers):
 
     errors.write_csv("validation_errors.csv")
     errors
-    return (ods_df,)
-
-
-@app.cell(disabled=True, hide_code=True)
-def _():
-    def _state_is_valid(value) -> bool:
-        if value is None or value == "":
-            return True
-
-        try:
-            if isinstance(value, str):
-                EmergencyCall.model_validate_json(value)
-            else:
-                EmergencyCall.model_validate(value)
-
-            return True
-
-        except (ValidationError, TypeError):
-            return False
-
-    return
-
-
-@app.cell
-def _():
-    # REPORT_SCHEMA = {
-    #     "source_file": pl.String,
-    #     "line_number": pl.Int32,
-    #     "failure_case": pl.String,
-    #     "schema_context": pl.String,
-    #     "column": pl.String,
-    #     "check": pl.String,
-    #     "check_number": pl.Int32,
-    #     "index": pl.Int32,
-    # }
-
-
-    # def pandera_to_report(failure_cases: pl.DataFrame, file_id: str) -> pl.DataFrame:
-    #     return (
-    #         failure_cases.with_columns(
-    #             pl.lit(file_id).alias("source_file"),
-    #             # Pandera index is dataframe row index: 0 = first data row.
-    #             # Excel row 1 is header, so first data row is line 2.
-    #             pl.when(pl.col("index").is_null())
-    #             .then(pl.lit(1))
-    #             .otherwise(pl.col("index").cast(pl.Int32, strict=False) + 2)
-    #             .cast(pl.Int32)
-    #             .alias("line_number"),
-    #         )
-    #         .with_columns(
-    #             pl.col("source_file").cast(pl.String),
-    #             pl.col("failure_case").cast(pl.String),
-    #             pl.col("schema_context").cast(pl.String),
-    #             pl.col("column").cast(pl.String),
-    #             pl.col("check").cast(pl.String),
-    #             pl.col("check_number").cast(pl.Int32, strict=False),
-    #             pl.col("index").cast(pl.Int32, strict=False),
-    #         )
-    #         .select(list(REPORT_SCHEMA))
-    #     )
-
-
-    # def column_error(exc: Exception, file_id: str) -> pl.DataFrame:
-    #     return pl.DataFrame(
-    #         {
-    #             "source_file": [file_id],
-    #             "line_number": [1],
-    #             "failure_case": [str(exc)],
-    #             "schema_context": ["Column"],
-    #             "column": ["see failure_case"],
-    #             "check": ["column_missing"],
-    #             "check_number": [0],
-    #             "index": [0],
-    #         },
-    #         schema=REPORT_SCHEMA,
-    #     )
-
-
-    # def speaker_missing_error(
-    #     exc: Exception, file_id: str, ods_df: pl.DataFrame
-    # ) -> pl.DataFrame:
-    #     return pl.DataFrame(
-    #         {
-    #             "source_file": [file_id],
-    #             "line_number": [ods_df.height + 1],
-    #             "failure_case": [str(exc)],
-    #             "schema_context": ["Column"],
-    #             "column": ["see failure_case"],
-    #             "check": ["final_state_problem"],
-    #             "check_number": [0],
-    #             "index": [ods_df.height],
-    #         },
-    #         schema=REPORT_SCHEMA,
-    #     )
-
-
-    # issue_frames: list[pl.DataFrame] = []
-
-    # for dialog_id, path in enumerate(search_dir.rglob("[!~$]*.ods")):
-    #     file_id = f"{path.parent.name}/{path.name}"
-
-    #     try:
-    #         ods_df = pl.read_ods(path)
-
-    #         pa_schema.validate(ods_df, lazy=True)
-
-    #     except pa.errors.SchemaErrors as exc:
-    #         issue_frames.append(pandera_to_report(exc.failure_cases, file_id))
-
-    #     except pl.exceptions.ColumnNotFoundError as exc:
-    #         issue_frames.append(column_error(exc, file_id))
-
-    #     # try:
-    #     #     assert ods_df.get_column("speaker").null_count() == 1, (
-    #     #         "missing speakers? only last row (final_state) should contain none"
-    #     #     )
-    #     # except AssertionError as exc:
-    #     #     issue_frames.append(speaker_missing_error(exc, file_id, ods_df))
-
-
-    # errors = (
-    #     pl.concat(issue_frames, how="vertical")
-    #     if issue_frames
-    #     else pl.DataFrame(schema=REPORT_SCHEMA)
-    # )
-
-    # errors  # .select("source_file", "line_number", "failure_case", "schema_context")
-    return
+    return (correct_paths,)
 
 
 @app.cell
@@ -318,44 +216,107 @@ def _():
     #     # print(uuid5(UUID(int=0), path.stem))
     #     # print(path)
 
-    #     try:
-    #         ods_df = pl.read_ods(
-    #             path,
-    #             columns=["start", "end", "speaker", "text", "State"],
-    #             schema_overrides={
-    #                 "text": pl.String,
-    #                 "speaker": pl.String,
-    #                 "State": pl.String,
-    #             },
-    #         )
-    #     except fastexcel.ColumnNotFoundError as ex:
-    #         errors = errors.vstack(
-    #             pl.DataFrame(
-    #                 {
-    #                     "filename": [file_id],
-    #                     "line_number": [1],
-    #                     "incorrect_value": [None],
-    #                     "issue": [f"schema error: {ex}"],
-    #                 },
-    #                 schema=errors.schema,
-    #             )
-    #         )
-    #         continue
+
     return
 
 
 @app.cell
-def _(ods_df):
-    ods_df.columns = [col.lower() for col in ods_df.columns]
-    ods_df
+def _(correct_paths):
+    correct_paths
     return
 
 
 @app.cell
-def _(filter_df, ods_df):
-    # TODO: avoid extend somehow when cell is executed again
-    filter_df.extend(ods_df.select("file_id", "turn_id", "text", "speaker", "state"))
-    filter_df
+def _():
+    EmergencyCall.model_fields["emergency_type"] #.keys()
+    return
+
+
+@app.cell
+def _(correct_paths):
+    fds_schema = pl.Schema({
+        "source": pl.String,
+        "dialog_id": pl.UInt64,
+        "turn_index": pl.UInt32,
+        "speaker": pl.String,
+        "text": pl.String,
+        "state": pl.String,
+        # "state": pl.Struct(fields={name: pl.Binary | pl.String for name in EmergencyCall.model_fields.keys()})  #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
+    })
+    full_dataset = pl.DataFrame(schema=fds_schema)
+    for _path in correct_paths:
+        _ods_df = pl.read_ods(_path)
+        file_hash = _ods_df.hash_rows(seed=42).sum()
+        filter_ods_df = (
+            _ods_df.rename({"State": "state"})
+            .with_row_index(name="turn_index")
+            .with_columns(
+                [
+                    pl.Series(
+                        "dialog_id",
+                        [
+                            file_hash
+                            for _ in range(_ods_df.height)
+                        ],
+                        dtype=pl.UInt64
+                    ),
+                    pl.Series(
+                        "source",
+                        [
+                            f"{_path.parent.name}/{_path.name}"
+                            for _ in range(_ods_df.height)
+                        ]
+                    )
+                ]
+            )
+            .select("source", "dialog_id", "turn_index", "speaker", "text", "state")
+        )
+        full_dataset.vstack(filter_ods_df, in_place=True).rechunk()
+
+    # filter_ods_df#.to_dicts
+    full_dataset
+    # _ods_df.hash_rows(seed=42).sum()
+    return (full_dataset,)
+
+
+@app.cell
+def _(full_dataset):
+    full_dataset.columns
+    return
+
+
+@app.cell
+def _(full_dataset):
+    ( #https://stackoverflow.com/questions/73222000/polars-conditional-merge-of-rows
+        # FIXME: some rows are missing
+        full_dataset.with_columns(
+            (
+                (pl.col('dialog_id') == pl.col('dialog_id').shift(-1))
+                &
+                (pl.col("speaker")
+                != pl.col("speaker").shift(-1))
+            ).shift(1, fill_value=False)
+            .cum_sum()
+            .alias('consecutive_count')
+        )
+        .group_by('consecutive_count')
+        .agg(
+            source=pl.col("source").first(),
+            dialog_id=pl.col("dialog_id").first(),
+            text=pl.col("text"),
+            turn_index=pl.col("turn_index").first(),
+            speaker=pl.col('speaker')
+            # pl.col('text').().alias('text'),
+            # pl.col('state').sum().alias('state'),
+            # pl.col('speaker').first().alias('speaker'),
+        )
+    ).sort(["dialog_id", "turn_index"], descending=False, maintain_order=True)
+    return
+
+
+@app.cell
+def _():
+    # 2. produce json output from 
     return
 
 
@@ -374,6 +335,13 @@ def _(filter_df):
 @app.cell
 def _(base, filter_df):
     filter_df.write_parquet(base / "test.parquet")
+    return
+
+
+@app.cell
+def _():
+    import marimo as mo
+
     return
 
 
