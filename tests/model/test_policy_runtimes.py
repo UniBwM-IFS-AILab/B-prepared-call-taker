@@ -10,7 +10,11 @@ from pydantic_graph.nodes import End
 import ems_prepared.policies.llm_only.runtime as agent_runtime
 import ems_prepared.policies.pydantic_graph.runtime as graph_runtime
 from ems_prepared.model.context import Settings
-from ems_prepared.model.contracts import BackendEvent
+from ems_prepared.model.contracts import (
+    BackendEvent,
+    BackendEventKind,
+    SessionResumeError,
+)
 from ems_prepared.policies.llm_only.runtime import (
     AgentConversationPolicy,
     build_agent_policy,
@@ -28,23 +32,17 @@ async def test_build_graph_policy_uses_graph_builder(
     """Graph policy construction should use the graph builder helper."""
     deps = Settings(name="tests_graph", policy_name="graph")
     sentinel_graph: Any = object()
-    clear_calls: list[tuple[str, str]] = []
 
     async def fake_build_graph():
         return sentinel_graph
 
-    async def fake_clear_old_run(user_id, user_root):
-        clear_calls.append((user_id.hex, str(user_root)))
-
     monkeypatch.setattr(graph_runtime, "build_graph", fake_build_graph)
-    monkeypatch.setattr(graph_runtime, "clear_old_run", fake_clear_old_run)
 
     policy = await build_graph_policy(deps)
 
     assert isinstance(policy, GraphConversationPolicy)
     assert policy.graph is sentinel_graph
     assert policy.deps is deps
-    assert clear_calls == [(deps.user_id.hex, str(deps.storage.user_root))]
 
 
 @pytest.mark.asyncio
@@ -70,6 +68,37 @@ async def test_build_agent_policy_uses_agent_builder(
     assert policy.policy.agent is sentinel_agent
     assert policy.policy.deps is deps
     assert policy.policy.history == []
+
+
+@pytest.mark.asyncio
+async def test_build_graph_policy_does_not_probe_resume_state(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """Resume-mode graph builds should not validate persistence eagerly."""
+    monkeypatch.chdir(tmp_path)
+    deps = Settings(name="tests_graph_resume", policy_name="graph", resume_expected=True)
+    sentinel_graph: Any = object()
+
+    async def fake_build_graph():
+        return sentinel_graph
+
+    monkeypatch.setattr(graph_runtime, "build_graph", fake_build_graph)
+
+    policy = await build_graph_policy(deps)
+
+    assert isinstance(policy, GraphConversationPolicy)
+    assert policy.graph is sentinel_graph
+    assert policy.deps is deps
+
+
+@pytest.mark.asyncio
+async def test_build_agent_policy_requires_snapshot_when_resume_expected() -> None:
+    """Resume-mode agent builds should fail loudly without a snapshot."""
+    deps = Settings(name="tests_agent_resume", policy_name="agent", resume_expected=True)
+
+    with pytest.raises(SessionResumeError):
+        await build_agent_policy(deps)
 
 
 @pytest.mark.asyncio
@@ -104,7 +133,7 @@ async def test_graph_policy_records_completion_artifacts(
     assert completion_calls[0][1] == [{"speaker": "operator"}]
     assert len(events) == 1
     assert events[0] == BackendEvent(
-        kind="completed",
+        kind=BackendEventKind.COMPLETED,
         text="The emergency call has been processed.",
         payload={"finished": True},
     )
@@ -166,7 +195,7 @@ async def test_agent_policy_records_completion_artifacts(
     assert completion_calls[0][1] == []
     assert len(events) == 1
     assert events[0] == BackendEvent(
-        kind="completed",
+        kind=BackendEventKind.COMPLETED,
         text="The emergency call has been processed.",
         payload={"finished": True},
     )

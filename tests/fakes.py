@@ -6,12 +6,18 @@ import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from ems_prepared.model.contracts import (
     BackendEvent,
+    BackendEventKind,
+    ConversationMessage,
     ConversationPolicy,
+    MessageFeedback,
+    SessionBackend,
     SessionHandle,
-    SessionRecorder,
+    SessionRecord,
+    SessionStatus,
 )
 
 
@@ -26,38 +32,64 @@ class FakeConversationPolicy:
 
     async def start(self) -> list[BackendEvent]:
         """Emit the initial policy event."""
-        return [BackendEvent(kind="message", text="started")]
+        return [BackendEvent(kind=BackendEventKind.MESSAGE, text="started")]
 
     async def handle_input(self, text: str) -> list[BackendEvent]:
         """Echo one caller message as a backend question event."""
-        return [BackendEvent(kind="question", text=text)]
+        return [BackendEvent(kind=BackendEventKind.QUESTION, text=text)]
 
     async def close(self) -> None:
         """Record one close operation."""
         self.closed += 1
 
 
-class FakeSessionRecorder:
-    """In-memory session recorder fake with filesystem-compatible survey writes."""
+class FakeSessionBackend:
+    """In-memory session backend fake with filesystem-compatible survey writes."""
 
     def __init__(self) -> None:
         """Initialize captured manifest/event/survey writes."""
         self.manifests: list[tuple[SessionHandle, Path, dict[str, Any]]] = []
         self.events: list[tuple[SessionHandle, Path, list[BackendEvent]]] = []
         self.surveys: list[tuple[SessionHandle, Path, list[dict[str, Any]]]] = []
+        self.feedback: list[tuple[UUID, MessageFeedback]] = []
+        self.sessions: dict[UUID, SessionRecord] = {}
+        self.histories: dict[UUID, list[ConversationMessage]] = {}
         self.completions: list[
             tuple[SessionHandle, Path, Any, list[Any], dict[str, Any] | None]
         ] = []
 
-    def save_manifest(
+    def create_session(
         self,
         *,
         session: SessionHandle,
         save_path: Path,
+        experiment_name: str,
         metadata: Mapping[str, Any],
     ) -> None:
-        """Capture manifest writes."""
+        """Capture session creation writes."""
         self.manifests.append((session, save_path, dict(metadata)))
+        self.sessions[session.session_id] = SessionRecord(
+            handle=session,
+            experiment_name=experiment_name,
+            save_path=save_path,
+            status=SessionStatus.ACTIVE,
+        )
+        self.histories.setdefault(session.session_id, [])
+
+    def get_session(self, session_id: UUID) -> SessionRecord | None:
+        return self.sessions.get(session_id)
+
+    def set_status(self, session_id: UUID, status: SessionStatus) -> bool:
+        record = self.sessions.get(session_id)
+        if record is None:
+            return False
+        self.sessions[session_id] = SessionRecord(
+            handle=record.handle,
+            experiment_name=record.experiment_name,
+            save_path=record.save_path,
+            status=status,
+        )
+        return True
 
     def save_events(
         self,
@@ -68,6 +100,21 @@ class FakeSessionRecorder:
     ) -> None:
         """Capture event writes."""
         self.events.append((session, save_path, list(events)))
+
+    def save_transcript_entries(
+        self,
+        *,
+        session: SessionHandle,
+        save_path: Path,
+        messages: Sequence[ConversationMessage],
+    ) -> None:
+        """Capture visible history writes."""
+        _ = save_path
+        self.histories.setdefault(session.session_id, []).extend(list(messages))
+
+    def load_history(self, session_id: UUID) -> list[ConversationMessage]:
+        """Return visible history captured for one session."""
+        return list(self.histories.get(session_id, []))
 
     def save_survey(
         self,
@@ -81,7 +128,7 @@ class FakeSessionRecorder:
         """Persist survey payload as JSON and capture the write."""
         self.surveys.append((session, save_path, responses))
         output_path = save_path / "survey.json"
-        payload = {
+        payload: dict[str, Any] = {
             "responses": responses,
             "metadata": dict(metadata or {}),
         }
@@ -110,11 +157,44 @@ class FakeSessionRecorder:
             )
         )
 
+    def save_feedback(
+        self,
+        *,
+        session_id: UUID,
+        feedback: MessageFeedback,
+    ) -> None:
+        self.feedback.append((session_id, feedback))
+
+    def load_agent_snapshot(self, session_id: UUID) -> dict[str, Any] | None:
+        _ = session_id
+        return None
+
+    def save_agent_snapshot(self, session_id: UUID, snapshot: Mapping[str, Any]) -> None:
+        _ = (session_id, snapshot)
+
+    # Backwards compatibility for old tests still using recorder naming.
+    def save_manifest(
+        self,
+        *,
+        session: SessionHandle,
+        save_path: Path,
+        metadata: Mapping[str, Any],
+    ) -> None:
+        self.create_session(
+            session=session,
+            save_path=save_path,
+            experiment_name=str(metadata.get("experiment_name", "")),
+            metadata=metadata,
+        )
+
 
 def assert_contract_runtime_types() -> None:
     """Ensure local fakes satisfy runtime-checkable contracts."""
     policy = FakeConversationPolicy()
-    session_recorder = FakeSessionRecorder()
+    session_backend = FakeSessionBackend()
 
     assert isinstance(policy, ConversationPolicy)
-    assert isinstance(session_recorder, SessionRecorder)
+    assert isinstance(session_backend, SessionBackend)
+
+
+FakeSessionRecorder = FakeSessionBackend

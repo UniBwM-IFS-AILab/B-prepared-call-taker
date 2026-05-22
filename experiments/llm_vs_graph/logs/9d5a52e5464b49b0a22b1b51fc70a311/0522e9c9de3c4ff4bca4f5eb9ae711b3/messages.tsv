@@ -1,8 +1,15 @@
 timestamp	speaker	message
 2025-12-20 19:14:51	operator	Hello, thank you for calling the emergency services. What is your name?
+2025-12-20 19:14:52	caller	Hey, this is Nico calling.
 2025-12-20 19:15:01	operator	Thank you, Nico. What is the address of the emergency?
+2025-12-20 19:15:02	caller	The address is apt. 256 at  Freimann
 2025-12-20 19:15:21	operator	Thank you. Can you please describe what happened?
+2025-12-20 19:15:22	caller	I am having issues with breathing. Every time I try to  have a deep breath, it severely hurts.
 2025-12-20 19:15:46	operator	Are you experiencing severe pain?
+2025-12-20 19:15:47	caller	yes, during inhaling and exhaling
 2025-12-20 19:15:59	operator	Is the pain unbearable?
+2025-12-20 19:15:60	caller	not too bad, but I am getting lesser and lesser air.
 2025-12-20 19:16:36	operator	Are you experiencing rapidly progressive respiratory distress?
+2025-12-20 19:16:37	caller	it took over an hour now to be that bad. Since yesterday, I have smaller breathing problems, but the last hour it went very bad
 2025-12-20 19:17:32	operator	Are you experiencing severe dyspnoea?
+2025-12-20 19:17:33	caller	almost, yes. Even talking not takes a fair bit of by breathe

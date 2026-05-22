@@ -10,12 +10,16 @@ import pytest
 from ems_prepared.model.context import InputMode, Locale, Settings
 from ems_prepared.model.contracts import (
     BackendEvent,
+    BackendEventKind,
+    ConversationMessage,
     ConversationPolicy,
+    MessageRole,
+    MessageType,
+    SessionResumeError,
     SessionParameters,
 )
-from ems_prepared.model.errors import SessionNotFoundError, UnsupportedPolicyError
 from ems_prepared.model.session_service import SessionService
-from tests.fakes import FakeSessionRecorder
+from tests.fakes import FakeSessionBackend
 
 
 @dataclass
@@ -57,12 +61,12 @@ async def test_start_session_returns_handle_and_initial_events(
     """Starting a session should register it and expose view state."""
     monkeypatch.chdir(tmp_path)
     policy = FakeConversationPolicy(
-        start_events=[BackendEvent(kind="message", text="hello caller")]
+        start_events=[BackendEvent(kind=BackendEventKind.MESSAGE, text="hello caller")]
     )
-    session_recorder = FakeSessionRecorder()
+    session_backend = FakeSessionBackend()
     service = SessionService(
         policy_factories={"fake": build_fake_factory(policy)},
-        session_recorder=session_recorder,
+        session_backend=session_backend,
     )
 
     handle, events = await service.start_session(
@@ -79,8 +83,11 @@ async def test_start_session_returns_handle_and_initial_events(
     )
 
     state = service.get_view_state(handle.session_id)
+    history = service.get_history(handle.session_id)
 
-    assert events == [BackendEvent(kind="message", text="hello caller")]
+    assert events == [
+        BackendEvent(kind=BackendEventKind.MESSAGE, text="hello caller")
+    ]
     assert handle.user_id == UUID(int=1)
     assert handle.session_id == UUID(int=2)
     assert handle.locale is Locale.DE
@@ -89,8 +96,18 @@ async def test_start_session_returns_handle_and_initial_events(
     assert state.experiment_name == "exp"
     assert state.save_path.exists()
     assert state.is_complete is False
-    assert len(session_recorder.manifests) == 1
-    assert len(session_recorder.events) == 1
+    assert history is not None
+    assert history.messages == [
+        ConversationMessage(
+            id=history.messages[0].id,
+            type=MessageType.MESSAGE,
+            role=MessageRole.ASSISTANT,
+            content="hello caller",
+            timestamp=history.messages[0].timestamp,
+        )
+    ]
+    assert len(session_backend.manifests) == 1
+    assert len(session_backend.events) == 1
 
 
 @pytest.mark.asyncio
@@ -100,20 +117,20 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
     """A completed session should stop advancing and be removable."""
     monkeypatch.chdir(tmp_path)
     policy = FakeConversationPolicy(
-        start_events=[BackendEvent(kind="question", text="where?")],
+        start_events=[BackendEvent(kind=BackendEventKind.QUESTION, text="where?")],
         replies={
             "at home": [
                 BackendEvent(
-                    kind="completed",
+                    kind=BackendEventKind.COMPLETED,
                     text="The emergency call has been processed.",
                 )
             ]
         },
     )
-    session_recorder = FakeSessionRecorder()
+    session_backend = FakeSessionBackend()
     service = SessionService(
         policy_factories={"fake": build_fake_factory(policy)},
-        session_recorder=session_recorder,
+        session_backend=session_backend,
     )
 
     handle, _ = await service.start_session(
@@ -129,18 +146,32 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
     events = await service.handle_input(handle.session_id, "at home")
     repeated = await service.handle_input(handle.session_id, "ignored")
     ended = await service.end_session(handle.session_id)
+    state = service.get_view_state(handle.session_id)
+    history = service.get_history(handle.session_id)
 
     assert events == [
         BackendEvent(
-            kind="completed",
+            kind=BackendEventKind.COMPLETED,
             text="The emergency call has been processed.",
         )
     ]
     assert repeated == []
-    assert service.get_view_state(handle.session_id) is None
-    assert policy.close_calls == 1
+    assert state is not None
+    assert state.is_complete is False
+    assert history is not None
+    assert [entry.role for entry in history.messages] == [
+        "assistant",
+        "user",
+        "assistant",
+    ]
+    assert [entry.content for entry in history.messages] == [
+        "where?",
+        "at home",
+        "The emergency call has been processed.",
+    ]
+    assert policy.close_calls == 2
     assert ended is True
-    assert len(session_recorder.events) == 2
+    assert len(session_backend.events) == 2
 
 
 @pytest.mark.asyncio
@@ -148,10 +179,10 @@ async def test_submit_survey_writes_to_session_directory(monkeypatch, tmp_path) 
     """Survey recording should target the active session directory."""
     monkeypatch.chdir(tmp_path)
     policy = FakeConversationPolicy(start_events=[])
-    session_recorder = FakeSessionRecorder()
+    session_backend = FakeSessionBackend()
     service = SessionService(
         policy_factories={"fake": build_fake_factory(policy)},
-        session_recorder=session_recorder,
+        session_backend=session_backend,
     )
 
     handle, _ = await service.start_session(
@@ -174,7 +205,81 @@ async def test_submit_survey_writes_to_session_directory(monkeypatch, tmp_path) 
 
     assert file_path.name == "survey.json"
     assert '"source": "pytest"' in content
-    assert len(session_recorder.surveys) == 1
+    assert len(session_backend.surveys) == 1
+
+
+@pytest.mark.asyncio
+async def test_handle_input_rebuilds_with_resume_expected(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    """Existing-session turns should rebuild deps in resume mode with inferred origin."""
+    monkeypatch.chdir(tmp_path)
+    seen_resume_expected: list[bool] = []
+    seen_call_origin: list[InputMode] = []
+    policy = FakeConversationPolicy(
+        start_events=[BackendEvent(kind=BackendEventKind.QUESTION, text="where?")]
+    )
+    session_backend = FakeSessionBackend()
+
+    async def factory(deps: Settings) -> ConversationPolicy:
+        seen_resume_expected.append(deps.resume_expected)
+        seen_call_origin.append(deps.call_origin)
+        return policy
+
+    service = SessionService(
+        policy_factories={"fake": factory},
+        session_backend=session_backend,
+    )
+
+    handle, _ = await service.start_session(
+        SessionParameters(
+            frontend_name="fastapi_ws",
+            policy_name="fake",
+            user_id=UUID(int=1),
+            session_id=UUID(int=5),
+            call_origin=InputMode.API,
+        )
+    )
+
+    _ = await service.handle_input(handle.session_id, "at home")
+
+    assert seen_resume_expected == [False, True]
+    assert seen_call_origin == [InputMode.API, InputMode.API]
+
+
+@pytest.mark.asyncio
+async def test_handle_input_propagates_resume_failures(monkeypatch, tmp_path) -> None:
+    """Existing-session turns should fail loudly when policy restoration is impossible."""
+    monkeypatch.chdir(tmp_path)
+    session_backend = FakeSessionBackend()
+    seen_resume_expected: list[bool] = []
+
+    async def factory(deps: Settings) -> ConversationPolicy:
+        seen_resume_expected.append(deps.resume_expected)
+        if deps.resume_expected:
+            raise SessionResumeError("missing runtime state")
+        return FakeConversationPolicy(start_events=[])
+
+    service = SessionService(
+        policy_factories={"fake": factory},
+        session_backend=session_backend,
+    )
+
+    handle, _ = await service.start_session(
+        SessionParameters(
+            frontend_name="fastapi",
+            policy_name="fake",
+            user_id=UUID(int=1),
+            session_id=UUID(int=6),
+            call_origin=InputMode.API,
+        )
+    )
+
+    with pytest.raises(SessionResumeError):
+        await service.handle_input(handle.session_id, "hello")
+
+    assert seen_resume_expected == [False, True]
 
 
 @pytest.mark.asyncio
@@ -183,10 +288,10 @@ async def test_service_raises_for_unknown_policy(monkeypatch, tmp_path) -> None:
     monkeypatch.chdir(tmp_path)
     service = SessionService(
         policy_factories={},
-        session_recorder=FakeSessionRecorder(),
+        session_backend=FakeSessionBackend(),
     )
 
-    with pytest.raises(UnsupportedPolicyError):
+    with pytest.raises(ValueError):
         await service.start_session(
             SessionParameters(
                 frontend_name="tests",
@@ -203,8 +308,8 @@ async def test_service_raises_for_unknown_session(monkeypatch, tmp_path) -> None
     policy = FakeConversationPolicy(start_events=[])
     service = SessionService(
         policy_factories={"fake": build_fake_factory(policy)},
-        session_recorder=FakeSessionRecorder(),
+        session_backend=FakeSessionBackend(),
     )
 
-    with pytest.raises(SessionNotFoundError):
+    with pytest.raises(LookupError):
         await service.handle_input(UUID(int=999), "hello")

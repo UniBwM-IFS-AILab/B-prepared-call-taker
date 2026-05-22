@@ -4,9 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.model.context import Settings
-from ems_prepared.model.contracts import BackendEvent, ConversationPolicy
+from ems_prepared.model.contracts import (
+    BackendEvent,
+    BackendEventKind,
+    ConversationPolicy,
+    SessionResumeError,
+)
 from ems_prepared.policies.llm_only.agent import (
     AgentPolicy,
     build_emergency_agent,
@@ -82,6 +89,7 @@ class AgentConversationPolicy(ConversationPolicy):
             self.deps,
             caller_msg=text,
         )
+        self._persist_snapshot()
 
         if is_complete:
             self.deps.telemetry.logger.info("Outcome reached")
@@ -90,7 +98,7 @@ class AgentConversationPolicy(ConversationPolicy):
             flush_logger(self.deps.telemetry.state_logger)
             return [
                 BackendEvent(
-                    kind="completed",
+                    kind=BackendEventKind.COMPLETED,
                     text="The emergency call has been processed.",
                     payload=to_event_payload(state),
                 )
@@ -107,7 +115,7 @@ class AgentConversationPolicy(ConversationPolicy):
             self.deps.telemetry.logger.error("Full agent result: %r", result)
             return [
                 BackendEvent(
-                    kind="error",
+                    kind=BackendEventKind.ERROR,
                     text=(
                         "Internal error: agent returned no next question. "
                         "Please reset the session."
@@ -116,16 +124,58 @@ class AgentConversationPolicy(ConversationPolicy):
             ]
 
         self.deps.telemetry.logger.debug(next_question)
-        return [BackendEvent(kind="question", text=next_question)]
+        return [BackendEvent(kind=BackendEventKind.QUESTION, text=next_question)]
+
+    def _persist_snapshot(self) -> None:
+        if self.deps.save_agent_snapshot is None:
+            return
+        snapshot = {
+            "state": self.policy.state.model_dump(mode="json"),
+            "history": ModelMessagesTypeAdapter.dump_python(
+                self.policy.history,
+                mode="json",
+            ),
+        }
+        self.deps.save_agent_snapshot(snapshot)
 
 
 async def build_agent_policy(deps: Settings) -> AgentConversationPolicy:
     """Build one agent policy runtime."""
+    state = EmergencyCall()
+    history: list = []
+    snapshot: dict | None = None
+    if deps.load_agent_snapshot is not None:
+        snapshot = deps.load_agent_snapshot()
+
+    if deps.resume_expected and snapshot is None:
+        raise SessionResumeError(
+            f"Missing agent runtime snapshot for session: {deps.session_id}"
+        )
+
+    if snapshot is not None:
+        if not isinstance(snapshot, dict):
+            raise SessionResumeError(
+                f"Invalid agent runtime snapshot for session: {deps.session_id}"
+            )
+        try:
+            raw_state = snapshot.get("state")
+            raw_history = snapshot.get("history")
+            if raw_state is not None:
+                if not isinstance(raw_state, dict):
+                    raise TypeError("snapshot.state must be a mapping")
+                state = EmergencyCall.model_validate(raw_state)
+            if raw_history is not None:
+                history = list(ModelMessagesTypeAdapter.validate_python(raw_history))
+        except Exception as exc:
+            raise SessionResumeError(
+                f"Failed to restore agent runtime snapshot for session: {deps.session_id}"
+            ) from exc
+
     return AgentConversationPolicy(
         policy=AgentPolicy(
             agent=build_emergency_agent(deps),
-            state=EmergencyCall(),
-            history=[],
+            state=state,
+            history=history,
             deps=deps,
         ),
         deps=deps,

@@ -50,6 +50,10 @@ def test_parse_args_accepts_locale() -> None:
     assert args.experiment_name == "exp_shared"
     assert args.ui == "standard"
     assert args.guided_scenarios == ()
+    assert args.enable_asr is False
+    assert args.asr_model == "openai/whisper-base.en"
+    assert args.require_consent is False
+    assert args.consent_file is None
 
 
 def test_parse_args_uses_locale_default() -> None:
@@ -134,3 +138,65 @@ def test_parse_args_rejects_random_scenario_in_guided_mode() -> None:
 
     with pytest.raises(ValueError, match="random-scenario"):
         _ = from_namespace(namespace)
+
+
+def test_parse_args_accepts_verbose_without_debug() -> None:
+    """Gradio args should support verbose logging without enabling debug mode."""
+    parser = build_parser()
+    namespace = parser.parse_args(["--verbose"])
+    args = from_namespace(namespace)
+
+    assert args.debug is False
+    assert args.verbose is True
+    assert args.should_skip_policy_calls() is False
+    assert args.is_verbose_logging_enabled() is True
+
+
+def test_parse_args_accepts_asr_flags() -> None:
+    """ASR flags should be preserved in adapter args."""
+    parser = build_parser()
+    namespace = parser.parse_args(
+        ["--enable-asr", "--asr-model", "openai/whisper-small.en"]
+    )
+    args = from_namespace(namespace)
+
+    assert args.enable_asr is True
+    assert args.asr_model == "openai/whisper-small.en"
+
+
+def test_parse_args_debug_skips_policy_calls() -> None:
+    """Debug mode should bypass policy calls in the Gradio adapter."""
+    parser = build_parser()
+    namespace = parser.parse_args(["--debug"])
+    args = from_namespace(namespace)
+
+    assert args.debug is True
+    assert args.should_skip_policy_calls() is True
+    assert args.is_verbose_logging_enabled() is True
+
+
+def test_parse_args_accepts_consent_flags() -> None:
+    """Consent flags should be preserved in Gradio args."""
+    parser = build_parser()
+    namespace = parser.parse_args(
+        ["--require-consent", "--consent-file", "/tmp/consent.md"]
+    )
+    args = from_namespace(namespace)
+
+    assert args.require_consent is True
+    assert args.consent_file == "/tmp/consent.md"
+
+
+def test_parse_args_gradio_debug_env_is_ignored_by_adapter_flags(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GRADIO_DEBUG should not affect adapter-level debug/verbose behavior."""
+    monkeypatch.setenv("GRADIO_DEBUG", "1")
+    parser = build_parser()
+    namespace = parser.parse_args([])
+    args = from_namespace(namespace)
+
+    assert args.debug is False
+    assert args.is_debug_enabled() is False
+    assert args.should_skip_policy_calls() is False
+    assert args.is_verbose_logging_enabled() is False

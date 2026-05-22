@@ -13,11 +13,11 @@ from rich.prompt import Prompt
 from ems_prepared.model.context import InputMode, Locale
 from ems_prepared.model.contracts import (
     BackendEvent,
+    BackendEventKind,
     FrontendPlugin,
     SessionManager,
     SessionParameters,
 )
-from ems_prepared.model.errors import UnsupportedPolicyError
 
 EXIT_COMMANDS: Final[set[str]] = {"exit", "quit", "/exit", "/quit"}
 
@@ -27,21 +27,21 @@ def _render_events(events: list[BackendEvent]) -> tuple[str | None, bool, int]:
     next_question: str | None = None
 
     for event in events:
-        if event.kind == "message":
+        if event.kind is BackendEventKind.MESSAGE:
             if event.text:
                 print(event.text)
             continue
 
-        if event.kind == "question":
+        if event.kind is BackendEventKind.QUESTION:
             next_question = event.text
             continue
 
-        if event.kind == "completed":
+        if event.kind is BackendEventKind.COMPLETED:
             if event.text:
                 print(event.text)
             return None, True, 0
 
-        if event.kind == "error":
+        if event.kind is BackendEventKind.ERROR:
             print(f"[red]{event.text or 'Internal error'}[/red]")
             return None, True, 1
 
@@ -76,7 +76,7 @@ def run_terminal_session(
                     )
                 )
             )
-        except UnsupportedPolicyError as exc:
+        except Exception as exc:
             print(f"[red]{exc}[/red]")
             return 2
 

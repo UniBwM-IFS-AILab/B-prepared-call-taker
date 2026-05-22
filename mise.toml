@@ -19,6 +19,10 @@ node = "latest"
 "gitlab:graphviz/graphviz" = { version = "latest", exe = "dot" }
 delta = "latest"
 "pipx:git-filter-repo" = "latest"
+hurl = "latest"
+copilot = "latest"
+"npm:llm-checker" = "latest"
+"npm:yepanywhere" = "latest"
 
 [env]
 _.file = [".env.json", "env.json"]
@@ -35,6 +39,8 @@ XDG_CONFIG_HOME = '{{xdg_config_home}}'
 XDG_DATA_HOME = '{{xdg_data_home}}'
 XDG_CACHE_HOME = '{{xdg_cache_home}}'
 XDG_STATE_HOME = '{{xdg_state_home}}'
+UV_CACHE_DIR = '/tmp/ems-prepared-uv'
+MPLCONFIGDIR = '/tmp/ems-prepared-mplconfig'
 
 [hooks]
 enter = "mise i -q" # && mise en -s $env:SHELL"
@@ -76,16 +82,14 @@ if [ -z "$SCENARIO_DIR" ]; then
   echo "No scenario directory found under {{config_root}}/experiments/*/scenarios. Set SCENARIO_DIR explicitly." >&2
   exit 2
 fi
-uv run --no-sync main gradio --scenario-dir "$SCENARIO_DIR" --debug
+uv run --no-sync main gradio --scenario-dir "$SCENARIO_DIR" --verbose
 '''
 
 [tasks.gradio_guided_llm_vs_graph]
 description = "Launch the guided Gradio UI for the llm_vs_graph scenarios"
 alias = 'gradio_guided'
 run = '''
-UV_CACHE_DIR="${UV_CACHE_DIR:-/tmp/ems-prepared-uv}"
-mkdir -p "$UV_CACHE_DIR"
-UV_CACHE_DIR="$UV_CACHE_DIR" uv run --no-sync main gradio --ui guided --scenario-dir experiments/llm_vs_graph/scenarios/ --guided-scenario Scenario_01.md --guided-scenario Scenario_02.md
+uv run --no-sync main gradio --ui guided --scenario-dir experiments/llm_vs_graph/scenarios/ --guided-scenario Scenario_01.md --guided-scenario Scenario_02.md
 '''
 
 [tasks.synthetic_single_turn_run]
@@ -104,13 +108,15 @@ run = 'uv run --with-editable . experiments/knowledge_extraction/pipeline.py --c
 
 [tasks.openai_server_vllm]
 description = "Start a vLLM OpenAI-compatible server on CUDA"
-env = { VLLM_TARGET_DEVICE = "cuda" }
+# env = { VLLM_TARGET_DEVICE = "cuda" }
+# raw_args = true
 usage = '''
 flag "--model <model>" help="Model to serve" default="Qwen/Qwen3-14B"
 flag "--host <host>" help="Host to bind" default="127.0.0.1"
 flag "--port <port>" help="Port to bind" default="8000"
+flag "--max-model-len <len>" help="Model Context length" default="auto"
 '''
-run = 'uvx --isolated vllm serve "${usage_model?}" --host "${usage_host?}" --port "${usage_port?}"'
+run = 'uvx --isolated vllm serve "${usage_model?}" --host "${usage_host?}" --port "${usage_port?}" "$@"'
 
 [tasks.openai_server_sglang]
 description = "Start an SGLang OpenAI-compatible server"

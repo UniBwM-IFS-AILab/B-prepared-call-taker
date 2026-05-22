@@ -22,10 +22,15 @@ dependencies = [
   "scikit-learn>=1.8.0",
   "scipy>=1.16.3",
   "seaborn>=0.13.2",
+  "sqlalchemy>=2.0.40",
+  "sglang>=0.5.2",
+  "transformers>=5.5.4",
+  "vllm>=0.21.0",
 ]
 
 [project.scripts]
 main = "ems_prepared.main:main"
+fastapi-server = "ems_prepared.adapters.fastapi.server:main"
 
 [project.entry-points."ems_prepared.policies"]
 graph = "ems_prepared.policies.pydantic_graph.runtime:build_graph_policy"
@@ -71,6 +76,10 @@ lsp = [
   "jedi-language-server>=0.45.1",
 ]
 server = ["fastapi[standard]>=0.118.0"]
+synthetic = [
+  "openai>=2.32.0",
+  "sentence-transformers>=4.1.0",
+]
 test = ["pytest>=8.4.1", "pytest-sugar>=1.0.0", "pytest-asyncio>=0.23.6"]
 whisper = [
   "accelerate>=1.9.0",
@@ -85,7 +94,10 @@ whisper = [
 packages = ["src/ems_prepared"]
 
 [tool.ruff.lint]
-ignore = ["D203", "D213", "E501"]
+ignore = ["D203", "D213", "E501",
+    # docstrings
+   "D100", "D101", "D102", "D103"
+]
 select = [
   "C901",
   "D",
@@ -107,12 +119,12 @@ reportImplicitStringConcatenation = false
 typeCheckingMode= "strict"
 ignore= ["**/__pycache__"]
 
-[tool.pyright]
-include = ["src", "tests"]
-exclude = ["notebooks", "scripts", "logs", ".venv"]
-venvPath = "."
-venv = ".venv"
-typeCheckingMode = "basic"
+# [tool.pyright]
+# include = ["src", "tests"]
+# exclude = ["notebooks", "scripts", "logs", ".venv"]
+# venvPath = "."
+# venv = ".venv"
+# typeCheckingMode = "basic"
 
 [tool.pyrefly]
 # ignore-errors-in-generated-code = true
@@ -131,7 +143,6 @@ typeCheckingMode = "basic"
 [tool.ty]
 
 [tool.uv]
-default-groups = ["dev", "test"]
 
 [[tool.uv.index]]
 name = "pytorch-cu128"

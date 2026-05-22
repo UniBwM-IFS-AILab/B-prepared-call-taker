@@ -6,7 +6,7 @@
 
 ```bash
 mise i
-uv sync --all-groups
+uv sync --group server
 ```
 
 ### Generic launcher (`main`)
@@ -29,7 +29,10 @@ uv run main cli --experiment exp_2026_03
 uv run main gradio --locale german --scenario-dir ./experiments/iva/scenarios
 
 # FastAPI frontend
-uv run main fastapi --experiment exp_2026_03 --host 127.0.0.1 --port 8000 --reload
+uv run main fastapi --experiment exp_2026_03 --host 127.0.0.1 --port 8000
+
+# Dedicated reload-capable FastAPI entry point
+uv run --group server fastapi-server --reload --experiment exp_2026_03
 ```
 
 Get frontend-specific help:
@@ -38,6 +41,7 @@ Get frontend-specific help:
 uv run main cli --help
 uv run main gradio --help
 uv run main fastapi --help
+uv run --group server fastapi-server --help
 ```
 
 `--policy`, `--locale`, and `--experiment`/`--experiment-name` are shared launcher flags available on every frontend subcommand.
@@ -49,7 +53,25 @@ mise run cli
 mise run llm_only
 mise run gradio
 mise run gradio_dev
+mise run gradio_guided_llm_vs_graph
 mise run server
+mise run server_dev
+mise run openai_server_vllm
+mise run openai_server_sglang
+mise run openai_server_vllm --model Qwen/Qwen3-14B --host 127.0.0.1 --port 8000
+mise run openai_server_sglang --model Qwen/Qwen3-14B --host 127.0.0.1 --port 8000 --device cuda
+mise run openai_server_sglang --model Qwen/Qwen3-0.6B --host 127.0.0.1 --port 8000 --device cpu
+mise run openai_server_ollama
+mise run synthetic_single_turn_run
+```
+
+On NixOS, enter the default dev shell first so `CC`, `CUDA_HOME`,
+`TRITON_LIBCUDA_PATH`, `LD_LIBRARY_PATH`, and helper tools are set up for the
+model-server tasks:
+
+```bash
+direnv allow
+# or: nix develop
 ```
 
 ## Structure
@@ -64,8 +86,8 @@ src/ems_prepared/
 │   ├── contracts.py       # core backend contracts/DTOs
 │   ├── context.py         # Settings deps object for runtime
 │   ├── session_service.py # shared backend orchestration
-│   ├── session_recording.py
-│   └── errors.py
+│   ├── session_backend_file.py
+│   └── session_backend_sqlalchemy.py
 ├── adapters/
 │   ├── fastapi/app.py     # FastAPIFrontend plugin class
 │   ├── gradio/app.py      # GradioFrontend plugin class

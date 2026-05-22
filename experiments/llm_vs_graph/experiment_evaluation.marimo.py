@@ -54,8 +54,8 @@ def _():
 @app.cell(hide_code=True)
 def _():
     experiment_dir = Path(__file__).resolve().parent
-    logs_path = experiment_dir / ".." / ".." / "logs" / "FLAIRS39_old"
-    # logs_path = experiment_dir / "logs"
+    # logs_path = experiment_dir / ".." / ".." / "logs" / "FLAIRS39_old"
+    logs_path = experiment_dir / "logs"
     gt_dir = experiment_dir / "scenario_ground_truth"
     export_dir = experiment_dir
     {
@@ -156,6 +156,7 @@ def load_survey_results(logs_path):
 def _(logs_path):
     survey_results_df = pd.DataFrame(load_survey_results(logs_path=logs_path))
     survey_results_df = survey_results_df.set_index(["user_id", "session_id"])
+    # survey_results_df=survey_results_df.query('scenario not in ["Scenario_05","Scenario_08","Scenario_11","Scenario_12"]')
     survey_results_df
     return (survey_results_df,)
 
@@ -364,13 +365,15 @@ def load_state_results(logs_path):
 
 @app.cell
 def _(logs_path):
-    pd.DataFrame(load_state_results(logs_path=logs_path))
+    t = pd.DataFrame(load_state_results(logs_path=logs_path))
+    # t.query("not dialogue_turns ==0")
+    t
     return
 
 
 @app.cell
 def _(logs_path):
-    state_results_df = pd.DataFrame(load_state_results(logs_path=logs_path))
+    state_results_df = pd.DataFrame(load_state_results(logs_path=logs_path)).query("not dialogue_turns ==0")
     state_results_df = state_results_df.loc[
         :,
         state_results_df.columns.isin(
@@ -383,7 +386,8 @@ def _(logs_path):
             ]
         ),
     ]
-    state_results_df
+    # state_results_df=state_results_df.query('scenario not in ["Scenario_05","Scenario_08","Scenario_11","Scenario_12"]')
+    state_results_df['scenario'].unique()
     return (state_results_df,)
 
 
@@ -421,6 +425,12 @@ def _(gt_rows):
     ]
     gt_df
     return (gt_df,)
+
+
+@app.cell
+def _(gt_df):
+    gt_df[gt_df['scenario'].duplicated()]['scenario']
+    return
 
 
 @app.cell
@@ -570,7 +580,7 @@ def _(gt_cols, gt_df, medical_cols, pred_cols, state_results_df):
         == matched_df[gt_cols].fillna(False).to_numpy()
     )
     rowwise_match_matrix
-    return matched_df, rowwise_match_matrix
+    return (matched_df,)
 
 
 @app.cell
@@ -578,7 +588,7 @@ def _(gt_cols, matched_df):
     # rows where got at least one value that is not python None or numpy.NAN in gt cols
     has_gt_match = matched_df[gt_cols].notna().any(axis=1)
     has_gt_match
-    return (has_gt_match,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -603,7 +613,7 @@ def _():
             f1_score(y_true[i], y_pred[i], zero_division=0)
             for i in range(len(y_true))
         ])
-    
+
         result = dict(
             zip(
                 (
@@ -653,14 +663,155 @@ def _(filter_gt_policy, get_metrics, get_pred_true, gt_df, state_results_df):
     return agent_results, filtered_df_agent
 
 
+@app.cell
+def _(agent_results, filtered_df_agent, filtered_df_graph, graph_results):
+    pd.DataFrame(
+        [
+            {
+                "policy": "graph",
+                "count": len(filtered_df_graph),
+                **graph_results,
+            },
+            {
+                "policy": "agent",
+                "count": len(filtered_df_agent),
+                **agent_results,
+            },
+        ]
+    )
+    return
+
+
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ### Forgiving Slot-Filling Metrics
 
-    - GTs are matched soley on Scenario
-    - Better GT is picked if there are two GTs for a scenario
-    - collaps GT with multiple outcomes into one row
+    - GTs are matched on `scenario` only.
+    - Each prediction is compared against every GT candidate for that scenario.
+    - For each metric, the best score across available GT candidates is kept instead of collapsing GTs into one union row.
+    """)
+    return
+
+
+@app.cell
+def _(gt_df):
+    scenario_gt_candidates = gt_df.drop(columns=["outcome"], errors="ignore").reset_index(
+        drop=True
+    )
+    scenario_gt_candidates.insert(0, "gt_candidate_id", scenario_gt_candidates.index)
+
+    def get_best_scenario_metrics(policy: str, state_df: pd.DataFrame):
+        prediction_cols = [
+            column
+            for column in scenario_gt_candidates.columns
+            if column not in {"gt_candidate_id", "scenario"}
+        ]
+
+        policy_df = (
+            state_df.loc[
+                state_df["policy"] == policy,
+                ["scenario", "outcome", "policy", *prediction_cols],
+            ]
+            .reset_index(drop=True)
+            .copy()
+        )
+
+        policy_df.insert(0, "prediction_id", policy_df.index)
+        candidate_pairs = policy_df.merge(
+            scenario_gt_candidates,
+            on="scenario",
+            how="inner",
+            suffixes=("_pred", "_gt"),
+            sort=False,
+        )
+
+        pred_cols = [f"{column}_pred" for column in prediction_cols]
+        gt_cols = [f"{column}_gt" for column in prediction_cols]
+
+        def score_candidate_pair(row: pd.Series) -> pd.Series:
+            y_pred = row[pred_cols].fillna(False).to_numpy(np.int8)
+            y_true = row[gt_cols].fillna(False).to_numpy(np.int8)
+            return pd.Series(
+                {
+                    "precision": precision_score(y_true, y_pred, zero_division=0),
+                    "recall": recall_score(y_true, y_pred, zero_division=0),
+                    "f1": f1_score(y_true, y_pred, zero_division=0),
+                    "subset_accuracy": float(np.array_equal(y_true, y_pred)),
+                    "hamming_loss": float(np.mean(y_true != y_pred)),
+                    "jaccard": jaccard_score(y_true, y_pred, zero_division=0),
+                }
+            )
+
+        candidate_scores = candidate_pairs.apply(score_candidate_pair, axis=1)
+        candidate_pairs = pd.concat([candidate_pairs, candidate_scores], axis=1)
+
+        best_scores = candidate_pairs.groupby("prediction_id", sort=False).agg(
+            precision=("precision", "max"),
+            recall=("recall", "max"),
+            f1=("f1", "max"),
+            subset_accuracy=("subset_accuracy", "max"),
+            hamming_loss=("hamming_loss", "min"),
+            jaccard=("jaccard", "max"),
+        )
+
+        f1_iqr = best_scores["f1"].quantile(0.75) - best_scores["f1"].quantile(0.25)
+        return {
+            "count": int(len(best_scores)),
+            "precision": float(best_scores["precision"].mean()),
+            "recall": float(best_scores["recall"].mean()),
+            "f1": float(best_scores["f1"].mean()),
+            "f1_iqr": float(f1_iqr),
+            "subset_accuracy": float(best_scores["subset_accuracy"].mean()),
+            "hamming_loss": float(best_scores["hamming_loss"].mean()),
+            "jaccard": float(best_scores["jaccard"].mean()),
+        }
+
+    forgiving_gt_df = {
+        "scenario_gt_candidates": scenario_gt_candidates,
+        "get_best_scenario_metrics": get_best_scenario_metrics,
+    }
+    scenario_gt_candidates
+    return (forgiving_gt_df,)
+
+
+@app.cell
+def _(forgiving_gt_df, state_results_df):
+    forgiving_graph_results = forgiving_gt_df["get_best_scenario_metrics"](
+        "graph", state_results_df
+    )
+    forgiving_graph_results
+    return (forgiving_graph_results,)
+
+
+@app.cell
+def _(forgiving_gt_df, state_results_df):
+    forgiving_agent_results = forgiving_gt_df["get_best_scenario_metrics"](
+        "agent", state_results_df
+    )
+    forgiving_agent_results
+    return (forgiving_agent_results,)
+
+
+@app.cell
+def _(forgiving_agent_results, forgiving_graph_results):
+    pd.DataFrame(
+        [
+            {"policy": "graph", **forgiving_graph_results},
+            {"policy": "agent", **forgiving_agent_results},
+        ]
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ### Collapsed Slot-Filling Metric
+
+    - GTs are matched on `scenario` only.
+    - All GT variants for the same scenario are collapsed into one union row.
+    - A slot is treated as `True` if any GT variant for that scenario marks it as `True`.
     """)
     return
 
@@ -668,10 +819,11 @@ def _():
 @app.cell
 def _(gt_df):
     collapsed_gt_df = (
-        gt_df.groupby("scenario")
+        gt_df.drop(columns=["outcome"], errors="ignore")
+        .groupby("scenario")
         .agg("sum")
         .astype(bool)
-        .reset_index()  # .drop("outcome", axis=1)
+        .reset_index()
     )
     collapsed_gt_df
     return (collapsed_gt_df,)
@@ -685,11 +837,14 @@ def _(
     get_pred_true,
     state_results_df,
 ):
+    filtered_collapsed_graph_df = filter_gt_policy(
+        "graph", "scenario", collapsed_gt_df, state_results_df
+    )
     collapsed_graph_results = get_metrics(
-        *get_pred_true(filter_gt_policy("graph", "scenario", collapsed_gt_df, state_results_df)
-    ))
+        *get_pred_true(filtered_collapsed_graph_df)
+    )
     collapsed_graph_results
-    return
+    return collapsed_graph_results, filtered_collapsed_graph_df
 
 
 @app.cell
@@ -700,132 +855,38 @@ def _(
     get_pred_true,
     state_results_df,
 ):
+    filtered_collapsed_agent_df = filter_gt_policy(
+        "agent", "scenario", collapsed_gt_df, state_results_df
+    )
     collapsed_agent_results = get_metrics(
-        *get_pred_true(filter_gt_policy("agent", "scenario", collapsed_gt_df, state_results_df)
-    ))
+        *get_pred_true(filtered_collapsed_agent_df)
+    )
     collapsed_agent_results
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(r"""
-    ## OLD
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(r"""
-    ### Metrics: `outcome_consistent_slot_accuracy` and `hamming_accuracy`
-
-    These metrics compare final predicted slots against ground truth after aligning rows by `scenario` and `outcome`.
-
-    All evaluated slots are binary at scoring time (`True`/`False`). Any missing slot value is treated as `False` before scoring.
-
-    #### Alignment step
-
-    For each dialogue $i$, define $m_i=1$ if a `(scenario, outcome)` ground-truth row exists after merge, else $m_i=0$.
-
-    #### `outcome_consistent_slot_accuracy`
-
-    For predicted slot vector $\hat{s}_i$ and aligned ground-truth slot vector $s_i^*$ with $K$ slots:
-
-    $$
-    \mathrm{OutcomeConsistentSlotAccuracy}_i =
-    \begin{cases}
-    \frac{1}{K}\sum_{k=1}^{K}\mathbb{1}[\hat{s}_{ik}=s_{ik}^*] & \text{if } m_i=1 \\
-    0 & \text{if } m_i=0
-    \end{cases}
-    $$
-
-    #### `hamming_accuracy`
-
-    This is computed per row using sklearn:
-
-    $$
-    \mathrm{HammingAccuracy}_i = 1 - \mathrm{HammingLoss}(s_i^*, \hat{s}_i)
-    $$
-
-    and then masked the same way:
-
-    $$
-    \mathrm{HammingAccuracy}_i =
-    \begin{cases}
-    1 - \mathrm{HammingLoss}(s_i^*, \hat{s}_i) & \text{if } m_i=1 \\
-    0 & \text{if } m_i=0
-    \end{cases}
-    $$
-
-    #### Relationship
-
-    For binary slots, `outcome_consistent_slot_accuracy` and `hamming_accuracy` are mathematically equivalent row by row.
-    """)
-    return
+    return collapsed_agent_results, filtered_collapsed_agent_df
 
 
 @app.cell
-def test(has_gt_match, metrics_df, rowwise_match_matrix):
-    metrics_df["outcome_consistent_slot_accuracy"] = np.where(
-        has_gt_match,
-        rowwise_match_matrix.mean(axis=1),
-        False,
-    )
-    metrics_df["outcome_consistent_slot_accuracy"].groupby(metrics_df["policy"]).mean()
-    return
-
-
-@app.cell(disabled=True)
-def _(gt_cols, gt_df, medical_cols, metrics_df, state_results_df):
-    _metrics_df = metrics_df.copy()
-    _matched_df = state_results_df[
-        ["scenario", "outcome", "policy", *medical_cols]
-    ].merge(
-        gt_df,
-        on=["scenario", "outcome"],
-        how="left",
-        suffixes=("_pred", "_gt"),
-        sort=False,
-    )
-    _has_gt_match = _matched_df[gt_cols].notna().any(axis=1)
-
-    # set unknown to False for hamming loss calculation
-    pred_aligned_df = (
-        _matched_df[[f"{column}_pred" for column in medical_cols]]
-        .fillna(False)
-        .astype(int)
-    )
-    gt_aligned_df = (
-        _matched_df[[f"{column}_gt" for column in medical_cols]].fillna(False).astype(int)
-    )
-
-    row_hamming_accuracy = pd.Series(
+def _(
+    collapsed_agent_results,
+    collapsed_graph_results,
+    filtered_collapsed_agent_df,
+    filtered_collapsed_graph_df,
+):
+    pd.DataFrame(
         [
-            1.0 - hamming_loss(gt_row, pred_row)
-            for gt_row, pred_row in zip(
-                gt_aligned_df.to_numpy(), pred_aligned_df.to_numpy()
-            )
-        ],
-    )
-
-    # Filter hamming accuracy to only rows with a valid GT match
-    metrics_df["hamming_accuracy"] = row_hamming_accuracy.where(_has_gt_match, 0.0)
-    metrics_df["hamming_accuracy_matched_only"] = row_hamming_accuracy.where(
-        _has_gt_match
-    )
-
-    _metrics_df[
-        [
-            "policy",
-            "hamming_accuracy",
-            "hamming_accuracy_matched_only",
-            # "outcome_consistent_slot_accuracy",
+            {
+                "policy": "graph",
+                "count": len(filtered_collapsed_graph_df),
+                **collapsed_graph_results,
+            },
+            {
+                "policy": "agent",
+                "count": len(filtered_collapsed_agent_df),
+                **collapsed_agent_results,
+            },
         ]
-    ].groupby("policy").mean()
-
-    row_hamming_accuracy.mean()
-    return gt_aligned_df, pred_aligned_df
+    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -857,27 +918,6 @@ def _():
     return
 
 
-@app.cell
-def _(gt_aligned_df, has_gt_match, metrics_df, pred_aligned_df):
-    row_subset_accuracy = pd.Series(
-        [
-            accuracy_score([gt_row], [pred_row])
-            for gt_row, pred_row in zip(
-                gt_aligned_df.to_numpy(), pred_aligned_df.to_numpy()
-            )
-        ],
-    )
-    metrics_df["subset_accuracy"] = row_subset_accuracy.where(has_gt_match, 0)
-    metrics_df["subset_accuracy_matched_only"] = row_subset_accuracy.where(
-        has_gt_match, 0
-    )
-
-    metrics_df[["policy", "subset_accuracy", "subset_accuracy_matched_only"]].groupby(
-        "policy"
-    ).mean()
-    return
-
-
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
@@ -893,101 +933,6 @@ def _():
 
     - `1.0` means perfect overlap on positive slots.
     - `0.0` means no overlap on positive slots.
-    """)
-    return
-
-
-@app.cell
-def _(has_gt_match, matched_df, medical_cols, metrics_df):
-    pred_tri_df = (
-        matched_df[[f"{column}_pred" for column in medical_cols]]
-        .replace({True: 2, False: 1})
-        .fillna(0)
-    )
-    gt_tri_df = (
-        matched_df[[f"{column}_gt" for column in medical_cols]]
-        .replace({True: 2, False: 1})
-        .fillna(0)
-    )
-
-    row_jaccard_index = pd.Series(
-        [
-            jaccard_score(gt_row, pred_row, average="macro", labels=[2], zero_division=0)
-            for gt_row, pred_row in zip(
-                gt_tri_df.to_numpy(dtype=int),
-                pred_tri_df.to_numpy(dtype=int),
-            )
-        ],
-    )
-    metrics_df["jaccard_index"] = row_jaccard_index.where(has_gt_match, 0.0)
-    metrics_df["jaccard_index_matched_only"] = row_jaccard_index.where(has_gt_match)
-    metrics_df[["jaccard_index", "jaccard_index_matched_only"]].groupby(
-        metrics_df["policy"]
-    ).mean()
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(r"""
-    ### PRF
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(r"""
-    ### Binary PRF Metrics On `{False, True}`
-
-    The notebook uses binary precision, recall, and F1 on the predicted-outcome ground-truth variant.
-
-    For class $c$:
-
-    $$
-    \mathrm{Precision}_c = \frac{TP_c}{TP_c + FP_c}
-    \qquad
-    \mathrm{Recall}_c = \frac{TP_c}{TP_c + FN_c}
-    $$
-
-    $$
-    \mathrm{F1}_c = \frac{2 \cdot \mathrm{Precision}_c \cdot \mathrm{Recall}_c}{\mathrm{Precision}_c + \mathrm{Recall}_c}
-    $$
-
-    Only `True` and `False` are treated as evaluated labels.
-
-    Ground-truth `None` values are excluded unless the prediction disagrees with them.
-    If a prediction is explicitly `True` or `False` against a ground-truth `None`, that ground-truth label is scored as `False`.
-
-    #### Metrics for `False`
-
-    - `precision_false_predicted_outcome`
-    - `recall_false_predicted_outcome`
-    - `f1_false_predicted_outcome`
-
-    #### Interpretation
-
-    - These measure recovery of explicit negative findings and penalties for unsupported assertions against `None`.
-
-    #### Usefulness
-
-    - Useful only when the data contains meaningful numbers of `No` labels.
-
-    #### Limitations
-
-    - If `No` labels are rare, these metrics become unstable or uninformative.
-
-    #### Metrics for `True`
-
-    - `precision_true_predicted_outcome`
-    - `recall_true_predicted_outcome`
-    - `f1_true_predicted_outcome`
-
-    #### Interpretation
-
-    - `precision_true_predicted_outcome`: when the notebook predicts a positive slot, how often it is correct
-    - `recall_true_predicted_outcome`: when a positive slot is present in ground truth, how often it is recovered
-    - `f1_true_predicted_outcome`: balanced summary of positive-slot recovery
     """)
     return
 
@@ -1052,12 +997,6 @@ def _():
 
 
 @app.cell
-def _(state_results_df):
-    state_results_df
-    return
-
-
-@app.cell
 def _(grouped_turns):
     grouped_turns.agg(
         mean="mean",
@@ -1065,7 +1004,7 @@ def _(grouped_turns):
         count="count",
         std_dev="std",
         q1=lambda x: x.quantile(0.25),
-        q2=lambda x: x.quantile(0.75),
+        q3=lambda x: x.quantile(0.75),
         iqr=lambda x: x.quantile(0.75) - x.quantile(0.25)
     )
     return
@@ -1080,7 +1019,7 @@ def _(state_results_df):
         std_dev="std",
         median="median",
         q1=lambda x: x.quantile(0.25),
-        q2=lambda x: x.quantile(0.75),
+        q3=lambda x: x.quantile(0.75),
         iqr=lambda x: x.quantile(0.75) - x.quantile(0.25)
     )
     dialogue_turns_summary_df
@@ -1101,6 +1040,94 @@ def _(state_results_df):
     _ax.set_ylabel("Dialogue turns")
     _fig.tight_layout()
     _fig
+    return
+
+
+@app.cell
+def _(dialogue_turns_summary_df, export_dir, state_results_df):
+    export_dir.mkdir(parents=True, exist_ok=True)
+
+    summary_reference_df = dialogue_turns_summary_df.reset_index().sort_values(
+        "policy", kind="stable", ignore_index=True
+    ).assign(
+        draw_position=lambda df: np.arange(1, len(df) + 1, dtype=int),
+        lower_fence=lambda df: df["q1"] - 1.5 * df["iqr"],
+        upper_fence=lambda df: df["q3"] + 1.5 * df["iqr"],
+    )
+    whisker_rows = []
+    outlier_map = {}
+
+    for summary_row in summary_reference_df.itertuples(index=False):
+        policy_values = np.sort(
+            pd.to_numeric(
+                state_results_df.loc[
+                    state_results_df["policy"] == summary_row.policy,
+                    "dialogue_turns",
+                ],
+                errors="coerce",
+            )
+            .dropna()
+            .to_numpy(dtype=float)
+        )
+        if policy_values.size == 0:
+            raise ValueError(
+                f"No dialogue-turn samples available for policy {summary_row.policy}."
+            )
+
+        inlier_values = policy_values[
+            (policy_values >= summary_row.lower_fence)
+            & (policy_values <= summary_row.upper_fence)
+        ]
+        if inlier_values.size == 0:
+            raise ValueError(
+                f"No inlier dialogue-turn samples available for policy {summary_row.policy}."
+            )
+
+        lower_whisker = float(inlier_values.min())
+        upper_whisker = float(inlier_values.max())
+        outlier_values = policy_values[
+            (policy_values < lower_whisker) | (policy_values > upper_whisker)
+        ]
+
+        whisker_rows.append(
+            {
+                "policy": summary_row.policy,
+                "lower_whisker": lower_whisker,
+                "upper_whisker": upper_whisker,
+            }
+        )
+        outlier_map[summary_row.policy] = [int(value) for value in outlier_values]
+
+    dialogue_turns_boxplot_df = summary_reference_df.merge(
+        pd.DataFrame(whisker_rows),
+        on="policy",
+        how="left",
+        validate="one_to_one",
+    ).sort_values(
+        ["draw_position", "policy"], kind="stable", ignore_index=True
+    )
+    dialogue_turns_boxplot_df["outlier_count"] = dialogue_turns_boxplot_df[
+        "policy"
+    ].map(lambda policy: len(outlier_map.get(policy, [])))
+
+    max_outlier_count = max(dialogue_turns_boxplot_df["outlier_count"], default=0)
+    for outlier_idx in range(max_outlier_count):
+        column_name = f"outlier_{outlier_idx + 1}"
+        dialogue_turns_boxplot_df[column_name] = pd.array(
+            dialogue_turns_boxplot_df["policy"].map(
+                lambda policy: (
+                    outlier_map.get(policy, [])[outlier_idx]
+                    if outlier_idx < len(outlier_map.get(policy, []))
+                    else None
+                )
+            ),
+            dtype="Int64",
+        )
+
+    dialogue_turns_boxplot_df.to_csv(
+        export_dir / "dialogue_turns_boxplot.csv", index=False
+    )
+    dialogue_turns_boxplot_df
     return
 
 
@@ -1147,12 +1174,18 @@ def _():
     mo.md(r"""
     ## CSV Export
 
-    The notebook writes three descriptive summaries to the selected experiment directory:
+    The notebook writes descriptive summaries and a prepared boxplot table to the selected experiment directory:
 
     - `metrics_summary.csv`
     - `dialogue_turns_summary.csv`
+    - `dialogue_turns_boxplot.csv`
     - `likert_summary.csv`
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
@@ -1181,7 +1214,7 @@ def _(
 
     outcome_summary_df.reset_index().to_csv(export_dir / "outcome_summary.csv", index=False)
     metrics_summary_df.to_csv(export_dir / "metrics_summary.csv", index=False)
-    dialogue_turns_summary_df.to_csv(
+    dialogue_turns_summary_df.reset_index().to_csv(
         export_dir / "dialogue_turns_summary.csv", index=False
     )
     likert_summary_df.to_csv(export_dir / "likert_summary.csv", index=False)

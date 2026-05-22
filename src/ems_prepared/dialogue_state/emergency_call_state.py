@@ -26,9 +26,9 @@ class EmergencyCall(MedicalEmergency):
         title="Caller Name",
         description="Name of the person making the emergency call.",
     )
-    # caller_phone: KnownString = Field(
-    #     default=None, title="Caller Phone", description="Phone number of the caller."
-    # )
+    caller_phone_number: KnownString = Field(
+        default=None, title="Caller Phone", description="Phone number of the caller."
+    )
     emergency_location: KnownString = Field(
         default=None,
         title="Distinctive Location",

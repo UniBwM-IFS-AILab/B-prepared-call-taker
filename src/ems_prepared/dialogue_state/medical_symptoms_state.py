@@ -7,7 +7,7 @@ This module provides:
 from typing import Literal
 
 from numpy import ndarray
-from pydantic.config import ConfigDict
+from pydantic import Field
 from pydantic.fields import computed_field
 from pydantic.functional_validators import model_validator
 from pydantic.json_schema import SkipJsonSchema
@@ -19,6 +19,7 @@ from rapidfuzz.process import cdist
 from ems_prepared.dialogue_state.medical.additional_state import AdditionalQuestions
 from ems_prepared.dialogue_state.medical.base_models import (
     CPR_Boolean,
+    KeyQuestionSymptom,
     RD1_Boolean,
     RD2_Boolean,
     Urgency_Boolean,
@@ -32,7 +33,29 @@ from ems_prepared.dialogue_state.medical.immediate_disposition_state import (
 )
 from ems_prepared.dialogue_state.medical.neurological_state import Neurological
 from ems_prepared.dialogue_state.medical.tcpr_state import TeleCpr
-from ems_prepared.dialogue_state.type_defs import KnownBoolean, tristate
+from ems_prepared.dialogue_state.type_defs import (
+    KnownBoolean,
+    KnownString,
+    Unknown,
+    tristate,
+)
+
+
+class Extras(KeyQuestionSymptom):
+    """Model for any additional fields that might be added to MedicalEmergency in the future."""
+
+    patient_age: int | Unknown = Field(
+        default=None,
+        title="Patient Age",
+        description="The age of the patient.",
+    )
+    covid_vaccination_status: KnownString = Field(
+        default=None,
+        title="COVID-19 Vaccination Status",
+        description=(
+            "The COVID-19 vaccination status of the patient (e.g., unvaccinated, partially vaccinated, fully vaccinated, boosted)."
+        ),
+    )
 
 
 class MedicalEmergency(
@@ -43,6 +66,7 @@ class MedicalEmergency(
     Circulation,
     Neurological,
     AdditionalQuestions,
+    Extras,
 ):
     """Model representing patient state for a medical emergency.
 

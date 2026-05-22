@@ -7,8 +7,15 @@ from uuid import UUID
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.model.context import Locale
-from ems_prepared.model.contracts import BackendEvent, SessionHandle
-from ems_prepared.model.session_recording import FileSessionRecorder
+from ems_prepared.model.contracts import (
+    BackendEvent,
+    BackendEventKind,
+    ConversationMessage,
+    MessageRole,
+    MessageType,
+    SessionHandle,
+)
+from ems_prepared.model.session_backend_file import FileSessionBackend
 
 
 def _build_session_handle() -> SessionHandle:
@@ -24,7 +31,7 @@ def _build_session_handle() -> SessionHandle:
 
 def test_save_manifest_writes_expected_file(tmp_path) -> None:
     """Manifest write should create `manifest.json` with session metadata."""
-    recorder = FileSessionRecorder()
+    recorder = FileSessionBackend()
     save_path = tmp_path / "session"
     save_path.mkdir(parents=True, exist_ok=True)
 
@@ -42,7 +49,7 @@ def test_save_manifest_writes_expected_file(tmp_path) -> None:
 
 def test_save_events_appends_jsonl_lines(tmp_path) -> None:
     """Event writes should append newline-delimited JSON records."""
-    recorder = FileSessionRecorder()
+    recorder = FileSessionBackend()
     save_path = tmp_path / "session"
     save_path.mkdir(parents=True, exist_ok=True)
     session = _build_session_handle()
@@ -51,14 +58,18 @@ def test_save_events_appends_jsonl_lines(tmp_path) -> None:
         session=session,
         save_path=save_path,
         events=[
-            BackendEvent(kind="message", text="hello"),
-            BackendEvent(kind="question", text="where?", payload={"step": 1}),
+            BackendEvent(kind=BackendEventKind.MESSAGE, text="hello"),
+            BackendEvent(
+                kind=BackendEventKind.QUESTION,
+                text="where?",
+                payload={"step": 1},
+            ),
         ],
     )
     recorder.save_events(
         session=session,
         save_path=save_path,
-        events=[BackendEvent(kind="completed", text="done")],
+        events=[BackendEvent(kind=BackendEventKind.COMPLETED, text="done")],
     )
 
     lines = (save_path / "events.jsonl").read_text(encoding="utf-8").splitlines()
@@ -72,7 +83,7 @@ def test_save_events_appends_jsonl_lines(tmp_path) -> None:
 
 def test_save_survey_writes_expected_payload(tmp_path) -> None:
     """Survey write should return path to created survey file."""
-    recorder = FileSessionRecorder()
+    recorder = FileSessionBackend()
     save_path = tmp_path / "session"
     save_path.mkdir(parents=True, exist_ok=True)
 
@@ -90,9 +101,53 @@ def test_save_survey_writes_expected_payload(tmp_path) -> None:
     assert payload["metadata"]["session_id"] == str(UUID(int=2))
 
 
+def test_save_and_load_history_messages_round_trip(tmp_path) -> None:
+    """History writes should be readable while the session is still active."""
+    recorder = FileSessionBackend()
+    save_path = tmp_path / "session"
+    save_path.mkdir(parents=True, exist_ok=True)
+    session = _build_session_handle()
+    recorder.save_manifest(
+        session=session,
+        save_path=save_path,
+        metadata={"experiment_name": "exp"},
+    )
+
+    recorder.save_transcript_entries(
+        session=session,
+        save_path=save_path,
+        messages=[
+            ConversationMessage(
+                id="msg_assistant",
+                type=MessageType.QUESTION,
+                role=MessageRole.ASSISTANT,
+                content="Where are you?",
+                timestamp="2026-01-01T12:00:00",
+            ),
+            ConversationMessage(
+                id="msg_user",
+                type=MessageType.MESSAGE,
+                role=MessageRole.USER,
+                content="At Main Street",
+                timestamp="2026-01-01T12:00:01",
+            ),
+        ],
+    )
+
+    history = recorder.load_history(session.session_id)
+
+    assert [entry.role for entry in history] == ["assistant", "user"]
+    assert [entry.content for entry in history] == [
+        "Where are you?",
+        "At Main Street",
+    ]
+    assert history[0].type == "question"
+    assert history[0].timestamp == "2026-01-01T12:00:00"
+
+
 def test_save_events_noop_for_empty_list(tmp_path) -> None:
     """Empty event writes should not create `events.jsonl`."""
-    recorder = FileSessionRecorder()
+    recorder = FileSessionBackend()
     save_path = tmp_path / "session"
     save_path.mkdir(parents=True, exist_ok=True)
 
@@ -107,7 +162,7 @@ def test_save_events_noop_for_empty_list(tmp_path) -> None:
 
 def test_save_completion_artifacts_writes_expected_files(tmp_path) -> None:
     """Completion artifact writes should emit state, history, and deps files."""
-    recorder = FileSessionRecorder()
+    recorder = FileSessionBackend()
     save_path = tmp_path / "session"
     save_path.mkdir(parents=True, exist_ok=True)
 

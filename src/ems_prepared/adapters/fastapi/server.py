@@ -1,7 +1,5 @@
 """Standalone FastAPI server entry point for reload-safe uvicorn startup."""
 
-from __future__ import annotations
-
 import argparse
 import os
 
@@ -10,11 +8,16 @@ import uvicorn
 from ems_prepared.adapters.fastapi.app import create_app
 from ems_prepared.main import create_session_manager
 from ems_prepared.model.context import Locale
+from ems_prepared.model.contracts import SessionBackend
+from ems_prepared.model.session_backend_file import FileSessionBackend
+from ems_prepared.model.session_backend_sqlalchemy import SqlAlchemySessionBackend
 from ems_prepared.plugins import load_policy_factories
 
 _POLICY_ENV = "EMS_PREPARED_FASTAPI_POLICY"
 _LOCALE_ENV = "EMS_PREPARED_FASTAPI_LOCALE"
 _EXPERIMENT_ENV = "EMS_PREPARED_FASTAPI_EXPERIMENT"
+_SESSION_BACKEND_ENV = "EMS_PREPARED_FASTAPI_SESSION_BACKEND"
+_SESSION_DB_URL_ENV = "EMS_PREPARED_FASTAPI_SESSION_DB_URL"
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -46,6 +49,23 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional experiment/run name for session outputs.",
     )
+    _ = parser.add_argument(
+        "--session-backend",
+        choices=["file", "sqlite"],
+        default="file",
+        help=(
+            "Session metadata/logging backend. "
+            "Graph policy persistence remains file-based."
+        ),
+    )
+    _ = parser.add_argument(
+        "--session-db-url",
+        default="sqlite:///logs/sessions.db",
+        help=(
+            "SQLAlchemy database URL for session metadata/logging when "
+            "--session-backend sqlite."
+        ),
+    )
     return parser
 
 
@@ -54,10 +74,20 @@ def create_runtime_app(
     policy: str,
     locale: Locale,
     experiment_name: str | None,
+    session_backend_name: str = "file",
+    session_db_url: str = "sqlite:///logs/sessions.db",
 ):
     """Create the FastAPI app from runtime dependencies."""
     policy_factories = load_policy_factories()
-    session_manager = create_session_manager(policy_factories=policy_factories)
+    backend: SessionBackend
+    if session_backend_name == "sqlite":
+        backend = SqlAlchemySessionBackend(database_url=session_db_url)
+    else:
+        backend = FileSessionBackend()
+    session_manager = create_session_manager(
+        policy_factories=policy_factories,
+        session_backend=backend,
+    )
     return create_app(
         session_manager,
         default_policy=policy,
@@ -73,6 +103,11 @@ def create_app_from_environment():
         policy=os.environ.get(_POLICY_ENV, "graph"),
         locale=Locale(os.environ.get(_LOCALE_ENV, Locale.EN.value)),
         experiment_name=experiment_name or None,
+        session_backend_name=os.environ.get(_SESSION_BACKEND_ENV, "file"),
+        session_db_url=os.environ.get(
+            _SESSION_DB_URL_ENV,
+            "sqlite:///logs/sessions.db",
+        ),
     )
 
 
@@ -85,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
         os.environ.pop(_EXPERIMENT_ENV, None)
     else:
         os.environ[_EXPERIMENT_ENV] = args.experiment_name
+    os.environ[_SESSION_BACKEND_ENV] = args.session_backend
+    os.environ[_SESSION_DB_URL_ENV] = args.session_db_url
 
     uvicorn.run(
         "ems_prepared.adapters.fastapi.server:create_app_from_environment",

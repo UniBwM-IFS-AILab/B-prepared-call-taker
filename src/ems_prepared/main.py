@@ -11,9 +11,10 @@ from ems_prepared.model.contracts import (
     FrontendPlugin,
     PolicyFactory,
     SessionManager,
-    SessionRecorder,
+    SessionBackend,
 )
-from ems_prepared.model.session_recording import FileSessionRecorder
+from ems_prepared.model.session_backend_file import FileSessionBackend
+from ems_prepared.model.session_backend_sqlalchemy import SqlAlchemySessionBackend
 from ems_prepared.model.session_service import SessionService
 from ems_prepared.plugins import load_frontend_plugins, load_policy_factories
 
@@ -21,13 +22,13 @@ from ems_prepared.plugins import load_frontend_plugins, load_policy_factories
 def create_session_manager(
     *,
     policy_factories: Mapping[str, PolicyFactory],
-    session_recorder: SessionRecorder | None = None,
+    session_backend: SessionBackend | None = None,
 ) -> SessionManager:
     """Create a session manager from explicitly provided dependencies."""
-    resolved_recorder = session_recorder or FileSessionRecorder()
+    resolved_backend = session_backend or FileSessionBackend()
     return SessionService(
         policy_factories=dict(policy_factories),
-        session_recorder=resolved_recorder,
+        session_backend=resolved_backend,
     )
 
 
@@ -53,6 +54,23 @@ def _add_shared_arguments(parser: argparse.ArgumentParser) -> None:
         dest="experiment_name",
         default=None,
         help="Optional experiment/run name for session outputs.",
+    )
+    _ = parser.add_argument(
+        "--session-backend",
+        choices=["file", "sqlite"],
+        default="file",
+        help=(
+            "Session metadata/logging backend. "
+            "Graph policy persistence remains file-based."
+        ),
+    )
+    _ = parser.add_argument(
+        "--session-db-url",
+        default="sqlite:///logs/sessions.db",
+        help=(
+            "SQLAlchemy database URL for session metadata/logging when "
+            "--session-backend sqlite."
+        ),
     )
 
 
@@ -115,7 +133,16 @@ def _run_frontend_command(
     policy_factories: Mapping[str, PolicyFactory],
 ) -> int:
     """Run one frontend command with a shared session manager."""
-    manager = create_session_manager(policy_factories=policy_factories)
+    backend: SessionBackend
+    if args.session_backend == "sqlite":
+        backend = SqlAlchemySessionBackend(database_url=args.session_db_url)
+    else:
+        backend = FileSessionBackend()
+
+    manager = create_session_manager(
+        policy_factories=policy_factories,
+        session_backend=backend,
+    )
     try:
         code = plugin.run(manager, args)
     except SystemExit as exc:

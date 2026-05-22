@@ -10,9 +10,10 @@ from pydantic_graph.nodes import End
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.model.context import Settings
-from ems_prepared.model.contracts import BackendEvent, ConversationPolicy
-from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
-    clear_old_run,
+from ems_prepared.model.contracts import (
+    BackendEvent,
+    BackendEventKind,
+    ConversationPolicy,
 )
 from ems_prepared.policies.pydantic_graph.emergency_main_graph import (
     build_graph,
@@ -66,7 +67,7 @@ class GraphConversationPolicy(ConversationPolicy):
             if isinstance(result, End):
                 events.append(
                     BackendEvent(
-                        kind="completed",
+                        kind=BackendEventKind.COMPLETED,
                         text="The emergency call has been processed.",
                         payload=to_event_payload(result.data),
                     )
@@ -74,14 +75,16 @@ class GraphConversationPolicy(ConversationPolicy):
                 break
 
             if isinstance(result, QuestionNode):
-                events.append(BackendEvent(kind="question", text=result.question))
+                events.append(
+                    BackendEvent(kind=BackendEventKind.QUESTION, text=result.question)
+                )
                 break
 
             if isinstance(result, MessageNode):
                 message = result.messages.get(
                     self.deps.locale, "No message for this locale."
                 )
-                events.append(BackendEvent(kind="message", text=message))
+                events.append(BackendEvent(kind=BackendEventKind.MESSAGE, text=message))
                 continue
 
             self.deps.telemetry.logger.warning(
@@ -90,7 +93,7 @@ class GraphConversationPolicy(ConversationPolicy):
             )
             events.append(
                 BackendEvent(
-                    kind="error",
+                    kind=BackendEventKind.ERROR,
                     text=f"Unexpected graph result type: {type(result).__name__}",
                 )
             )
@@ -101,5 +104,5 @@ class GraphConversationPolicy(ConversationPolicy):
 
 async def build_graph_policy(deps: Settings) -> GraphConversationPolicy:
     """Build one graph policy runtime."""
-    await clear_old_run(deps.user_id, deps.storage.user_root)
-    return GraphConversationPolicy(graph=await build_graph(), deps=deps)
+    graph = await build_graph()
+    return GraphConversationPolicy(graph=graph, deps=deps)

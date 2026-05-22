@@ -1,35 +1,32 @@
-"""Shared backend entry point for session lifecycle management."""
+"""Shared backend entry point for storage-backed session lifecycle management."""
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
-from ems_prepared.model.context import Settings
+from ems_prepared.model.context import InputMode, Settings
 from ems_prepared.model.contracts import (
     BackendEvent,
+    BackendEventKind,
+    ConversationMessage,
     ConversationPolicy,
+    MessageFeedback,
+    MessageRole,
+    MessageType,
     PolicyFactory,
+    SessionBackend,
+    SessionHistory,
     SessionHandle,
     SessionManager,
     SessionParameters,
-    SessionRecorder,
+    SessionRecord,
     SessionState,
+    SessionStatus,
 )
-from ems_prepared.model.errors import SessionNotFoundError, UnsupportedPolicyError
-
-
-@dataclass(slots=True)
-class _SessionEntry:
-    """In-memory runtime container owned by `SessionService`."""
-
-    handle: SessionHandle
-    deps: Settings
-    policy: ConversationPolicy
-    is_complete: bool = False
 
 
 class SessionService(SessionManager):
@@ -39,30 +36,31 @@ class SessionService(SessionManager):
         self,
         *,
         policy_factories: Mapping[str, PolicyFactory],
-        session_recorder: SessionRecorder,
+        session_backend: SessionBackend,
     ) -> None:
-        """Store configured policy factories and session output recorder."""
+        """Create service with pluggable policy factories and session backend."""
         self._policy_factories = dict(policy_factories)
-        self._session_recorder = session_recorder
-        self._sessions: dict[UUID, _SessionEntry] = {}
+        self._session_backend = session_backend
 
     async def start_session(
         self,
         request: SessionParameters,
     ) -> tuple[SessionHandle, list[BackendEvent]]:
-        """Create and register a new in-memory session."""
+        """Create one session, run initial policy start, and persist events."""
         resolved_user_id = request.user_id or uuid4()
         resolved_session_id = request.session_id or uuid4()
-        if resolved_session_id in self._sessions:
+
+        existing = self._session_backend.get_session(resolved_session_id)
+        if existing is not None and existing.status is not SessionStatus.ENDED:
             raise ValueError(f"Session already exists: {resolved_session_id}")
 
-        deps = Settings(
-            name=f"{request.frontend_name}_{request.policy_name}",
+        deps = self._build_deps(
+            frontend_name=request.frontend_name,
+            policy_name=request.policy_name,
             user_id=resolved_user_id,
             session_id=resolved_session_id,
             experiment_name=request.experiment_name or "",
             scenario_name=request.scenario_name,
-            policy_name=request.policy_name,
             locale=request.locale,
             call_origin=request.call_origin,
             request_input=request.request_input,
@@ -77,12 +75,204 @@ class SessionService(SessionManager):
             scenario_name=request.scenario_name,
         )
 
+        self._session_backend.create_session(
+            session=handle,
+            save_path=deps.storage.save_path,
+            experiment_name=deps.experiment_name,
+            metadata={"save_path": str(deps.storage.save_path)},
+        )
+
+        policy = await self._build_policy(request.policy_name, deps)
+        try:
+            events = await policy.start()
+        finally:
+            await policy.close()
+
+        self._session_backend.save_events(
+            session=handle,
+            save_path=deps.storage.save_path,
+            events=events,
+        )
+        self._session_backend.save_transcript_entries(
+            session=handle,
+            save_path=deps.storage.save_path,
+            messages=self._build_history_messages(events=events),
+        )
+        if self._has_completion(events):
+            _ = self._session_backend.set_status(
+                handle.session_id,
+                SessionStatus.COMPLETED,
+            )
+        return handle, events
+
+    async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
+        """Handle one user turn for an existing active session."""
+        record = self._require_session(session_id)
+        if record.status is not SessionStatus.ACTIVE:
+            return []
+
+        policy_name = record.handle.policy_name
+        if policy_name is None:
+            raise ValueError(f"Missing policy_name for session: {session_id}")
+
+        deps = self._build_deps_from_record(record)
+        policy = await self._build_policy(policy_name, deps)
+        try:
+            events = await policy.handle_input(text)
+        finally:
+            await policy.close()
+
+        self._session_backend.save_events(
+            session=record.handle,
+            save_path=record.save_path,
+            events=events,
+        )
+        self._session_backend.save_transcript_entries(
+            session=record.handle,
+            save_path=record.save_path,
+            messages=self._build_history_messages(events=events, user_text=text),
+        )
+        if self._has_completion(events):
+            _ = self._session_backend.set_status(
+                session_id,
+                SessionStatus.COMPLETED,
+            )
+        return events
+
+    async def resume_session(self, session_id: UUID) -> SessionState | None:
+        """Compatibility alias that returns lightweight state without probing runtime."""
+        return self.get_view_state(session_id)
+
+    async def end_session(self, session_id: UUID) -> bool:
+        """Mark a session as ended."""
+        return self._session_backend.set_status(session_id, SessionStatus.ENDED)
+
+    async def submit_survey(
+        self,
+        session_id: UUID,
+        responses: list[dict[str, Any]],
+        feedback: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        """Persist survey payload for one session."""
+        record = self._require_session(session_id)
+        return self._session_backend.save_survey(
+            session=record.handle,
+            save_path=record.save_path,
+            responses=responses,
+            feedback=feedback,
+            metadata=metadata,
+        )
+
+    async def submit_feedback(
+        self,
+        session_id: UUID,
+        feedback: MessageFeedback,
+    ) -> None:
+        """Persist one message feedback event for a session."""
+        _ = self._require_session(session_id)
+        self._session_backend.save_feedback(session_id=session_id, feedback=feedback)
+
+    def get_view_state(self, session_id: UUID) -> SessionState | None:
+        """Return one UI-facing session snapshot from persistent storage."""
+        record = self._session_backend.get_session(session_id)
+        if record is None:
+            return None
+
+        return SessionState(
+            handle=record.handle,
+            experiment_name=record.experiment_name,
+            save_path=record.save_path,
+            is_complete=record.status is SessionStatus.COMPLETED,
+        )
+
+    def get_history(self, session_id: UUID) -> SessionHistory | None:
+        """Return persisted user-visible chat history for one session."""
+        record = self._session_backend.get_session(session_id)
+        if record is None:
+            return None
+
+        return SessionHistory(
+            handle=record.handle,
+            experiment_name=record.experiment_name,
+            status=record.status,
+            messages=self._session_backend.load_history(session_id),
+        )
+
+    def _require_session(self, session_id: UUID) -> SessionRecord:
+        record = self._session_backend.get_session(session_id)
+        if record is None:
+            raise LookupError(f"Unknown session: {session_id}")
+        return record
+
+    async def _build_policy(
+        self,
+        policy_name: str,
+        deps: Settings,
+    ) -> ConversationPolicy:
+        factory = self._policy_factories.get(policy_name)
+        if factory is None:
+            raise ValueError(f"Unsupported policy: {policy_name}")
+        return await factory(deps)
+
+    def _build_deps_from_record(self, record: SessionRecord) -> Settings:
+        return self._build_deps(
+            frontend_name=record.handle.frontend_name,
+            policy_name=record.handle.policy_name,
+            user_id=record.handle.user_id,
+            session_id=record.handle.session_id,
+            experiment_name=record.experiment_name,
+            scenario_name=record.handle.scenario_name,
+            locale=record.handle.locale,
+            call_origin=None,
+            request_input=None,
+            resume_expected=True,
+        )
+
+    def _build_deps(
+        self,
+        *,
+        frontend_name: str,
+        policy_name: str | None,
+        user_id: UUID,
+        session_id: UUID,
+        experiment_name: str,
+        scenario_name: str | None,
+        locale,
+        call_origin,
+        request_input,
+        resume_expected: bool = False,
+    ) -> Settings:
+        resolved_call_origin = call_origin or self._infer_call_origin(frontend_name)
+        kwargs: dict[str, Any] = {
+            "name": f"{frontend_name}_{policy_name or 'unknown'}",
+            "user_id": user_id,
+            "session_id": session_id,
+            "experiment_name": experiment_name,
+            "scenario_name": scenario_name,
+            "policy_name": policy_name,
+            "locale": locale,
+            "call_origin": resolved_call_origin,
+            "resume_expected": resume_expected,
+        }
+        if request_input is not None:
+            kwargs["request_input"] = request_input
+
+        deps = Settings(**kwargs)
+
         def _record_completion_artifacts(
             state: Any,
             message_history: list[Any],
         ) -> None:
-            self._session_recorder.save_completion_artifacts(
-                session=handle,
+            self._session_backend.save_completion_artifacts(
+                session=SessionHandle(
+                    user_id=deps.user_id,
+                    session_id=deps.session_id,
+                    locale=deps.locale,
+                    frontend_name=frontend_name,
+                    policy_name=policy_name,
+                    scenario_name=scenario_name,
+                ),
                 save_path=deps.storage.save_path,
                 state=state,
                 message_history=message_history,
@@ -92,116 +282,88 @@ class SessionService(SessionManager):
                         "emit",
                         "request_input",
                         "record_completion_artifacts",
+                        "load_agent_snapshot",
+                        "save_agent_snapshot",
                     },
                 ),
             )
 
         deps.record_completion_artifacts = _record_completion_artifacts
-        policy = await self._build_policy(request.policy_name, deps)
-
-        managed = _SessionEntry(handle=handle, deps=deps, policy=policy)
-        self._sessions[handle.session_id] = managed
-
-        self._session_recorder.save_manifest(
-            session=handle,
-            save_path=deps.storage.save_path,
-            metadata={
-                "experiment_name": deps.experiment_name,
-                "save_path": str(deps.storage.save_path),
-            },
+        deps.load_agent_snapshot = lambda: self._session_backend.load_agent_snapshot(
+            deps.session_id
         )
-
-        try:
-            events = await policy.start()
-        except Exception:
-            _ = self._sessions.pop(handle.session_id, None)
-            raise
-
-        self._session_recorder.save_events(
-            session=handle,
-            save_path=deps.storage.save_path,
-            events=events,
+        deps.save_agent_snapshot = lambda snapshot: self._session_backend.save_agent_snapshot(
+            deps.session_id,
+            snapshot,
         )
-        managed.is_complete = self._has_completion(events)
-        return handle, events
+        return deps
 
-    async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
-        """Advance an existing session with one caller message."""
-        session = self._require_session(session_id)
-        if session.is_complete:
-            return []
-
-        events = await session.policy.handle_input(text)
-        self._session_recorder.save_events(
-            session=session.handle,
-            save_path=session.deps.storage.save_path,
-            events=events,
-        )
-        session.is_complete = self._has_completion(events)
-        return events
-
-    async def resume_session(self, session_id: UUID) -> SessionState | None:
-        """Return current in-memory session state."""
-        return self.get_view_state(session_id)
-
-    async def end_session(self, session_id: UUID) -> bool:
-        """Flush and remove an existing session."""
-        session = self._sessions.pop(session_id, None)
-        if session is None:
-            return False
-
-        await session.policy.close()
-        return True
-
-    async def submit_survey(
-        self,
-        session_id: UUID,
-        responses: list[dict[str, Any]],
-        feedback: str | None = None,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
-        """Write survey responses into the current session directory."""
-        session = self._require_session(session_id)
-        return self._session_recorder.save_survey(
-            session=session.handle,
-            save_path=session.deps.storage.save_path,
-            responses=responses,
-            feedback=feedback,
-            metadata=metadata,
-        )
-
-    def get_view_state(self, session_id: UUID) -> SessionState | None:
-        """Return a lightweight view of the current in-memory session."""
-        session = self._sessions.get(session_id)
-        if session is None:
-            return None
-
-        return SessionState(
-            handle=session.handle,
-            experiment_name=session.deps.experiment_name,
-            save_path=session.deps.storage.save_path,
-            is_complete=session.is_complete,
-        )
-
-    def _require_session(self, session_id: UUID) -> _SessionEntry:
-        """Return the requested session or raise a lookup error."""
-        session = self._sessions.get(session_id)
-        if session is None:
-            raise SessionNotFoundError(f"Unknown session: {session_id}")
-        return session
-
-    async def _build_policy(
-        self,
-        policy_name: str,
-        deps: Settings,
-    ) -> ConversationPolicy:
-        """Build one policy runtime from the configured factories."""
-        factory = self._policy_factories.get(policy_name)
-        if factory is None:
-            raise UnsupportedPolicyError(f"Unsupported policy: {policy_name}")
-        return await factory(deps)
+    @staticmethod
+    def _infer_call_origin(frontend_name: str) -> InputMode:
+        if frontend_name == "cli":
+            return InputMode.CLI
+        if frontend_name == "tests":
+            return InputMode.TEST
+        return InputMode.API
 
     @staticmethod
     def _has_completion(events: Sequence[BackendEvent]) -> bool:
-        """Check whether the event list marks a session complete."""
-        return any(event.kind == "completed" for event in events)
+        return any(event.kind is BackendEventKind.COMPLETED for event in events)
+
+    @staticmethod
+    def _build_history_messages(
+        *,
+        events: Sequence[BackendEvent],
+        user_text: str | None = None,
+    ) -> list[ConversationMessage]:
+        messages: list[ConversationMessage] = []
+        if user_text is not None and user_text.strip():
+            messages.append(
+                ConversationMessage(
+                    id=f"msg_{uuid4().hex}",
+                    type=MessageType.MESSAGE,
+                    role=MessageRole.USER,
+                    content=user_text,
+                    timestamp=datetime.now().isoformat(),
+                )
+            )
+
+        for event in events:
+            if not event.text:
+                continue
+            message_type = (
+                MessageType.COMPLETION
+                if event.kind is BackendEventKind.COMPLETED
+                else MessageType(event.kind)
+            )
+            role = (
+                MessageRole.SYSTEM
+                if event.kind is BackendEventKind.ERROR
+                else MessageRole.ASSISTANT
+            )
+            result = (
+                dict(event.payload)
+                if event.kind is BackendEventKind.COMPLETED and event.payload
+                else None
+            )
+            details = (
+                dict(event.payload)
+                if event.kind is BackendEventKind.ERROR and event.payload
+                else None
+            )
+            code = None
+            if event.kind is BackendEventKind.ERROR:
+                code = str(event.payload.get("code", "internal_error"))
+            messages.append(
+                ConversationMessage(
+                    id=f"msg_{uuid4().hex}",
+                    type=message_type,
+                    role=role,
+                    content=event.text,
+                    timestamp=datetime.now().isoformat(),
+                    result=result,
+                    code=code,
+                    details=details,
+                )
+            )
+        return messages

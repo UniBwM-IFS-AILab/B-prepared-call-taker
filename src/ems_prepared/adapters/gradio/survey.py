@@ -1,11 +1,14 @@
-"""Survey configuration and utilities for the Gradio emergency call simulator.
+"""Survey configuration and submission helpers for Gradio modes."""
 
-This module contains:
-- Dataclasses for survey configuration (questions, scale labels)
-- Default survey question set used by the Gradio adapter
-"""
+from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+from uuid import UUID
+
+import gradio as gr
+
+from ems_prepared.model.contracts import SessionManager
 
 # =============================================================================
 # Survey Configuration Dataclasses
@@ -143,3 +146,51 @@ DEFAULT_BY_LABEL: dict[str, SurveyQuestion] = {
 DEFAULT_BY_ID: dict[int, SurveyQuestion] = {
     survey_question.id: survey_question for survey_question in DEFAULT_SURVEY_QUESTIONS
 }
+
+
+def check_all_survey_answers(*values):
+    """Enable submit only when all survey questions are answered."""
+    return gr.update(interactive=all(value is not None for value in values))
+
+
+def build_survey_response_payload(
+    survey: SurveyConfig,
+    responses: tuple[object, ...] | list[object],
+) -> list[dict[str, object]]:
+    """Build persisted survey rows preserving the current schema."""
+    return [
+        {
+            "label": question.label,
+            "category": question.category,
+            "question": question.text,
+            "score": score,
+        }
+        for question, score in zip(survey.questions, responses)
+    ]
+
+
+def normalize_feedback(feedback: str) -> str | None:
+    """Normalize optional survey feedback to trimmed nullable text."""
+    return feedback.strip() if feedback and feedback.strip() else None
+
+
+async def submit_survey_for_gradio(
+    *,
+    session_manager: SessionManager,
+    session_id: str,
+    survey: SurveyConfig,
+    feedback: str,
+    responses: tuple[object, ...] | list[object],
+    metadata: dict[str, object] | None = None,
+) -> Literal["ok", "expired"]:
+    """Submit survey and map missing-session errors to an expired status."""
+    try:
+        _ = await session_manager.submit_survey(
+            UUID(session_id),
+            responses=build_survey_response_payload(survey, responses),
+            feedback=normalize_feedback(feedback),
+            metadata=metadata,
+        )
+    except LookupError:
+        return "expired"
+    return "ok"

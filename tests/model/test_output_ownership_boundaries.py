@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import ems_prepared.model.session_recording as session_recording
-from ems_prepared.model.session_recording import CANONICAL_SESSION_OUTPUT_FILES
+from ems_prepared.model.session_backend_file import CANONICAL_SESSION_OUTPUT_FILES
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 POLICIES_ROOT = PROJECT_ROOT / "src/ems_prepared/policies"
-SESSION_RECORDER_FILE = Path(session_recording.__file__)
+SESSION_BACKEND_FILE = PROJECT_ROOT / "src/ems_prepared/model/session_backend_file.py"
 TCPR_SUBGRAPH_FILE = (
     PROJECT_ROOT / "src/ems_prepared/policies/pydantic_graph/tcpr_subgraph.py"
 )
@@ -31,9 +30,9 @@ def test_policy_sources_do_not_write_canonical_session_output_files() -> None:
     )
 
 
-def test_session_recorder_declares_canonical_output_files() -> None:
-    """Recorder implementation should own all canonical output file names."""
-    source = SESSION_RECORDER_FILE.read_text(encoding="utf-8")
+def test_session_backend_declares_canonical_output_files() -> None:
+    """File backend implementation should own canonical output file names."""
+    source = SESSION_BACKEND_FILE.read_text(encoding="utf-8")
     missing = [
         filename
         for filename in CANONICAL_SESSION_OUTPUT_FILES

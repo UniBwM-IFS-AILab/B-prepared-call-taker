@@ -8,11 +8,14 @@ from loguru import logger
 from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph
 from pydantic_graph.nodes import End
-from pydantic_graph.persistence.file import FileStatePersistence
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.model.context import Settings
+from ems_prepared.model.contracts import SessionResumeError
+from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
+    ResumableFilePersistence,
+)
 from ems_prepared.policies.pydantic_graph.graph_helpers import save_mermaid_graph
 from ems_prepared.policies.pydantic_graph.nodes import (
     RD1,
@@ -119,13 +122,22 @@ async def resume_from_persistence(
     deps: Settings,
     graph: Graph[GraphState, Settings, EmergencyCall],
 ):
-    persistence = FileStatePersistence[GraphState, EmergencyCall](
+    persistence = ResumableFilePersistence[GraphState, EmergencyCall](
         json_file=(deps.storage.save_path / "main_persistence.json")
     )
     if persistence.should_set_types():
         persistence.set_graph_types(graph)
 
-    if snapshot := await persistence.load_next():
+    try:
+        snapshot = await persistence.load_next()
+    except Exception as exc:
+        if deps.resume_expected:
+            raise SessionResumeError(
+                f"Failed to restore graph persistence for session: {deps.session_id}"
+            ) from exc
+        raise
+
+    if snapshot:
         deps.telemetry.logger.info("Resuming from persisted graph state...")
         deps.telemetry.logger.info(f"[Node] {snapshot.node.get_node_id()}")
 
@@ -138,6 +150,10 @@ async def resume_from_persistence(
             snapshot.node
         )
     else:
+        if deps.resume_expected:
+            raise SessionResumeError(
+                f"Missing graph persistence for session: {deps.session_id}"
+            )
         deps.telemetry.logger.info("Initializing new graph run...")
 
         state = GraphState()

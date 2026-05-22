@@ -1,26 +1,16 @@
-"""Shared Gradio helpers for chat typing and scenario file utilities."""
+"""Scenario and chat utility helpers for Gradio frontends."""
+
+from __future__ import annotations
 
 import os
 import random
 from pathlib import Path
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from gradio import ChatMessage
 
-try:
-    from typing import NotRequired
-except ImportError:
-    from typing_extensions import NotRequired
-
-
-# =============================================================================
-# Type Definitions
-# =============================================================================
-
 
 class ChatMessageMetadata(TypedDict, total=False):
-    """Metadata for ChatMessage."""
-
     title: str
     id: str | int
     parent_id: str | int
@@ -30,47 +20,28 @@ class ChatMessageMetadata(TypedDict, total=False):
 
 
 class ChatMessageOption(TypedDict):
-    """Options for a ChatMessage."""
-
     key: str
     value: str
 
 
 class ChatMessageDict(TypedDict):
-    """TypedDict representation of a ChatMessage."""
-
     role: Literal["user", "assistant", "system"]
     content: str
     metadata: NotRequired[ChatMessageMetadata]
     options: NotRequired[ChatMessageOption]
 
 
-# =============================================================================
-# Constants
-# =============================================================================
-
-# Completion message shown when conversation ends
 COMPLETION_MESSAGE = ChatMessage(
+    role="assistant",
     content="The emergency call has been processed. Thank you.",
     metadata={"id": "completion_message"},
 )
 
 
-# =============================================================================
-# Scenario Utilities
-# =============================================================================
-
-
 def get_scenario_directory(scenario_dir: str | None = None) -> Path:
-    """Get the docs directory from environment variable or command line argument.
-
-    Priority:
-    1. `scenario_dir` argument
-    2. Environment variable SCENARIO_DIR
-    """
+    """Resolve the scenario directory from arg or environment."""
     if scenario_dir:
         path = Path(scenario_dir).resolve()
-    # Fall back to environment variable
     elif env_scenario_dir := os.getenv("SCENARIO_DIR"):
         path = Path(env_scenario_dir).resolve()
     else:
@@ -84,7 +55,7 @@ def get_scenario_directory(scenario_dir: str | None = None) -> Path:
 
 
 def list_md_files(scenario_dir: str | None = None) -> list[str]:
-    """Return available Markdown filenames (base names)."""
+    """Return available Markdown scenario filenames."""
     path = get_scenario_directory(scenario_dir=scenario_dir)
     return sorted(
         scenario_file.name
@@ -94,22 +65,13 @@ def list_md_files(scenario_dir: str | None = None) -> list[str]:
 
 
 def get_random_scenario(scenario_dir: str | None = None) -> str | None:
-    """Get a random scenario filename from available scenarios."""
+    """Return one random scenario filename."""
     scenarios = list_md_files(scenario_dir=scenario_dir)
     return random.choice(scenarios) if scenarios else None
 
 
 def read_md(filename: str | None, scenario_dir: str | None = None) -> str:
-    """Read a markdown file from the scenario directory.
-
-    Args:
-        filename: Name of the file to read (just the filename, not full path).
-        scenario_dir: Optional scenario directory path override.
-
-    Returns:
-        Content of the file, or an error message if not found.
-
-    """
+    """Read one markdown file from the scenario directory."""
     if not filename:
         return "### No file selected"
     path = get_scenario_directory(scenario_dir=scenario_dir) / filename
@@ -122,7 +84,7 @@ def construct_scenario_desc(
     filename: str | None,
     scenario_dir: str | None = None,
 ) -> str:
-    """Merge the shared instructions with the selected scenario content."""
+    """Merge shared instructions with selected scenario content."""
     scenario_path = get_scenario_directory(scenario_dir=scenario_dir)
     instructions_path = scenario_path / "_Instructions.md"
     instructions = (

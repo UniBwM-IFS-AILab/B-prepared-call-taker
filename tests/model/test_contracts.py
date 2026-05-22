@@ -8,7 +8,7 @@ from uuid import UUID
 import pytest
 
 from ems_prepared.model.context import Locale
-from ems_prepared.model.contracts import BackendEvent, SessionHandle
+from ems_prepared.model.contracts import BackendEvent, BackendEventKind, SessionHandle
 from tests.fakes import (
     FakeConversationPolicy,
     FakeSessionRecorder,
@@ -18,7 +18,7 @@ from tests.fakes import (
 
 def test_backend_event_defaults_to_empty_payload() -> None:
     """`BackendEvent` should be easy to construct for message-only outputs."""
-    event = BackendEvent(kind="message", text="hello")
+    event = BackendEvent(kind=BackendEventKind.MESSAGE, text="hello")
 
     assert event.payload == {}
 
@@ -63,8 +63,10 @@ async def test_fake_policy_round_trip_uses_shared_contract_shapes() -> None:
         events=[*start_events, *reply_events],
     )
 
-    assert start_events == [BackendEvent(kind="message", text="started")]
-    assert reply_events == [BackendEvent(kind="question", text="where are you?")]
+    assert start_events == [BackendEvent(kind=BackendEventKind.MESSAGE, text="started")]
+    assert reply_events == [
+        BackendEvent(kind=BackendEventKind.QUESTION, text="where are you?")
+    ]
     assert policy.closed == 1
     assert session_recorder.manifests[0][2]["scenario"] == "demo"
     assert len(session_recorder.events[0][2]) == 2

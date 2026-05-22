@@ -68,3 +68,17 @@ Example:
 python -m experiments.nlu_eval.experiment1 \
   --run-config experiments/nlu_eval/configs/pilot_experiment1.json
 ```
+
+## Synthetic Pipeline
+
+Synthetic dataset generation is a separate experiment under
+`experiments/synthetic_single_turn/`, and that experiment now depends on the cached
+`knowledge_corpus.jsonl` produced by `experiments/knowledge_extraction/`.
+
+The benchmark datasets and shared evaluation code remain here under
+`experiments/nlu_eval/`, but the generation pipeline, backend setup, example
+configs, and `mise` tasks are documented in
+`experiments/synthetic_single_turn/README.md`.
+
+For the full dependency chain from source PDFs to evaluation datasets, see
+`experiments/README.md`.

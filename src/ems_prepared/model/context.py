@@ -25,6 +25,8 @@ type MaybeAwaitable = Awaitable[None] | None
 type EmitCallable = Callable[["Settings", str], MaybeAwaitable]
 type RequestInputCallable = Callable[["Settings", str], Awaitable[str]]
 type RecordCompletionArtifactsCallable = Callable[[Any, list[Any]], None]
+type LoadAgentSnapshotCallable = Callable[[], dict[str, Any] | None]
+type SaveAgentSnapshotCallable = Callable[[dict[str, Any]], None]
 
 
 class InputMode(Enum):
@@ -161,6 +163,7 @@ class Settings(BaseSettings):
         default=None,
         description="Resolved policy name ('graph' or 'agent') for this session.",
     )
+    resume_expected: bool = Field(default=False, exclude=True, repr=False)
 
     request_input: RequestInputCallable | None = Field(
         default=None,
@@ -168,6 +171,16 @@ class Settings(BaseSettings):
         repr=False,
     )
     record_completion_artifacts: RecordCompletionArtifactsCallable | None = Field(
+        default=None,
+        exclude=True,
+        repr=False,
+    )
+    load_agent_snapshot: LoadAgentSnapshotCallable | None = Field(
+        default=None,
+        exclude=True,
+        repr=False,
+    )
+    save_agent_snapshot: SaveAgentSnapshotCallable | None = Field(
         default=None,
         exclude=True,
         repr=False,

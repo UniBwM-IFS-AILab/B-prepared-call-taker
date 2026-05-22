@@ -10,6 +10,8 @@ from ems_prepared.adapters.cli import app as cli_app
 from ems_prepared.model.context import Locale
 from ems_prepared.model.contracts import (
     BackendEvent,
+    BackendEventKind,
+    SessionHistory,
     SessionHandle,
     SessionParameters,
     SessionState,
@@ -44,7 +46,7 @@ class _InterruptingManager:
                 policy_name=request.policy_name,
                 scenario_name=request.scenario_name,
             ),
-            [BackendEvent(kind="question", text="Where are you?")],
+            [BackendEvent(kind=BackendEventKind.QUESTION, text="Where are you?")],
         )
 
     async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
@@ -70,6 +72,10 @@ class _InterruptingManager:
         return Path("survey.json")
 
     def get_view_state(self, session_id: UUID) -> SessionState | None:
+        _ = session_id
+        return None
+
+    def get_history(self, session_id: UUID) -> SessionHistory | None:
         _ = session_id
         return None
 

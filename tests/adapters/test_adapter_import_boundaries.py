@@ -6,6 +6,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ADAPTERS_ROOT = PROJECT_ROOT / "src/ems_prepared/adapters"
+GRADIO_ROOT = ADAPTERS_ROOT / "gradio"
 
 DISALLOWED_IMPORT_SNIPPETS = (
     "from ems_prepared.model.session_service import",
@@ -16,8 +17,10 @@ DISALLOWED_IMPORT_SNIPPETS = (
 
 ADAPTERS_USING_BOUNDARY_ERRORS = (
     ADAPTERS_ROOT / "fastapi/app.py",
-    ADAPTERS_ROOT / "gradio/app.py",
     ADAPTERS_ROOT / "cli/app.py",
+    ADAPTERS_ROOT / "gradio/flow.py",
+    ADAPTERS_ROOT / "gradio/session_runtime.py",
+    ADAPTERS_ROOT / "gradio/session_demo.py",
 )
 
 
@@ -39,8 +42,20 @@ def test_adapters_do_not_import_backend_internal_modules() -> None:
     )
 
 
-def test_adapters_import_shared_boundary_errors() -> None:
-    """Adapters handling boundary errors should import them from `model.errors`."""
+def test_adapters_use_builtin_boundary_errors() -> None:
+    """Adapters should use builtin exceptions instead of model-specific custom errors."""
     for file_path in ADAPTERS_USING_BOUNDARY_ERRORS:
         source = file_path.read_text(encoding="utf-8")
-        assert "from ems_prepared.model.errors import" in source
+        assert "from ems_prepared.model.errors import" not in source
+
+
+def test_unified_gradio_ui_module_does_not_import_removed_shells_or_entrypoint() -> None:
+    """Unified Gradio UI should depend only on shared helpers, not legacy shell modules."""
+    session_demo_source = (GRADIO_ROOT / "session_demo.py").read_text(encoding="utf-8")
+
+    assert "from ems_prepared.adapters.gradio.app import" not in session_demo_source
+    assert "import ems_prepared.adapters.gradio.app" not in session_demo_source
+    assert "from ems_prepared.adapters.gradio.standard import" not in session_demo_source
+    assert "import ems_prepared.adapters.gradio.standard" not in session_demo_source
+    assert "from ems_prepared.adapters.gradio.guided import" not in session_demo_source
+    assert "import ems_prepared.adapters.gradio.guided" not in session_demo_source

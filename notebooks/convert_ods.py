@@ -9,33 +9,44 @@
 #     "pydantic==2.13.3",
 #     "pandera==0.31.1",
 #     "pointblank==0.24.0",
+#     "altair==6.1.0",
 # ]
 # requires-python = ">=3.13"
 # [tool.uv.sources]
 # ems-prepared = { path = "..", editable = true }
+# ems-prepared = { path = "../..", editable = true }
 # ///
 
 import marimo
 
-__generated_with = "0.23.5"
+__generated_with = "0.23.6"
 app = marimo.App(width="medium")
 
 with app.setup:
+    import os
     import re
     from pathlib import Path
-    import os
-    from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-    import polars as pl
+    from uuid import UUID, uuid5
+
     import fastexcel
-    from pydantic import ValidationError
+    import marimo as mo
     import pandera.polars as pa
+    import polars as pl
     from pandera.polars import PolarsData
-    from uuid import uuid5, UUID
+    from pydantic import ValidationError
+
+    from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 
 @app.cell
 def _():
-    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/"))
+    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/20_05"))
+    audio_dir = Path(
+        os.path.expanduser(
+            r"~/Spaces/B-prepared/Datasets/Schulungsgespräche Notrufannahme/"
+        )
+    )
+
     pl_schema = {
         "dialog_id": pl.UInt32,
         "turn_id": pl.UInt32,
@@ -47,7 +58,30 @@ def _():
     pattern = r"^.*(\d{6}).*?(\d+)"
 
     filter_df = pl.DataFrame(data=None, schema=pl_schema)
-    return filter_df, search_dir, valid_speakers
+    return audio_dir, filter_df, search_dir, valid_speakers
+
+
+@app.cell
+def _(search_dir):
+    # (len
+    (list(search_dir.rglob("[!~$]*.ods")))
+    # )
+    return
+
+
+@app.cell(disabled=True)
+def _(audio_dir, dir, search_dir, wav):
+    import shutil
+
+    # move wav files to corresponding transcript dir
+    # /home/seapat/Spaces/B-prepared/Datasets/Schulungsgespräche Notrufannahme/
+    for _wav in audio_dir.rglob("*.wav"):
+        if _wav.is_file():
+            for transcript in search_dir.rglob("[!~$]*.ods"):
+                _dir = transcript.parent
+                if dir.stem.startswith(wav.stem):
+                    shutil.copy2(_wav, Path(_dir) / _wav.name)
+    return
 
 
 @app.cell
@@ -62,20 +96,18 @@ def _(valid_speakers):
         except ValidationError:
             return False
 
-
     def speaker_is_valid(value: str | None) -> bool:
         return value in valid_speakers
 
-
     def non_empty(value: str | None) -> bool:
-        return value is not None 
+        return value is not None
 
     return non_empty, speaker_is_valid, state_is_valid
 
 
 @app.cell
 def _(non_empty, speaker_is_valid, state_is_valid):
-    pa_schema = pa.DataFrameSchema(
+    pa_import_schema = pa.DataFrameSchema(
         {
             "start": pa.Column(str, nullable=True),
             "end": pa.Column(str, nullable=True),
@@ -99,24 +131,26 @@ def _(non_empty, speaker_is_valid, state_is_valid):
         strict=False,
         coerce=True,
     )
-    return (pa_schema,)
+    return (pa_import_schema,)
 
 
 @app.cell
 def _():
-    report_schema = {
-        "source_file": pl.String,
-        "approx_line_number": pl.Int32,
-        "origin": pl.String,
-        "exception_class": pl.String,
-        "description": pl.String,
-        "cell_value": pl.String,
-    }
-    return (report_schema,)
+    pl_report_schema = pl.Schema(
+        {
+            "source_file": pl.String,
+            "approx_line_number": pl.Int32,
+            "origin": pl.String,
+            "exception_class": pl.String,
+            "description": pl.String,
+            "cell_value": pl.String,
+        }
+    )
+    return (pl_report_schema,)
 
 
 @app.cell
-def _(pa_schema, report_schema, search_dir):
+def _(pa_import_schema, pl_report_schema, search_dir):
     correct_paths = []
     errors = []
 
@@ -130,7 +164,7 @@ def _(pa_schema, report_schema, search_dir):
         final_row = _ods_df.tail(1)
 
         try:
-            pa_schema.validate(body_df, lazy=True)
+            pa_import_schema.validate(body_df, lazy=True)
         except pa.errors.SchemaErrors as exc:
             contains_error = True
             errors.append(
@@ -171,7 +205,7 @@ def _(pa_schema, report_schema, search_dir):
                         "description": [str(exc)],
                         "cell_value": [None],
                     },
-                    schema=report_schema,
+                    schema=pl_report_schema,
                 )
             )
             continue
@@ -190,9 +224,11 @@ def _(pa_schema, report_schema, search_dir):
                         "approx_line_number": [final_line_number],
                         "exception_class": "ValidationError",
                         "description": [str(exc)],
-                        "cell_value": [final_state or f"last line:{_ods_df.height + 2}"],
+                        "cell_value": [
+                            final_state or f"last line:{_ods_df.height + 2}"
+                        ],
                     },
-                    schema=report_schema,
+                    schema=pl_report_schema,
                 )
             )
         if not contains_error:
@@ -201,7 +237,7 @@ def _(pa_schema, report_schema, search_dir):
     errors = (
         pl.concat(errors, how="diagonal")
         if errors
-        else pl.DataFrame(schema=report_schema)
+        else pl.DataFrame(schema=pl_report_schema)
     )
 
     errors.write_csv("validation_errors.csv")
@@ -215,61 +251,43 @@ def _():
     #     # print(mmyyyy, id)
     #     # print(uuid5(UUID(int=0), path.stem))
     #     # print(path)
-
-
     return
 
 
 @app.cell
 def _(correct_paths):
-    correct_paths
-    return
-
-
-@app.cell
-def _():
-    EmergencyCall.model_fields["emergency_type"] #.keys()
-    return
-
-
-@app.cell
-def _(correct_paths):
-    fds_schema = pl.Schema({
-        "source": pl.String,
-        "dialog_id": pl.UInt64,
-        "turn_index": pl.UInt32,
-        "speaker": pl.String,
-        "text": pl.String,
-        "state": pl.String,
-        # "state": pl.Struct(fields={name: pl.Binary | pl.String for name in EmergencyCall.model_fields.keys()})  #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
-    })
-    full_dataset = pl.DataFrame(schema=fds_schema)
+    pl_fds_schema = pl.Schema(
+        {
+            "source": pl.String,
+            "dialog_id": pl.UInt64,
+            "turn_index": pl.UInt32,
+            "speaker": pl.String,  # pl.Enum(valid_speakers),
+            "text": pl.String,
+            "state": pl.String,
+            "path": pl.String,
+            # "state": pl.Struct(fields={name: pl.Binary | pl.String for name in EmergencyCall.model_fields.keys()})  #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
+        }
+    )
+    full_dataset = pl.DataFrame(schema=pl_fds_schema)
     for _path in correct_paths:
-        _ods_df = pl.read_ods(_path)
-        file_hash = _ods_df.hash_rows(seed=42).sum()
+        _ods_df = pl.read_ods(_path, drop_empty_rows=True, drop_empty_cols=True)
+
+        _body_df = _ods_df.slice(0, _ods_df.height - 1)
+        _final_row = _ods_df.tail(1)
+
+        file_hash = _body_df.hash_rows(seed=42).sum()
         filter_ods_df = (
-            _ods_df.rename({"State": "state"})
+            _body_df.rename({"State": "state"})
             .with_row_index(name="turn_index")
             .with_columns(
-                [
-                    pl.Series(
-                        "dialog_id",
-                        [
-                            file_hash
-                            for _ in range(_ods_df.height)
-                        ],
-                        dtype=pl.UInt64
-                    ),
-                    pl.Series(
-                        "source",
-                        [
-                            f"{_path.parent.name}/{_path.name}"
-                            for _ in range(_ods_df.height)
-                        ]
-                    )
-                ]
+                dialog_id=pl.lit(file_hash, dtype=pl.UInt64),
+                source=pl.lit(f"{_path.parent.name}/{_path.name}".strip(".ods")),
+                path=pl.lit(str(_path)),
+                # audio=pl.lit()
             )
-            .select("source", "dialog_id", "turn_index", "speaker", "text", "state")
+            .select(
+                "source", "dialog_id", "turn_index", "speaker", "text", "state", "path"
+            )
         )
         full_dataset.vstack(filter_ods_df, in_place=True).rechunk()
 
@@ -280,68 +298,232 @@ def _(correct_paths):
 
 
 @app.cell
-def _(full_dataset):
-    full_dataset.columns
+def state(full_dataset):
+    # Ensure 'state' column exists and fill missing values for non‑caller turns
+    full_dataset_state = full_dataset.with_columns(
+        state=pl.when(pl.col("turn_index") != 0 & pl.col("state").is_null())
+        .then(
+            pl.coalesce(pl.col("state").fill_null(strategy="forward"), pl.lit("{}"))
+        )  # copy previous row or '{}'
+        .otherwise(
+            pl.col("state")  # keep caller’s own state unchanged
+        )
+        .fill_null(pl.lit("{}"))
+    )
+
+    # Show the updated DataFrame so you can verify the changes
+    # full_dataset_state
+
+    full_dataset_state.filter(pl.col("speaker").eq("CALLER") | pl.col("speaker").eq("DISPATCHER")).write_ndjson("dialog_data.jsonl")
+    return (full_dataset_state,)
+
+
+@app.cell
+def _(full_dataset_state):
+    full_dataset_state#.filter(pl.col("speaker").eq("CALLER") | pl.col("speaker").eq("DISPATCHER"))
     return
 
 
 @app.cell
+def _(audio_dir):
+    audio_df = pl.DataFrame(
+        {"audio_path": audio_dir.rglob("*.wav")},
+    ).with_columns(
+        pl.col("audio_path")
+        .map_elements(lambda p: p.stem, return_dtype=pl.String)
+        .alias("wav_stem")
+    )
+    audio_df
+    return (audio_df,)
+
+
+@app.cell
+def _():
+    Path(
+        "/home/seapat/Documents/DialogData/13_05/ILS Munich/032025_Schulung_Export (25)_NotfalleinsatzTCPR_02.wav/Transcript_NotfalleinsatzTCPR_02.ods"
+    ).parent.stem
+    return
+
+
+@app.cell
+def _(audio_dir, search_dir):
+    wav = list(audio_dir.rglob("*.wav"))[0]
+    path = list(search_dir.rglob("[!~$]*.ods"))[0]
+    dir = path.parent.stem
+    print(dir)
+    wav.stem
+    return dir, wav
+
+
+@app.cell
 def _(full_dataset):
-    ( #https://stackoverflow.com/questions/73222000/polars-conditional-merge-of-rows
-        # FIXME: some rows are missing
-        full_dataset.with_columns(
-            (
-                (pl.col('dialog_id') == pl.col('dialog_id').shift(-1))
-                &
-                (pl.col("speaker")
-                != pl.col("speaker").shift(-1))
-            ).shift(1, fill_value=False)
-            .cum_sum()
-            .alias('consecutive_count')
+    full_dataset.with_columns(
+        path_stem=pl.col("path").map_elements(
+            lambda p: str(Path(p).parent.stem), return_dtype=pl.String
         )
-        .group_by('consecutive_count')
-        .agg(
-            source=pl.col("source").first(),
-            dialog_id=pl.col("dialog_id").first(),
-            text=pl.col("text"),
-            turn_index=pl.col("turn_index").first(),
-            speaker=pl.col('speaker')
-            # pl.col('text').().alias('text'),
-            # pl.col('state').sum().alias('state'),
-            # pl.col('speaker').first().alias('speaker'),
+    )
+    return
+
+
+@app.cell
+def _(audio_df, full_dataset):
+    matches = full_dataset.with_columns(
+        path_stem=pl.col("path").map_elements(
+            lambda p: str(Path(p).parent.stem), return_dtype=pl.String
         )
-    ).sort(["dialog_id", "turn_index"], descending=False, maintain_order=True)
+    ).join(audio_df, left_on="path_stem", right_on="wav_stem", how="left")
+    matches
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ## Merge cells
+    """)
     return
 
 
 @app.cell
 def _():
-    # 2. produce json output from 
+    import json
+
+    from ems_prepared.util.custom_deepmerge import ignore_empty_merger
+
+    def merge_states(series: pl.Series) -> str:
+        """Merge a series of state JSON strings using ignore_empty_merger."""
+        merged: dict = {}
+        for val in series.to_list():
+            if val is None:
+                continue
+            parsed = json.loads(val)
+            if not parsed:
+                continue
+            merged = ignore_empty_merger.merge(merged, parsed)
+        return pl.Series([json.dumps(merged, sort_keys=True)])
+
+    return (merge_states,)
+
+
+@app.cell
+def _(full_dataset, merge_states):
+    fds_clean = (
+        (  # give rows with the same speaker from the same call the same consecutive_count to allow merging
+            full_dataset.with_columns(
+                (
+                    (pl.col("speaker") != pl.col("speaker").shift(1))
+                    & (pl.col("dialog_id") == pl.col("dialog_id").shift(1))
+                    & (pl.col("turn_index") > pl.col("turn_index").shift(1))
+                )
+                .cum_sum()
+                .over("dialog_id")
+                .alias("consecutive_count")
+            ).group_by("consecutive_count", "dialog_id", maintain_order=True)
+        )
+        .agg(
+            pl.col("speaker").len().alias("num_merged"),
+            turn_index=pl.col("turn_index"),
+            speaker=pl.col("speaker").unique(),
+            text=pl.col("text"),
+            source=pl.col("source").unique(),
+            state=pl.col("state").map_batches(merge_states, pl.String),
+        )
+        .sort("dialog_id", "turn_index", descending=False, maintain_order=True)
+        .with_columns(turn_id=pl.cum_count("dialog_id").over("dialog_id"))
+    )
+    fds_clean
+    return (fds_clean,)
+
+
+@app.cell
+def _(fds_clean, valid_speakers):
+    violations = fds_clean.filter(
+        (pl.col("speaker").list.unique().list.len() != 1)
+        | (pl.col("source").list.unique().list.len() != 1)
+        | (pl.col("state").list.unique().list.len() != 1)
+        | (pl.col("speaker").list.set_difference(valid_speakers).list.len == 0)
+        | (pl.col("turn_index").list.len == pl.col("text").list.len)
+    )
+    assert violations.height == 0, (
+        f"\nFound {violations.height} violations:\n{violations}"
+    )
+    violations
     return
 
 
 @app.cell
-def _(Schema, filter_df):
-    Schema.validate(filter_df)  # .collect()
+def _(fds_clean):
+    fds_checked = fds_clean.select(
+        dialog_id=pl.col("dialog_id"),
+        turn_id=pl.cum_count("dialog_id").over("dialog_id"),
+        speaker=pl.col("speaker").list.first(),
+        text=pl.col("text").list.agg(pl.element().str.strip_chars().str.join(" ")),
+        state=pl.col("state").list.first(),
+        source=pl.col("source").list.agg(
+            pl.element().str.strip_chars().str.join(" ")
+        ),  # .str.join(" "),
+    )
+    fds_checked
+    return
+
+
+@app.cell(disabled=True, hide_code=True)
+def _(valid_speakers):
+    pl_aggregate_schema = pl.Schema(
+        {
+            "speaker": pl.Enum(valid_speakers),
+            "text": pl.String,
+            "state": pl.String,
+            "dialog_id": pl.UInt64,
+            "turn_id": pl.UInt64,
+            "source": pl.List(pl.String),
+        }
+    )
+    return
+
+
+@app.cell(disabled=True, hide_code=True)
+def _(non_empty, speaker_is_valid, state_is_valid):
+    pa_aggregate_schema = pa.DataFrameSchema(
+        {
+            "speaker": pa.Column(
+                str,
+                checks=pa.Check(speaker_is_valid, element_wise=True),
+                nullable=False,
+            ),
+            "text": pa.Column(
+                str,
+                checks=pa.Check(non_empty, element_wise=True),
+                nullable=False,
+            ),
+            "state": pa.Column(
+                str,
+                checks=pa.Check(state_is_valid, element_wise=True),
+                nullable=True,
+            ),
+            "approx_line_number": pa.Column(int),
+        },
+        strict=False,
+        coerce=True,
+    )
+    return
+
+
+@app.cell
+def _():
+    # 2. produce json output from
+    return
+
+
+@app.cell
+def _():
+    # Schema.validate(filter_df)  # .collect()
     return
 
 
 @app.cell
 def _(filter_df):
     filter_df.write_ndjson()
-    return
-
-
-@app.cell
-def _(base, filter_df):
-    filter_df.write_parquet(base / "test.parquet")
-    return
-
-
-@app.cell
-def _():
-    import marimo as mo
-
     return
 
 
