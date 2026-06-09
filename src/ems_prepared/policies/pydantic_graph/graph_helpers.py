@@ -2,32 +2,34 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar, overload
 
+from pydantic_graph import BaseNode
 from pydantic_graph.graph import Graph
-from pydantic_graph.nodes import BaseNode
-from pydantic_graph.persistence.file import FileStatePersistence
 
-from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.model.context import Settings
 from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
-    setup_file_persistence,
+    ResumableFilePersistence,
 )
 
 logger = logging.getLogger(__name__)
+StateT = TypeVar("StateT")
+RunEndT = TypeVar("RunEndT")
 
 
 def save_mermaid_graph(
     graph: Graph[Any, Any, Any],
     save_path: Path,
+    *,
+    stem: str = "graph",
 ) -> None:
     """Save mermaid diagram as markdown and JPG."""
-    mermaid_file_path = (save_path / "graph").with_suffix(".md")
+    mermaid_file_path = (save_path / stem).with_suffix(".md")
     mermaid_code = graph.mermaid_code()
     mermaid_content = f"```mermaid\n{mermaid_code}\n```"
     mermaid_file_path.write_text(mermaid_content, encoding="utf-8")
 
-    image_path = (save_path / "graph").with_suffix(".jpg")
+    image_path = (save_path / stem).with_suffix(".jpg")
     try:
         graph.mermaid_save(image_path)
     except Exception as error:
@@ -38,18 +40,48 @@ def save_mermaid_graph(
         )
 
 
-async def init_graph(
-    node_list: list[Any],
-    init_node: BaseNode[Any, Any, Any],
-    deps: Settings,
-    init_state: EmergencyCall,
-    prefix: str,
-) -> tuple[Graph[EmergencyCall, Settings, EmergencyCall], FileStatePersistence]:
-    graph = Graph[EmergencyCall, Settings, EmergencyCall](
-        nodes=node_list,
-    )
-    persistence = await setup_file_persistence(
-        graph, deps.storage.save_path, prefix=prefix
-    )
-    await graph.initialize(init_node, persistence=persistence, state=init_state)
-    return graph, persistence
+@overload
+async def restore_graph(
+    graph: Graph[StateT, Settings, RunEndT],
+    persistence: ResumableFilePersistence[StateT, RunEndT],
+    *,
+    init_node: None = None,
+    init_state: None = None,
+) -> tuple[BaseNode[StateT, Settings, RunEndT], StateT] | None: ...
+
+
+@overload
+async def restore_graph(
+    graph: Graph[StateT, Settings, RunEndT],
+    persistence: ResumableFilePersistence[StateT, RunEndT],
+    *,
+    init_node: BaseNode[StateT, Settings, RunEndT],
+    init_state: StateT,
+) -> tuple[BaseNode[StateT, Settings, RunEndT], StateT]: ...
+
+
+async def restore_graph(
+    graph: Graph[StateT, Settings, RunEndT],
+    persistence: ResumableFilePersistence[StateT, RunEndT],
+    *,
+    init_node: BaseNode[StateT, Settings, RunEndT] | None = None,
+    init_state: StateT | None = None,
+) -> tuple[BaseNode[StateT, Settings, RunEndT], StateT] | None:
+    """Load the next persisted node or initialize a new run if one is requested.
+
+    `load_next()` moves a snapshot from `created` to `pending`. We immediately
+    re-queue the chosen node/state as a fresh `created` snapshot so
+    `iter_from_persistence()` can resume it on the next line.
+    """
+    snapshot = await persistence.load_next()
+    if snapshot is None:
+        if init_node is None or init_state is None:
+            return None
+        node = init_node
+        state = init_state
+    else:
+        node = snapshot.node
+        state = snapshot.state
+
+    await graph.initialize(node, persistence=persistence, state=state)
+    return node, state

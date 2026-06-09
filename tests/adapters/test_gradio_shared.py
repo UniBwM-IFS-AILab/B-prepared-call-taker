@@ -24,8 +24,8 @@ from ems_prepared.model.contracts import (
     BackendEvent,
     BackendEventKind,
     MessageFeedback,
-    SessionHistory,
     SessionHandle,
+    SessionHistory,
     SessionParameters,
 )
 
@@ -65,12 +65,6 @@ class _RecordingSessionManager:
     async def resume_session(self, session_id: UUID):
         _ = session_id
         return None
-
-    async def end_session(self, session_id: UUID) -> bool:
-        self.end_calls.append(session_id)
-        if self._end_error is not None:
-            raise self._end_error
-        return True
 
     async def submit_survey(
         self,
@@ -117,8 +111,8 @@ def make_args(*, debug: bool = False, verbose: bool = False) -> GradioAppArgs:
 
 
 @pytest.mark.asyncio
-async def test_start_session_for_gradio_ends_previous_session_and_preserves_fields() -> None:
-    """Shared start helper should end prior state and keep standard session fields."""
+async def test_start_session_for_gradio_preserves_fields_without_touching_prior_session() -> None:
+    """Shared start helper should leave prior sessions alone and keep standard fields."""
     manager = _RecordingSessionManager()
     stored_user_id = str(uuid4())
     previous_session = SessionRef(
@@ -137,7 +131,7 @@ async def test_start_session_for_gradio_ends_previous_session_and_preserves_fiel
         args=make_args(),
     )
 
-    assert manager.end_calls == [UUID(previous_session.session_id)]
+    assert manager.end_calls == []
     assert manager.start_calls[0].scenario_name == "Scenario_02.md"
     assert manager.start_calls[0].policy_name == "graph"
     assert manager.start_calls[0].user_id == UUID(stored_user_id)
@@ -208,8 +202,8 @@ async def test_start_session_for_gradio_reuses_requested_session_id() -> None:
 
 
 @pytest.mark.asyncio
-async def test_end_active_session_noops_on_none_and_swallows_failures(caplog) -> None:
-    """End helper should ignore missing sessions and log cleanup failures."""
+async def test_end_active_session_is_a_noop(caplog) -> None:
+    """Prior sessions should be left untouched when the UI starts a new one."""
     manager = _RecordingSessionManager()
 
     await end_active_session(None, session_manager=manager)
@@ -227,7 +221,6 @@ async def test_end_active_session_noops_on_none_and_swallows_failures(caplog) ->
     )
     assert manager.end_calls == []
 
-    manager._end_error = RuntimeError("boom")
     active_session = SessionRef(
         user_id=str(uuid4()),
         session_id=str(uuid4()),
@@ -235,11 +228,10 @@ async def test_end_active_session_noops_on_none_and_swallows_failures(caplog) ->
         scenario_name="Scenario_01.md",
         experiment_name="",
     )
-    with caplog.at_level("ERROR"):
-        await end_active_session(active_session, session_manager=manager)
+    await end_active_session(active_session, session_manager=manager)
 
-    assert manager.end_calls == [UUID(active_session.session_id)]
-    assert f"Failed ending session {active_session.session_id}" in caplog.text
+    assert manager.end_calls == []
+    assert caplog.text == ""
 
 
 def test_build_survey_response_payload_preserves_current_schema() -> None:

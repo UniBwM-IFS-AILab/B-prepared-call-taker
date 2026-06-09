@@ -68,10 +68,6 @@ class _FakeSessionManager:
         _ = session_id
         return None
 
-    async def end_session(self, session_id: UUID) -> bool:
-        _ = session_id
-        return True
-
     async def submit_survey(
         self,
         session_id: UUID,

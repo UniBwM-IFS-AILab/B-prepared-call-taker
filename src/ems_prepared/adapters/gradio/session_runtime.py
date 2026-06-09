@@ -131,14 +131,8 @@ async def end_active_session(
     session_manager: SessionManager,
     skip_policy_calls: bool = False,
 ) -> None:
-    """Best-effort cleanup for one active session."""
-    if active_session is None or skip_policy_calls:
-        return
-
-    try:
-        _ = await session_manager.end_session(UUID(active_session.session_id))
-    except Exception:
-        logger.exception("Failed ending session %s", active_session.session_id)
+    """Leave prior sessions untouched; session lifecycle is policy-owned."""
+    _ = (active_session, session_manager, skip_policy_calls)
 
 
 async def start_session_for_gradio(

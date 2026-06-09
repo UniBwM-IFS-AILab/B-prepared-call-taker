@@ -510,6 +510,100 @@ def _(outcome_df, state_results_df, valid_outcomes_by_scenario):
     return (outcome_summary_df,)
 
 
+@app.cell
+def _(outcome_df, valid_outcomes_by_scenario):
+    valid_outcome_values = []
+    for values in valid_outcomes_by_scenario.tolist():
+        if isinstance(values, set):
+            valid_outcome_values.extend(
+                [value for value in values if value is not None and not pd.isna(value)]
+            )
+
+    predicted_outcome_values = [
+        value
+        for value in outcome_df["outcome"].tolist()
+        if value is not None and not pd.isna(value)
+    ]
+
+    outcome_labels = sorted(
+        {str(value) for value in [*valid_outcome_values, *predicted_outcome_values]}
+    )
+
+    outcome_correctness_metrics_rows = []
+    for policy_name, _policy_df in outcome_df.groupby("policy", sort=False):
+        y_true = []
+        y_pred = []
+        skipped_no_ground_truth = 0
+
+        for row in _policy_df.itertuples(index=False):
+            valid_labels = valid_outcomes_by_scenario.get(row.scenario, set())
+            if not isinstance(valid_labels, set):
+                valid_labels = set()
+            valid_labels = sorted(
+                {
+                    str(valid_label)
+                    for valid_label in valid_labels
+                    if valid_label is not None and not pd.isna(valid_label)
+                }
+            )
+
+            if len(valid_labels) == 0:
+                skipped_no_ground_truth += 1
+                continue
+
+            predicted_label = (
+                None
+                if row.outcome is None or pd.isna(row.outcome)
+                else str(row.outcome)
+            )
+            true_label = (
+                predicted_label
+                if predicted_label is not None and predicted_label in valid_labels
+                else valid_labels[0]
+            )
+
+            y_true.append(true_label)
+            y_pred.append(
+                predicted_label if predicted_label is not None else "__missing_outcome__"
+            )
+
+        scoring_labels = outcome_labels + sorted(
+            {label for label in y_pred if label not in outcome_labels}
+        )
+
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            y_true,
+            y_pred,
+            labels=scoring_labels,
+            average="macro",
+            zero_division=0,
+        )
+        jaccard = jaccard_score(
+            y_true,
+            y_pred,
+            labels=scoring_labels,
+            average="macro",
+            zero_division=0,
+        )
+
+        outcome_correctness_metrics_rows.append(
+            {
+                "policy": policy_name,
+                "count": int(len(_policy_df)),
+                "evaluated_count": int(len(y_true)),
+                "skipped_no_ground_truth": int(skipped_no_ground_truth),
+                "precision": float(precision),
+                "recall": float(recall),
+                "f1": float(f1),
+                "jaccard": float(jaccard),
+            }
+        )
+
+    outcome_correctness_metrics_df = pd.DataFrame(outcome_correctness_metrics_rows)
+    outcome_correctness_metrics_df
+    return (outcome_correctness_metrics_df,)
+
+
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
@@ -542,7 +636,9 @@ def _(medical_cols):
 @app.cell
 def _(gt_cols, medical_cols):
     def filter_gt_policy(policy: str, how, gt, state_df):
-        matched_df = state_df[["scenario", "outcome", "policy", *medical_cols]].merge(
+        matched_df = state_df[
+            ["scenario", "outcome", "policy", "dialogue_turns", *medical_cols]
+        ].merge(
             gt,
             on=how,
             how="left",
@@ -633,7 +729,7 @@ def _():
                     iqr(f1_per_row),
                     accuracy_score(y_true, y_pred),
                     hamming_loss(y_true, y_pred),
-                    jaccard_score(y_true, y_pred, average="samples"),
+                    jaccard_score(y_true, y_pred, average="samples", zero_division=0),
                 ),
             )
         )
@@ -679,6 +775,48 @@ def _(agent_results, filtered_df_agent, filtered_df_graph, graph_results):
             },
         ]
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ### Outcome-Matched Turn Efficiency
+
+    Turn-efficiency below is computed only on outcome-matched rows from the exact `(scenario, outcome)` alignment above.
+    """)
+    return
+
+
+@app.cell
+def _(filtered_df_agent, filtered_df_graph):
+    outcome_matched_turns_df = pd.concat(
+        [
+            filtered_df_graph[["policy", "dialogue_turns"]],
+            filtered_df_agent[["policy", "dialogue_turns"]],
+        ],
+        ignore_index=True,
+    )
+
+    outcome_matched_turns_summary_df = (
+        outcome_matched_turns_df.groupby("policy", as_index=False)["dialogue_turns"]
+        .agg(
+            count="count",
+            mean="mean",
+            median="median",
+            std="std",
+            min="min",
+            q25=lambda turns: turns.quantile(0.25),
+            q75=lambda turns: turns.quantile(0.75),
+            max="max",
+        )
+        .sort_values("policy", ignore_index=True)
+    )
+    outcome_matched_turns_summary_df["iqr"] = (
+        outcome_matched_turns_summary_df["q75"]
+        - outcome_matched_turns_summary_df["q25"]
+    )
+    outcome_matched_turns_summary_df
     return
 
 
@@ -1190,13 +1328,8 @@ def _():
 
 
 @app.cell
-def _(agent_results, filtered_df_agent, filtered_df_graph, graph_results):
-    metrics_summary_df = pd.DataFrame(
-        [
-            {"policy": "graph", "count": len(filtered_df_graph), **graph_results},
-            {"policy": "agent", "count": len(filtered_df_agent), **agent_results},
-        ]
-    )
+def _(outcome_correctness_metrics_df):
+    metrics_summary_df = outcome_correctness_metrics_df.copy()
     metrics_summary_df
     return (metrics_summary_df,)
 

@@ -19,8 +19,8 @@ from ems_prepared.model.contracts import (
     MessageType,
     PolicyFactory,
     SessionBackend,
-    SessionHistory,
     SessionHandle,
+    SessionHistory,
     SessionManager,
     SessionParameters,
     SessionRecord,
@@ -51,7 +51,7 @@ class SessionService(SessionManager):
         resolved_session_id = request.session_id or uuid4()
 
         existing = self._session_backend.get_session(resolved_session_id)
-        if existing is not None and existing.status is not SessionStatus.ENDED:
+        if existing is not None:
             raise ValueError(f"Session already exists: {resolved_session_id}")
 
         deps = self._build_deps(
@@ -108,7 +108,7 @@ class SessionService(SessionManager):
     async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
         """Handle one user turn for an existing active session."""
         record = self._require_session(session_id)
-        if record.status is not SessionStatus.ACTIVE:
+        if record.status is SessionStatus.COMPLETED:
             return []
 
         policy_name = record.handle.policy_name
@@ -142,10 +142,6 @@ class SessionService(SessionManager):
     async def resume_session(self, session_id: UUID) -> SessionState | None:
         """Compatibility alias that returns lightweight state without probing runtime."""
         return self.get_view_state(session_id)
-
-    async def end_session(self, session_id: UUID) -> bool:
-        """Mark a session as ended."""
-        return self._session_backend.set_status(session_id, SessionStatus.ENDED)
 
     async def submit_survey(
         self,
@@ -196,6 +192,7 @@ class SessionService(SessionManager):
             handle=record.handle,
             experiment_name=record.experiment_name,
             status=record.status,
+            created_at=record.created_at,
             messages=self._session_backend.load_history(session_id),
         )
 
@@ -226,7 +223,6 @@ class SessionService(SessionManager):
             locale=record.handle.locale,
             call_origin=None,
             request_input=None,
-            resume_expected=True,
         )
 
     def _build_deps(
@@ -241,7 +237,6 @@ class SessionService(SessionManager):
         locale,
         call_origin,
         request_input,
-        resume_expected: bool = False,
     ) -> Settings:
         resolved_call_origin = call_origin or self._infer_call_origin(frontend_name)
         kwargs: dict[str, Any] = {
@@ -253,7 +248,6 @@ class SessionService(SessionManager):
             "policy_name": policy_name,
             "locale": locale,
             "call_origin": resolved_call_origin,
-            "resume_expected": resume_expected,
         }
         if request_input is not None:
             kwargs["request_input"] = request_input

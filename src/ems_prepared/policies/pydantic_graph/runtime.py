@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pydantic_graph import End
 from pydantic_graph.graph import Graph
-from pydantic_graph.nodes import End
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
@@ -17,6 +17,7 @@ from ems_prepared.model.contracts import (
 )
 from ems_prepared.policies.pydantic_graph.emergency_main_graph import (
     build_graph,
+    resume_existing_graph,
     run_graph,
 )
 from ems_prepared.policies.pydantic_graph.nodes import MessageNode, QuestionNode
@@ -53,7 +54,8 @@ class GraphConversationPolicy(ConversationPolicy):
         events: list[BackendEvent] = []
         next_text = text
 
-        while result := await run_graph(
+        runner = run_graph if text is None else resume_existing_graph
+        while result := await runner(
             self.graph,
             self.deps,
             next_text,

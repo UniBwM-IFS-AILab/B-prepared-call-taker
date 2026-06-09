@@ -77,10 +77,6 @@ class _RecordingSessionManager:
         _ = session_id
         return None
 
-    async def end_session(self, session_id: UUID) -> bool:
-        self.end_calls.append(session_id)
-        return True
-
     async def submit_survey(
         self,
         session_id: UUID,

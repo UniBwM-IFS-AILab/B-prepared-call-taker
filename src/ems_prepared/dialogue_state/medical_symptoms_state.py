@@ -4,6 +4,7 @@ This module provides:
 - MedicalEmergency: A model combining symptoms and states from various emergency call protocol components.
 """  # noqa: E501
 
+from enum import StrEnum
 from typing import Literal
 
 from numpy import ndarray
@@ -41,6 +42,13 @@ from ems_prepared.dialogue_state.type_defs import (
 )
 
 
+class Gender(StrEnum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+    UNKNOWN = "unknown"
+
+
 class Extras(KeyQuestionSymptom):
     """Model for any additional fields that might be added to MedicalEmergency in the future."""
 
@@ -48,6 +56,11 @@ class Extras(KeyQuestionSymptom):
         default=None,
         title="Patient Age",
         description="The age of the patient.",
+    )
+    patient_gender: Gender = Field(
+        default=Gender.UNKNOWN,
+        title="Patient Gender",
+        description="The gender of the patient.",
     )
     covid_vaccination_status: KnownString = Field(
         default=None,

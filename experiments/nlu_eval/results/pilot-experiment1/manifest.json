@@ -1,8 +1,0 @@
-{
-  "run_id": "pilot-experiment1",
-  "experiment_id": "experiment1",
-  "dataset_path": "experiments\\nlu_eval\\datasets\\pilot_master.jsonl",
-  "raw_predictions_path": "experiments\\nlu_eval\\results\\pilot-experiment1\\experiment1_raw_predictions.jsonl",
-  "repeats": 10,
-  "git_commit": "f25db72ec63a17d29118231ab1938311544cc70e"
-}

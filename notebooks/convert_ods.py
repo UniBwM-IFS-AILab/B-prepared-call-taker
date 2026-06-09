@@ -10,16 +10,17 @@
 #     "pandera==0.31.1",
 #     "pointblank==0.24.0",
 #     "altair==6.1.0",
+#     "sqlalchemy==2.0.50",
+#     "pyarrow>=8.0.0",
 # ]
 # requires-python = ">=3.13"
 # [tool.uv.sources]
 # ems-prepared = { path = "..", editable = true }
-# ems-prepared = { path = "../..", editable = true }
 # ///
 
 import marimo
 
-__generated_with = "0.23.6"
+__generated_with = "0.23.8"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -40,7 +41,7 @@ with app.setup:
 
 @app.cell
 def _():
-    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/20_05"))
+    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/Medical_Transcripts_files"))
     audio_dir = Path(
         os.path.expanduser(
             r"~/Spaces/B-prepared/Datasets/Schulungsgespräche Notrufannahme/"
@@ -54,7 +55,7 @@ def _():
         "speaker": pl.String,
         "state": pl.String,
     }
-    valid_speakers = ["CALLER", "DISPATCHER", "EXTRA", "PATIENT"]
+    valid_speakers = ["CALLER", "DISPATCHER", "EXTRA", "PATIENT", "BYSTANDER"]
     pattern = r"^.*(\d{6}).*?(\d+)"
 
     filter_df = pl.DataFrame(data=None, schema=pl_schema)
@@ -63,9 +64,7 @@ def _():
 
 @app.cell
 def _(search_dir):
-    # (len
-    (list(search_dir.rglob("[!~$]*.ods")))
-    # )
+    len(list(search_dir.rglob("[!~$]*.ods")))
     return
 
 
@@ -240,18 +239,9 @@ def _(pa_import_schema, pl_report_schema, search_dir):
         else pl.DataFrame(schema=pl_report_schema)
     )
 
-    errors.write_csv("validation_errors.csv")
+    errors.write_csv(os.path.expanduser(r"~/Documents/DialogData/validation_errors.csv"))
     errors
     return (correct_paths,)
-
-
-@app.cell
-def _():
-    #     mmyyyy, id = re.findall(pattern, str(path))[0]
-    #     # print(mmyyyy, id)
-    #     # print(uuid5(UUID(int=0), path.stem))
-    #     # print(path)
-    return
 
 
 @app.cell
@@ -264,13 +254,20 @@ def _(correct_paths):
             "speaker": pl.String,  # pl.Enum(valid_speakers),
             "text": pl.String,
             "state": pl.String,
+            # "state": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()}), #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
             "path": pl.String,
-            # "state": pl.Struct(fields={name: pl.Binary | pl.String for name in EmergencyCall.model_fields.keys()})  #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
+        
         }
     )
     full_dataset = pl.DataFrame(schema=pl_fds_schema)
+    # full_dataset = pl.DataFrame()
     for _path in correct_paths:
-        _ods_df = pl.read_ods(_path, drop_empty_rows=True, drop_empty_cols=True)
+        _ods_df = pl.read_ods(
+            _path, 
+            drop_empty_rows=True, 
+            drop_empty_cols=True, 
+            # schema_overrides={"State": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()})}
+        )#.col('State').fill_null(pl.lit("{}"))
 
         _body_df = _ods_df.slice(0, _ods_df.height - 1)
         _final_row = _ods_df.tail(1)
@@ -298,6 +295,13 @@ def _(correct_paths):
 
 
 @app.cell
+def _(full_dataset_state):
+    full_dataset_state
+
+    return
+
+
+@app.cell
 def state(full_dataset):
     # Ensure 'state' column exists and fill missing values for non‑caller turns
     full_dataset_state = full_dataset.with_columns(
@@ -306,7 +310,7 @@ def state(full_dataset):
             pl.coalesce(pl.col("state").fill_null(strategy="forward"), pl.lit("{}"))
         )  # copy previous row or '{}'
         .otherwise(
-            pl.col("state")  # keep caller’s own state unchanged
+            pl.col("state").struct.json_encode(), # keep caller’s own state unchanged
         )
         .fill_null(pl.lit("{}"))
     )
@@ -314,17 +318,36 @@ def state(full_dataset):
     # Show the updated DataFrame so you can verify the changes
     # full_dataset_state
 
-    full_dataset_state.filter(pl.col("speaker").eq("CALLER") | pl.col("speaker").eq("DISPATCHER")).write_ndjson("dialog_data.jsonl")
+    full_dataset_state = full_dataset_state.filter(pl.col("speaker").eq("EXTRA").not_())
+    full_dataset_state.write_ndjson("dialog_data.jsonl") 
+    # full_dataset_state.match_to_schema(
+    #     {"state": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()})},
+    #     extra_columns="ignore",
+    #     missing_struct_fields="insert",
+    #     extra_struct_fields="ignore"
+    # )
+    full_dataset_state.write_database(
+        table_name="records",
+        connection="sqlite:///data.sqlite",
+        if_table_exists="replace",
+    )
     return (full_dataset_state,)
 
 
 @app.cell
-def _(full_dataset_state):
-    full_dataset_state#.filter(pl.col("speaker").eq("CALLER") | pl.col("speaker").eq("DISPATCHER"))
+def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ### Add audio paths
+    """)
+    return
+
+
+@app.cell(disabled=True)
 def _(audio_dir):
     audio_df = pl.DataFrame(
         {"audio_path": audio_dir.rglob("*.wav")},
@@ -337,15 +360,7 @@ def _(audio_dir):
     return (audio_df,)
 
 
-@app.cell
-def _():
-    Path(
-        "/home/seapat/Documents/DialogData/13_05/ILS Munich/032025_Schulung_Export (25)_NotfalleinsatzTCPR_02.wav/Transcript_NotfalleinsatzTCPR_02.ods"
-    ).parent.stem
-    return
-
-
-@app.cell
+@app.cell(disabled=True)
 def _(audio_dir, search_dir):
     wav = list(audio_dir.rglob("*.wav"))[0]
     path = list(search_dir.rglob("[!~$]*.ods"))[0]
@@ -355,7 +370,7 @@ def _(audio_dir, search_dir):
     return dir, wav
 
 
-@app.cell
+@app.cell(disabled=True)
 def _(full_dataset):
     full_dataset.with_columns(
         path_stem=pl.col("path").map_elements(

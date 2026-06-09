@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 
+
 # Virtual environments
 .venv
 
@@ -32,8 +33,10 @@ undefined/
 
 # settings
 .vscode/
+.codex/
 .zed/
 .direnv/
+.agents/
 
 # Caches
 __marimo__/
@@ -41,3 +44,15 @@ __pycache__/
 *.drawio.bkp
 typings/
 repo.bundle
+.playwright-mcp
+.gradio/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# intermediate data files
+**/dialog_data.jsonl
+**/validation_errors.csv
+
+# codex likes to create those
+**/tmp_*

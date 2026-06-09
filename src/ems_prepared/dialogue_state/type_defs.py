@@ -13,10 +13,11 @@ Unknown: TypeAlias = None
 # type Unknown = Literal[None]
 # type Unknown = None
 
-type Known[T] = T | Unknown
+# type Known[T] = T | Unknown
 
 type KnownBoolean = bool | Unknown
 type KnownString = str | Unknown
+type KnownInteger = int | Unknown
 
 type RD1_Boolean = KnownBoolean
 # type RD2_Boolean = KnownBoolean

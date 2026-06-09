@@ -73,6 +73,7 @@ class FakeSessionBackend:
             experiment_name=experiment_name,
             save_path=save_path,
             status=SessionStatus.ACTIVE,
+            created_at="2026-01-01T00:00:00",
         )
         self.histories.setdefault(session.session_id, [])
 
@@ -88,6 +89,7 @@ class FakeSessionBackend:
             experiment_name=record.experiment_name,
             save_path=record.save_path,
             status=status,
+            created_at=record.created_at,
         )
         return True
 

@@ -4,15 +4,17 @@ This module provides the EmergencyCall class for modeling emergency call data
 including caller information, location, emergency type, and medical details.
 """
 
-from __future__ import annotations
-
 import logging
 
 from pydantic import Field
 from pydantic.json_schema import SkipJsonSchema
 
 from ems_prepared.dialogue_state.medical_symptoms_state import MedicalEmergency
-from ems_prepared.dialogue_state.type_defs import EmergencyType, KnownString
+from ems_prepared.dialogue_state.type_defs import (
+    EmergencyType,
+    KnownInteger,
+    KnownString,
+)
 
 _SENTINEL = object()
 logger = logging.getLogger(__name__)
@@ -31,7 +33,7 @@ class EmergencyCall(MedicalEmergency):
     )
     emergency_location: KnownString = Field(
         default=None,
-        title="Distinctive Location",
+        title="Emergency Location",
         description=(
             "A location description that allows for exact pinpointing where the emergency is occurring."
             "It must be precise enough so that is distinct within the area of the department that takes the call."
@@ -58,6 +60,11 @@ class EmergencyCall(MedicalEmergency):
             "Description of what just happened. The reason for calling the emergency line. \n"
             "This should only be filled once."
         ),
+    )
+    persons_affected: KnownInteger = Field(
+        default=None,
+        title="Persons Affected",
+        description="The number of persons affected by the emergency.",
     )
 
     # function property to check if all rd1 and r2 symptoms are False (not None / Unknown)
@@ -100,3 +107,9 @@ def response_cleanup(input: EmergencyCall | str) -> EmergencyCall | str:
             return input
 
     return input
+
+
+if __name__ == "__main__":
+    import json
+
+    print(json.dumps(EmergencyCall.model_json_schema(), indent=2))

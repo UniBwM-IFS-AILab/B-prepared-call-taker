@@ -1,8 +1,9 @@
-"""FastAPI adapter tests for request/response boundary behavior."""
+"""FastAPI adapter tests for the minimal HTTP contract."""
 
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from pathlib import Path
 from uuid import UUID
 
@@ -26,6 +27,11 @@ from ems_prepared.model.contracts import (
     SessionStatus,
 )
 
+_SESSION_UUID = UUID(int=2)
+_PUBLIC_SESSION_ID = str(_SESSION_UUID)
+_CREATED_AT = "2026-05-13T12:00:00"
+_CREATED_AT_TS = int(datetime.fromisoformat(_CREATED_AT).timestamp())
+
 
 class FakeSessionManager:
     """Small in-memory service fake for HTTP adapter tests."""
@@ -35,7 +41,7 @@ class FakeSessionManager:
         self.started_requests: list[SessionParameters] = []
         self.handle = SessionHandle(
             user_id=UUID(int=1),
-            session_id=UUID(int=2),
+            session_id=_SESSION_UUID,
             locale=Locale.EN,
             frontend_name="fastapi",
             policy_name="graph",
@@ -51,13 +57,14 @@ class FakeSessionManager:
         self.received: list[str] = []
         self.feedback_calls: list[tuple[UUID, MessageFeedback]] = []
         self.resume_error_on_input = False
+        self.created_at = _CREATED_AT
         self.history_messages = [
             ConversationMessage(
                 id="msg_start_1",
                 type=MessageType.QUESTION,
                 role=MessageRole.ASSISTANT,
                 content="Where are you?",
-                timestamp="2026-05-13T12:00:00",
+                timestamp=_CREATED_AT,
             )
         ]
 
@@ -108,7 +115,7 @@ class FakeSessionManager:
                 type=MessageType.QUESTION,
                 role=MessageRole.ASSISTANT,
                 content="Where are you?",
-                timestamp="2026-05-13T12:00:00",
+                timestamp=_CREATED_AT,
             )
         ]
         return self.handle, [
@@ -122,7 +129,8 @@ class FakeSessionManager:
     async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
         if self.resume_error_on_input:
             raise SessionResumeError(f"Missing runtime state for session: {session_id}")
-        assert session_id == self.handle.session_id
+        if session_id != self.handle.session_id:
+            raise LookupError(f"Unknown session: {session_id}")
         self.received.append(text)
         self.history_messages.extend(
             [
@@ -144,11 +152,6 @@ class FakeSessionManager:
         )
         return [BackendEvent(kind=BackendEventKind.MESSAGE, text="Acknowledged")]
 
-    async def end_session(self, session_id: UUID) -> bool:
-        if session_id == self.handle.session_id:
-            self.history_status = SessionStatus.ENDED
-        return session_id == self.handle.session_id
-
     def get_view_state(self, session_id: UUID) -> SessionState | None:
         if session_id == self.handle.session_id:
             return self.state
@@ -161,6 +164,7 @@ class FakeSessionManager:
             handle=self.handle,
             experiment_name="exp",
             status=self.history_status,
+            created_at=self.created_at,
             messages=list(self.history_messages),
         )
 
@@ -171,7 +175,8 @@ class FakeSessionManager:
         feedback: str | None = None,
         metadata: dict[str, object] | None = None,
     ) -> Path:
-        assert session_id == self.handle.session_id
+        if session_id != self.handle.session_id:
+            raise LookupError(f"Unknown session: {session_id}")
         assert responses
         _ = (feedback, metadata)
         return self.base_path / "survey.json"
@@ -181,6 +186,8 @@ class FakeSessionManager:
         session_id: UUID,
         feedback: MessageFeedback,
     ) -> None:
+        if session_id != self.handle.session_id:
+            raise LookupError(f"Unknown session: {session_id}")
         self.feedback_calls.append((session_id, feedback))
 
 
@@ -190,9 +197,18 @@ def client(tmp_path: Path) -> TestClient:
     return TestClient(create_app(fake_manager))
 
 
+def test_root_discovery_response_shape(client: TestClient) -> None:
+    response = client.get("/")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["object"] == "api"
+    assert "/sessions" in payload["paths"]
+
+
 def test_start_session_response_shape(client: TestClient) -> None:
     response = client.post(
-        "/session",
+        "/sessions",
         json={
             "policy_name": "graph",
             "scenario_name": "scenario_01",
@@ -201,23 +217,31 @@ def test_start_session_response_shape(client: TestClient) -> None:
         },
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["session"]["user_id"] == str(UUID(int=1))
-    assert payload["session"]["session_id"] == str(UUID(int=2))
-    assert payload["status"] == "active"
-    assert payload["messages"] == [
-        {
-            "id": "msg_start_1",
-            "type": "question",
-            "role": "assistant",
-            "content": "Where are you?",
-            "timestamp": "2026-05-13T12:00:00",
-        }
-    ]
+    assert response.status_code == 201
+    assert response.json() == {
+        "object": "session",
+        "id": _PUBLIC_SESSION_ID,
+        "created_at": _CREATED_AT_TS,
+        "status": "active",
+        "locale": "english",
+        "policy_name": "graph",
+        "scenario_name": "scenario_01",
+        "messages": [
+            {
+                "role": "assistant",
+                "type": "message",
+                "content": "Emergency line connected.",
+            },
+            {
+                "role": "assistant",
+                "type": "question",
+                "content": "Where are you?",
+            },
+        ],
+    }
 
 
-def test_start_session_accepts_omitted_body_and_uses_defaults(tmp_path: Path) -> None:
+def test_start_session_uses_defaults_when_fields_are_omitted(tmp_path: Path) -> None:
     fake_manager = FakeSessionManager(tmp_path=tmp_path)
     app = create_app(
         fake_manager,
@@ -227,9 +251,9 @@ def test_start_session_accepts_omitted_body_and_uses_defaults(tmp_path: Path) ->
     )
     client = TestClient(app)
 
-    response = client.post("/session")
+    response = client.post("/sessions", json={})
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     request = fake_manager.started_requests[-1]
     assert request.policy_name == "agent"
     assert request.locale == Locale.DE
@@ -246,64 +270,166 @@ def test_get_session_defaults_returns_app_defaults(tmp_path: Path) -> None:
     )
     client = TestClient(app)
 
-    response = client.get("/session/defaults")
+    response = client.get("/sessions/defaults")
 
     assert response.status_code == 200
     assert response.json() == {
+        "object": "session.defaults",
         "policy_name": "agent",
         "locale": "german",
         "experiment_name": "exp_default",
     }
 
 
-def test_send_message_response_shape(client: TestClient) -> None:
-    session_id = UUID(int=2)
+def test_get_session_response_shape(client: TestClient) -> None:
+    response = client.get(f"/sessions/{_PUBLIC_SESSION_ID}")
 
-    message_response = client.post(
-        f"/session/{session_id}/messages",
-        json={"content": "At Main Street"},
-    )
-    assert message_response.status_code == 200
-    assert message_response.json() == {
-        "session_id": str(session_id),
+    assert response.status_code == 200
+    assert response.json() == {
+        "object": "session",
+        "id": _PUBLIC_SESSION_ID,
+        "created_at": _CREATED_AT_TS,
         "status": "active",
-        "messages": [
-            {
-                "id": "msg_reply_1",
-                "type": "message",
-                "role": "assistant",
-                "content": "Acknowledged",
-                "timestamp": "2026-05-13T12:00:02",
-            }
-        ],
+        "locale": "english",
+        "policy_name": "graph",
+        "scenario_name": "scenario_01",
     }
 
 
-def test_send_message_returns_resume_conflict(tmp_path: Path) -> None:
+def test_send_message_response_shape(client: TestClient) -> None:
+    message_response = client.post(
+        f"/sessions/{_PUBLIC_SESSION_ID}/messages",
+        json={"content": "At Main Street"},
+    )
+
+    assert message_response.status_code == 200
+    payload = message_response.json()
+    assert payload["object"] == "session.messages"
+    assert isinstance(payload["created_at"], int)
+    assert payload["status"] == "active"
+    assert payload["messages"] == [
+        {
+            "role": "assistant",
+            "type": "message",
+            "content": "Acknowledged",
+        }
+    ]
+
+
+def test_send_message_returns_resume_error_shape(tmp_path: Path) -> None:
     fake_manager = FakeSessionManager(tmp_path=tmp_path)
     fake_manager.resume_error_on_input = True
     client = TestClient(create_app(fake_manager))
 
     response = client.post(
-        f"/session/{UUID(int=2)}/messages",
+        f"/sessions/{_PUBLIC_SESSION_ID}/messages",
         json={"content": "At Main Street"},
     )
 
     assert response.status_code == 409
-    assert "Missing runtime state" in response.json()["detail"]
+    assert response.json() == {
+        "error": {
+            "message": f"Missing runtime state for session: {_SESSION_UUID}",
+            "type": "invalid_request_error",
+            "param": "session_id",
+            "code": "session_resume_failed",
+        }
+    }
 
 
-def test_end_session_response_shape(client: TestClient) -> None:
-    session_id = UUID(int=2)
-    response = client.delete(f"/session/{session_id}")
+def test_send_message_returns_unknown_session_shape(client: TestClient) -> None:
+    response = client.post(
+        "/sessions/sess_missing/messages",
+        json={"content": "hello"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "message": "Unknown session: sess_missing",
+            "type": "not_found_error",
+            "param": "session_id",
+            "code": "unknown_session",
+        }
+    }
+
+
+def test_send_message_validation_error_shape(client: TestClient) -> None:
+    response = client.post(
+        f"/sessions/{_PUBLIC_SESSION_ID}/messages",
+        json={},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": {
+            "message": "Request validation failed.",
+            "type": "invalid_request_error",
+            "param": "content",
+            "code": "validation_error",
+        }
+    }
+
+
+def test_get_history_response_shape(client: TestClient) -> None:
+    response = client.get(f"/sessions/{_PUBLIC_SESSION_ID}/history")
+
     assert response.status_code == 200
-    assert response.json() is True
+    payload = response.json()
+    assert payload["object"] == "session.messages"
+    assert isinstance(payload["created_at"], int)
+    assert payload["status"] == "active"
+    assert payload["messages"] == [
+        {
+            "role": "assistant",
+            "type": "message",
+            "content": "Emergency line connected.",
+        },
+        {
+            "role": "assistant",
+            "type": "question",
+            "content": "Where are you?",
+        },
+    ]
+
+
+def test_get_history_includes_user_and_assistant_turns(client: TestClient) -> None:
+    response = client.post(
+        f"/sessions/{_PUBLIC_SESSION_ID}/messages",
+        json={"content": "At Main Street"},
+    )
+    assert response.status_code == 200
+
+    history_response = client.get(f"/sessions/{_PUBLIC_SESSION_ID}/history")
+
+    assert history_response.status_code == 200
+    assert history_response.json()["messages"] == [
+        {
+            "role": "assistant",
+            "type": "message",
+            "content": "Emergency line connected.",
+        },
+        {
+            "role": "assistant",
+            "type": "question",
+            "content": "Where are you?",
+        },
+        {
+            "role": "user",
+            "type": "message",
+            "content": "At Main Street",
+        },
+        {
+            "role": "assistant",
+            "type": "message",
+            "content": "Acknowledged",
+        },
+    ]
 
 
 def test_submit_survey_response_shape(client: TestClient) -> None:
-    session_id = UUID(int=2)
     response = client.post(
-        f"/session/{session_id}/survey",
+        f"/sessions/{_PUBLIC_SESSION_ID}/survey",
         json={
             "responses": [
                 {"label": "q1", "category": "quality", "question": "Q1", "score": 5}
@@ -312,47 +438,20 @@ def test_submit_survey_response_shape(client: TestClient) -> None:
             "metadata": {"note": "ok"},
         },
     )
-    assert response.status_code == 200
-    assert response.json().endswith("survey.json")
-
-
-def test_get_state_response_shape(client: TestClient) -> None:
-    session_id = UUID(int=2)
-    response = client.get(f"/session/{session_id}/state")
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["session"]["session_id"] == str(session_id)
-    assert payload["experiment_name"] == "exp"
-    assert payload["save_path"].endswith("logs/exp")
-    assert payload["is_complete"] is False
-
-
-def test_get_history_response_shape(client: TestClient) -> None:
-    session_id = UUID(int=2)
-    response = client.get(f"/session/{session_id}/history")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["session"]["session_id"] == str(session_id)
-    assert payload["status"] == "active"
-    assert payload["messages"] == [
-        {
-            "id": "msg_start_1",
-            "type": "question",
-            "role": "assistant",
-            "content": "Where are you?",
-            "timestamp": "2026-05-13T12:00:00",
-        }
-    ]
+    assert payload["object"] == "session.survey"
+    assert isinstance(payload["created_at"], int)
+    assert payload["status"] == "accepted"
 
 
 def test_submit_feedback_response_shape(tmp_path: Path) -> None:
     fake_manager = FakeSessionManager(tmp_path=tmp_path)
     client = TestClient(create_app(fake_manager))
-    session_id = UUID(int=2)
 
     response = client.post(
-        f"/session/{session_id}/feedback",
+        f"/sessions/{_PUBLIC_SESSION_ID}/feedback",
         json={
             "role": "assistant",
             "content": "Acknowledged",
@@ -363,243 +462,78 @@ def test_submit_feedback_response_shape(tmp_path: Path) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() is True
+    payload = response.json()
+    assert payload["object"] == "session.feedback"
+    assert isinstance(payload["created_at"], int)
+    assert payload["status"] == "accepted"
     submitted_session_id, submitted_feedback = fake_manager.feedback_calls[-1]
-    assert submitted_session_id == session_id
+    assert submitted_session_id == _SESSION_UUID
     assert submitted_feedback.role is MessageRole.ASSISTANT
     assert submitted_feedback.value == "like"
 
 
-def test_websocket_open_has_no_side_effects(tmp_path: Path) -> None:
-    fake_manager = FakeSessionManager(tmp_path=tmp_path)
-    client = TestClient(create_app(fake_manager))
-
-    with client.websocket_connect("/ws"):
-        pass
-
-    assert fake_manager.started_requests == []
-
-
-def test_websocket_start_send_and_get_history(client: TestClient) -> None:
-    with client.websocket_connect("/ws") as websocket:
-        websocket.send_json({"type": "start_session"})
-        first = websocket.receive_json()
-        assert first == {
-            "type": "session_started",
-            "session": {
-                "user_id": str(UUID(int=1)),
-                "session_id": str(UUID(int=2)),
-                "locale": "english",
-                "frontend_name": "fastapi_ws",
-                "policy_name": "graph",
-                "scenario_name": None,
-            },
-            "status": "active",
-            "messages": [
-                {
-                    "id": "msg_start_1",
-                    "type": "question",
-                    "role": "assistant",
-                    "content": "Where are you?",
-                    "timestamp": "2026-05-13T12:00:00",
-                }
-            ],
-        }
-
-        websocket.send_json(
-            {
-                "type": "send_message",
-                "session_id": str(UUID(int=2)),
-                "content": "At Main Street",
-            }
-        )
-        second = websocket.receive_json()
-        assert second == {
-            "type": "turn_result",
-            "session_id": str(UUID(int=2)),
-            "status": "active",
-            "messages": [
-                {
-                    "id": "msg_reply_1",
-                    "type": "message",
-                    "role": "assistant",
-                    "content": "Acknowledged",
-                    "timestamp": "2026-05-13T12:00:02",
-                }
-            ],
-        }
-
-        websocket.send_json(
-            {
-                "type": "get_history",
-                "session_id": str(UUID(int=2)),
-            }
-        )
-        third = websocket.receive_json()
-        assert third == {
-            "type": "history_result",
-            "session": {
-                "user_id": str(UUID(int=1)),
-                "session_id": str(UUID(int=2)),
-                "locale": "english",
-                "frontend_name": "fastapi_ws",
-                "policy_name": "graph",
-                "scenario_name": None,
-            },
-            "experiment_name": "exp",
-            "status": "active",
-            "messages": [
-                {
-                    "id": "msg_start_1",
-                    "type": "question",
-                    "role": "assistant",
-                    "content": "Where are you?",
-                    "timestamp": "2026-05-13T12:00:00",
-                },
-                {
-                    "id": "msg_user_1",
-                    "type": "message",
-                    "role": "user",
-                    "content": "At Main Street",
-                    "timestamp": "2026-05-13T12:00:01",
-                },
-                {
-                    "id": "msg_reply_1",
-                    "type": "message",
-                    "role": "assistant",
-                    "content": "Acknowledged",
-                    "timestamp": "2026-05-13T12:00:02",
-                },
-            ],
-        }
-
-
-def test_websocket_uses_defaults_on_start_command(tmp_path: Path) -> None:
-    fake_manager = FakeSessionManager(tmp_path=tmp_path)
-    app = create_app(
-        fake_manager,
-        default_policy="agent",
-        default_locale=Locale.DE,
-        app_default_experiment_name="exp_default",
-    )
-    client = TestClient(app)
-
-    with client.websocket_connect("/ws") as websocket:
-        websocket.send_json({"type": "start_session"})
-        response = websocket.receive_json()
-
-    assert response["session"]["locale"] == "german"
-    assert response["session"]["policy_name"] == "agent"
-    request = fake_manager.started_requests[-1]
-    assert request.frontend_name == "fastapi_ws"
-    assert request.policy_name == "agent"
-    assert request.locale == Locale.DE
-    assert request.experiment_name == "exp_default"
-
-
-def test_websocket_returns_resume_error_on_send(tmp_path: Path) -> None:
-    fake_manager = FakeSessionManager(tmp_path=tmp_path)
-    fake_manager.resume_error_on_input = True
-    client = TestClient(create_app(fake_manager))
-
-    with client.websocket_connect("/ws") as websocket:
-        websocket.send_json(
-            {
-                "type": "send_message",
-                "session_id": str(UUID(int=2)),
-                "content": "At Main Street",
-            }
-        )
-        error_frame = websocket.receive_json()
-
-    assert error_frame["type"] == "error"
-    assert error_frame["code"] == "session_resume_failed"
-    assert "request_id" not in error_frame
-    assert "details" not in error_frame
-
-
-def test_websocket_rejects_invalid_payload(client: TestClient) -> None:
-    with client.websocket_connect("/ws") as websocket:
-        websocket.send_json({"type": "send_message"})
-        error_frame = websocket.receive_json()
-        assert error_frame["type"] == "error"
-        assert error_frame["code"] == "invalid_message"
-        assert "request_id" not in error_frame
-
-
-def test_get_websocket_schema_response_shape(client: TestClient) -> None:
-    response = client.get("/ws/schema")
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert [route["path"] for route in payload["routes"]] == ["/ws"]
-    assert "oneOf" in payload["client_message_schema"]
-    assert "anyOf" in payload["server_message_schema"] or "oneOf" in payload[
-        "server_message_schema"
-    ]
-    assert "request_id" not in str(payload["client_message_schema"])
-    assert "request_id" not in str(payload["server_message_schema"])
-    assert "SessionHistoryResponse" in payload["shared_schemas"]
-    assert "SessionHandle" in payload["shared_schemas"]
-    assert "SessionHandleResponse" not in payload["shared_schemas"]
-
-
-def test_openapi_exposes_response_models(client: TestClient) -> None:
+def test_openapi_exposes_new_response_models_only(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
     components = schema["components"]["schemas"]
+    paths = schema["paths"]
 
-    start_response_schema = schema["paths"]["/session"]["post"]["responses"]["200"][
+    assert "/" in paths
+    assert "/sessions" in paths
+    assert "/sessions/defaults" in paths
+    assert "/sessions/{session_id}" in paths
+    assert "/sessions/{session_id}/messages" in paths
+    assert "/sessions/{session_id}/history" in paths
+    assert "/sessions/{session_id}/survey" in paths
+    assert "/sessions/{session_id}/feedback" in paths
+    assert "/session" not in paths
+    assert "/ws/schema" not in paths
+
+    start_response_schema = paths["/sessions"]["post"]["responses"]["201"]["content"][
+        "application/json"
+    ]["schema"]
+    defaults_response_schema = paths["/sessions/defaults"]["get"]["responses"]["200"][
         "content"
     ]["application/json"]["schema"]
-    defaults_response_schema = schema["paths"]["/session/defaults"]["get"][
-        "responses"
-    ]["200"]["content"]["application/json"]["schema"]
-    history_response_schema = schema["paths"]["/session/{session_id}/history"]["get"][
-        "responses"
-    ]["200"]["content"]["application/json"]["schema"]
-    ws_schema_response_schema = schema["paths"]["/ws/schema"]["get"]["responses"]["200"][
+    session_response_schema = paths["/sessions/{session_id}"]["get"]["responses"]["200"][
         "content"
     ]["application/json"]["schema"]
-    message_response_schema = schema["paths"]["/session/{session_id}/messages"]["post"][
+    history_response_schema = paths["/sessions/{session_id}/history"]["get"][
         "responses"
     ]["200"]["content"]["application/json"]["schema"]
-    delete_response_schema = schema["paths"]["/session/{session_id}"]["delete"][
+    message_response_schema = paths["/sessions/{session_id}/messages"]["post"][
         "responses"
     ]["200"]["content"]["application/json"]["schema"]
-    survey_response_schema = schema["paths"]["/session/{session_id}/survey"]["post"][
+    survey_response_schema = paths["/sessions/{session_id}/survey"]["post"][
         "responses"
     ]["200"]["content"]["application/json"]["schema"]
-    feedback_response_schema = schema["paths"]["/session/{session_id}/feedback"]["post"][
+    feedback_response_schema = paths["/sessions/{session_id}/feedback"]["post"][
         "responses"
     ]["200"]["content"]["application/json"]["schema"]
 
     assert start_response_schema == {
-        "$ref": "#/components/schemas/StartSessionResponse"
+        "$ref": "#/components/schemas/CreateSessionResponse"
     }
     assert defaults_response_schema == {
         "$ref": "#/components/schemas/SessionDefaultsResponse"
     }
+    assert session_response_schema == {
+        "$ref": "#/components/schemas/SessionResource"
+    }
     assert history_response_schema == {
-        "$ref": "#/components/schemas/SessionHistoryResponse"
+        "$ref": "#/components/schemas/SessionMessagesResponse"
     }
-    assert ws_schema_response_schema == {
-        "$ref": "#/components/schemas/WebSocketSchemaResponse"
+    assert message_response_schema == {
+        "$ref": "#/components/schemas/SessionMessagesResponse"
     }
-    assert message_response_schema == {"$ref": "#/components/schemas/TurnResponse"}
-    assert delete_response_schema == {"type": "boolean", "title": "Response End Session Session  Session Id  Delete"}
-    assert survey_response_schema == {"type": "string", "title": "Response Submit Survey Session  Session Id  Survey Post"}
-    assert feedback_response_schema == {"type": "boolean", "title": "Response Submit Feedback Session  Session Id  Feedback Post"}
-    assert "SessionHandle" in components
-    assert "SessionHandleResponse" not in components
-    assert components["StartSessionResponse"]["properties"]["session"] == {
-        "$ref": "#/components/schemas/SessionHandle"
+    assert survey_response_schema == {
+        "$ref": "#/components/schemas/SurveyAcceptedResponse"
     }
-    assert components["SessionHistoryResponse"]["properties"]["session"] == {
-        "$ref": "#/components/schemas/SessionHandle"
+    assert feedback_response_schema == {
+        "$ref": "#/components/schemas/FeedbackAcceptedResponse"
     }
-    assert components["SessionStateResponse"]["properties"]["session"] == {
-        "$ref": "#/components/schemas/SessionHandle"
-    }
+    assert "SessionHandle" not in components
+    assert "SessionStateResponse" not in components
+    assert "WebSocketSchemaResponse" not in components
 
 
 def test_frontend_plugin_registers_fastapi_specific_args() -> None:

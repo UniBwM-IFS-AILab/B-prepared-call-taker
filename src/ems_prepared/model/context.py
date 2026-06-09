@@ -163,7 +163,6 @@ class Settings(BaseSettings):
         default=None,
         description="Resolved policy name ('graph' or 'agent') for this session.",
     )
-    resume_expected: bool = Field(default=False, exclude=True, repr=False)
 
     request_input: RequestInputCallable | None = Field(
         default=None,

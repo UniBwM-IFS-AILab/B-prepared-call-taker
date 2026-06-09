@@ -2,8 +2,13 @@
 experimental = true
 python.uv_venv_auto = true
 idiomatic_version_file_enable_tools = ["python"]
-windows_shim_mode = 'symlink'
+windows_shim_mode = "symlink"
 env_shell_expand = true
+
+[settings.sops]
+age_key_file = "~/.config/mise/age.txt"
+strict = false
+# age_recipients=
 
 [tools]
 uv = "latest"
@@ -12,7 +17,7 @@ sops = "latest"
 ttyd = "latest"
 fd = "latest"
 direnv = "latest"
-pre-commit =  { version = "latest", os = ["linux", "darwin"] }
+pre-commit = { version = "latest", os = ["linux", "darwin"] }
 ollama = "latest"
 python = "3.13"
 node = "latest"
@@ -27,40 +32,35 @@ copilot = "latest"
 [env]
 _.file = [".env.json", "env.json"]
 AGE_PUBLIC_KEY = "age194dj36ngpzv4rg9pzkmxed6l2gr894de47d370qp28ln7eku440s8l6j63"
-EDITOR = 'code'
+EDITOR = "code"
 # TODO: check if this causes bugs on linux, do we need the else branch?
 # HOME = "{% if os() == 'windows' %}\"$HOMEPATH\"{% else %}$HOME{% endif %}" Does not work
 SHELL = '{% if os() == "windows" %}pwsh{% else %}$SHELL{% endif %}'
 
 SOPS_AGE_KEY_FILE = "{{xdg_config_home}}/mise/age.txt"
-SOPS_EDITOR = 'code --wait --new-window --disable-extensions'
+SOPS_EDITOR = "code --wait --new-window --disable-extensions"
 
-XDG_CONFIG_HOME = '{{xdg_config_home}}'
-XDG_DATA_HOME = '{{xdg_data_home}}'
-XDG_CACHE_HOME = '{{xdg_cache_home}}'
-XDG_STATE_HOME = '{{xdg_state_home}}'
-UV_CACHE_DIR = '/tmp/ems-prepared-uv'
-MPLCONFIGDIR = '/tmp/ems-prepared-mplconfig'
+XDG_CONFIG_HOME = "{{xdg_config_home}}"
+XDG_DATA_HOME = "{{xdg_data_home}}"
+XDG_CACHE_HOME = "{{xdg_cache_home}}"
+XDG_STATE_HOME = "{{xdg_state_home}}"
+UV_CACHE_DIR = "/tmp/ems-prepared-uv"
+MPLCONFIGDIR = "/tmp/ems-prepared-mplconfig"
 
 [hooks]
-enter = "mise i -q" # && mise en -s $env:SHELL"
+enter = "mise i -q"  # && mise en -s $env:SHELL"
 # Todo:
 # eval "$(ssh-agent -s)"
 # ssh-add ~/.ssh/ld1bsekl
 
 # above necessary for signing commits with ssh key. not sure if there is another way around it.
 
-[settings.sops]
-age_key_file = '~/.config/mise/age.txt'
-strict = false
-# age_recipients=
-
 [tasks.llm_only]
-alias = 'dumb'
+alias = "dumb"
 run = "uv run main cli --policy agent"
 
 [tasks.cli]
-alias = 'ems'
+alias = "ems"
 run = "uv run main cli --policy graph"
 
 [tasks.server]
@@ -87,7 +87,7 @@ uv run --no-sync main gradio --scenario-dir "$SCENARIO_DIR" --verbose
 
 [tasks.gradio_guided_llm_vs_graph]
 description = "Launch the guided Gradio UI for the llm_vs_graph scenarios"
-alias = 'gradio_guided'
+alias = "gradio_guided"
 run = '''
 uv run --no-sync main gradio --ui guided --scenario-dir experiments/llm_vs_graph/scenarios/ --guided-scenario Scenario_01.md --guided-scenario Scenario_02.md
 '''
@@ -131,3 +131,31 @@ run = 'uvx --isolated --prerelease allow --from sglang python -m sglang.launch_s
 [tasks.openai_server_ollama]
 description = "Start an Ollama server"
 run = "ollama serve"
+
+[tasks.auto_label]
+env = { VLLM_USE_FLASHINFER_SAMPLER = "0", VLLM_MAIN_CUDA_VERSION = "13.0" }
+usage = '''
+arg "<source>" help="Path to the source file" default="notebooks/dialog_data.jsonl"
+arg "<target>" help="Path to the target file" default="dialog_acts.jsonl"
+flag "--mode <mode>" {
+  choices "single-stage" "multi-stage"
+  default "multi-stage"
+}
+'''
+run = 'uv run --group auto_label -m experiments.dialog_act_labelling.label_vllm "${usage_source?}" "${usage_target?}" --mode "${usage_mode?}" --context-window 8'
+
+[tasks.review_ui_build]
+description = "Build the Potato review UI from the repo-local dialog_acts.jsonl file"
+usage = '''
+arg "[source]" help="Path to dialog_acts JSONL" default="dialog_acts.jsonl"
+arg "[output_dir]" help="Output Potato project directory" default="experiments/dialog_act_labelling/review_ui/project"
+'''
+run = 'uv run --group review_ui -m experiments.dialog_act_labelling.review_ui.build_potato_review_ui "${usage_source?}" --output-dir "${usage_output_dir?}"'
+
+[tasks.review_ui_start]
+description = "Start the Potato review UI server for the generated project"
+usage = '''
+arg "[project_dir]" help="Potato project directory containing config.yaml" default="experiments/dialog_act_labelling/review_ui/project"
+flag "--port <port>" help="Port for Potato server" default="8000"
+'''
+run = 'cd "${usage_project_dir?}" && uv run --group review_ui potato start config.yaml -p "${usage_port?}"'

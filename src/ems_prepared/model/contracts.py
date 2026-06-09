@@ -49,7 +49,6 @@ class SessionStatus(StrEnum):
 
     ACTIVE = "active"
     COMPLETED = "completed"
-    ENDED = "ended"
 
 
 _StrEnumT = TypeVar("_StrEnumT", bound=StrEnum)
@@ -62,6 +61,8 @@ def _coerce_str_enum(
     error_prefix: str,
 ) -> _StrEnumT:
     try:
+        if enum_type is SessionStatus and value == "ended":
+            return SessionStatus.ACTIVE  # type: ignore[return-value]
         return value if isinstance(value, enum_type) else enum_type(value)
     except ValueError as exc:
         raise ValueError(f"{error_prefix}: {value}") from exc
@@ -115,6 +116,7 @@ class ConversationMessage:
     details: dict[str, Any] | None = None
 
     def __post_init__(self) -> None:
+        """Normalize message enums after dataclass construction."""
         object.__setattr__(
             self,
             "type",
@@ -143,8 +145,10 @@ class SessionRecord:
     experiment_name: str
     save_path: Path
     status: SessionStatus
+    created_at: str
 
     def __post_init__(self) -> None:
+        """Normalize persisted session status values on load."""
         object.__setattr__(
             self,
             "status",
@@ -163,9 +167,11 @@ class SessionHistory:
     handle: SessionHandle
     experiment_name: str
     status: SessionStatus
+    created_at: str
     messages: list[ConversationMessage]
 
     def __post_init__(self) -> None:
+        """Normalize history status values on load."""
         object.__setattr__(
             self,
             "status",
@@ -188,6 +194,7 @@ class MessageFeedback:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        """Normalize feedback role values after construction."""
         object.__setattr__(
             self,
             "role",
@@ -378,10 +385,6 @@ class SessionManager(Protocol):
 
     async def handle_input(self, session_id: UUID, text: str) -> list[BackendEvent]:
         """Advance an existing session with one caller message."""
-        ...
-
-    async def end_session(self, session_id: UUID) -> bool:
-        """Flush and remove an existing session."""
         ...
 
     async def submit_survey(

@@ -28,6 +28,15 @@ class TeleCpr(BaseModel):
         repr=False,
     )
 
+    ems_dispatched: SkipJsonSchema[KnownBoolean] = Field(
+        default=None,
+        examples=[True, False, Unknown],
+        title="Emergency Medical Services (EMS) on its way",
+        description="Indicates if an someone from EMS, such as an Ambulance or a doctor is on its way to the location of the emergency.",
+        exclude=True,
+        repr=False,
+    )
+
     @property
     def cpr_symptoms(self) -> set[RD2_Boolean]:
         """Returns the list of symptoms for rd1."""

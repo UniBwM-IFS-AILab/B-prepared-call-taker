@@ -7,7 +7,7 @@ from typing import Annotated, override
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from pydantic_graph.nodes import Edge, End, GraphRunContext
+from pydantic_graph import Edge, End, GraphRunContext
 
 from ems_prepared.agents.emergency_type_agent import get_emergency_type_agent
 from ems_prepared.agents.enough_info_agent import get_enough_info_agent
@@ -82,7 +82,6 @@ class Greeting(MessageNode):
         """Greet the user."""
 
         message = self.messages[ctx.deps.locale]
-        # asyncio.create_task(tell_user(self.messages[ctx.deps.locale], ctx.deps))
         await async_wrapper(ctx.deps.emit(ctx.deps, message))
         ctx.deps.telemetry.messages_logger.info(
             "", extra={"speaker": "operator", "msg_text": message}

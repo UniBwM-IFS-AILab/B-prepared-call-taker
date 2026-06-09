@@ -1,8 +1,0 @@
-{
-  "experiment_id": "experiment1",
-  "dataset_path": "experiments/nlu_eval/datasets/main_master.jsonl",
-  "results_root": "experiments/nlu_eval/results",
-  "repeats": 1,
-  "requests_per_minute": 10,
-  "run_id": "main-experiment1"
-}

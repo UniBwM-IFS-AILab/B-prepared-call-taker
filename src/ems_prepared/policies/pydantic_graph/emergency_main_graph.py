@@ -4,19 +4,20 @@ from collections.abc import Callable, Sequence
 from typing import Any
 from uuid import UUID
 
-from loguru import logger
-from pydantic_graph import BaseNode
+from pydantic_graph import BaseNode, End
 from pydantic_graph.graph import Graph
-from pydantic_graph.nodes import End
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.meta_state import GraphState
 from ems_prepared.model.context import Settings
 from ems_prepared.model.contracts import SessionResumeError
 from ems_prepared.policies.pydantic_graph.custom_persistence.resumable_file_persistence import (
-    ResumableFilePersistence,
+    setup_resumable_file_persistence,
 )
-from ems_prepared.policies.pydantic_graph.graph_helpers import save_mermaid_graph
+from ems_prepared.policies.pydantic_graph.graph_helpers import (
+    restore_graph,
+    save_mermaid_graph,
+)
 from ems_prepared.policies.pydantic_graph.nodes import (
     RD1,
     RD2,
@@ -68,7 +69,7 @@ async def build_graph():
 
 
 async def debug_cli(deps: Settings | None = None):
-    """Main function for cli debug usage."""
+    """Run the CLI debug flow."""
     # use 0 as the user id for tests
     session_id = UUID(int=0)
     user_id = UUID(int=0)
@@ -122,78 +123,77 @@ async def resume_from_persistence(
     deps: Settings,
     graph: Graph[GraphState, Settings, EmergencyCall],
 ):
-    persistence = ResumableFilePersistence[GraphState, EmergencyCall](
-        json_file=(deps.storage.save_path / "main_persistence.json")
+    persistence = await setup_resumable_file_persistence(
+        graph, deps.storage.save_path, prefix="main_"
     )
-    if persistence.should_set_types():
-        persistence.set_graph_types(graph)
 
-    try:
-        snapshot = await persistence.load_next()
-    except Exception as exc:
-        if deps.resume_expected:
-            raise SessionResumeError(
-                f"Failed to restore graph persistence for session: {deps.session_id}"
-            ) from exc
-        raise
+    restored = await restore_graph(graph, persistence)
 
-    if snapshot:
+    if restored is not None:
         deps.telemetry.logger.info("Resuming from persisted graph state...")
-        deps.telemetry.logger.info(f"[Node] {snapshot.node.get_node_id()}")
+        node, state = restored
+        deps.telemetry.logger.info(f"[Node] {node.get_node_id()}")
 
-        state: GraphState = snapshot.state
         deps.telemetry.logger.debug(
             f"Resumed State:\t{state.call_state.model_dump(exclude_none=True)}"
         )
-
-        node: BaseNode[GraphState, Settings, EmergencyCall] | End[EmergencyCall] = (
-            snapshot.node
-        )
     else:
-        if deps.resume_expected:
-            raise SessionResumeError(
-                f"Missing graph persistence for session: {deps.session_id}"
-            )
         deps.telemetry.logger.info("Initializing new graph run...")
-
-        state = GraphState()
-        node = Start()
-
-    if not isinstance(node, End):
-        await graph.initialize(node, persistence=persistence, state=state)
+        node, state = await restore_graph(
+            graph,
+            persistence,
+            init_node=Start(),
+            init_state=GraphState(),
+        )
 
     return node, state, persistence
 
 
-async def run_graph(
+async def resume_existing_from_persistence(
+    deps: Settings,
+    graph: Graph[GraphState, Settings, EmergencyCall],
+):
+    persistence = await setup_resumable_file_persistence(
+        graph, deps.storage.save_path, prefix="main_"
+    )
+
+    try:
+        restored = await restore_graph(graph, persistence)
+    except Exception as exc:
+        raise SessionResumeError(
+            f"Failed to restore graph persistence for session: {deps.session_id}"
+        ) from exc
+
+    if restored is None:
+        raise SessionResumeError(
+            f"Missing graph persistence for session: {deps.session_id}"
+        )
+
+    node, state = restored
+    deps.telemetry.logger.info("Resuming from persisted graph state...")
+    deps.telemetry.logger.info(f"[Node] {node.get_node_id()}")
+    deps.telemetry.logger.debug(
+        f"Resumed State:\t{state.call_state.model_dump(exclude_none=True)}"
+    )
+    return node, persistence
+
+
+async def _run_loaded_graph(
     graph: Graph[GraphState, Settings, EmergencyCall],
     deps: Settings,
+    node: BaseNode[GraphState, Settings, EmergencyCall],
+    persistence,
     answer: str | None = None,
     on_complete: Callable[[EmergencyCall, Sequence[Any]], None] | None = None,
 ) -> RunGraphNode:
-    """Run the graph."""
+    from ems_prepared.policies.pydantic_graph import tcpr_subgraph
 
-    node: BaseNode[GraphState, Settings, EmergencyCall] | End[EmergencyCall]
-    node, _, persistence = await resume_from_persistence(deps, graph)
+    if answer is None and isinstance(node, QuestionNode):
+        deps.telemetry.logger.debug(str(node))
+        return node
     if answer is not None and isinstance(node, QuestionNode):
         node = ExtractState(node.question, answer)
 
-    if isinstance(node, End):
-        deps.telemetry.logger.info("Graph already finished.")
-
-        # FIXME: adopt new logic for TCPR subgraph
-        # if graph_run.result is not None and graph_run.result.state.cpr_needed:
-        #     from ems_prepared.policies.pydantic_graph import tcpr_subgraph
-
-        #     await tcpr_subgraph.run_graph(
-        #         deps=deps,
-        #         init_state=graph_run.result.state,
-        #     )
-        return node
-
-    # async with graph.iter(
-    #     node, state=state, persistence=persistence, deps=deps
-    # ) as graph_run:
     async with graph.iter_from_persistence(
         persistence=persistence, deps=deps
     ) as graph_run:
@@ -207,21 +207,116 @@ async def run_graph(
             elif isinstance(node, MessageNode):
                 return node
 
-    if isinstance(node, End):
-        await async_wrapper(
-            graph_run.deps.emit(
-                deps,
-                "The emergency call has been processed.",
-            )
+    result = graph_run.result
+    assert result is not None
+
+    if result.state.call_state.cpr_needed and not result.state.call_state.ems_arrived:
+        save_mermaid_graph(graph, deps.storage.save_path)
+
+        tcpr_result = await tcpr_subgraph.run_graph(
+            deps=deps,
+            init_state=result.state,
         )
-        # Flush log handlers before saving
-        flush_logger(deps.telemetry.messages_logger)
-        flush_logger(deps.telemetry.state_logger)
+        if isinstance(tcpr_result, End):
+            await async_wrapper(
+                deps.emit(
+                    deps,
+                    "The emergency call has been processed.",
+                )
+            )
+        return tcpr_result
 
-        save_graph_run_results(graph, graph_run, deps, on_complete=on_complete)
-        return node
+    await async_wrapper(
+        deps.emit(
+            deps,
+            "The emergency call has been processed.",
+        )
+    )
+    flush_logger(deps.telemetry.messages_logger)
+    flush_logger(deps.telemetry.state_logger)
+    save_graph_run_results(graph, graph_run, deps, on_complete=on_complete)
+    return node
 
-    raise RuntimeError("Graph finished without returning an End node.")
+
+async def resume_existing_graph(
+    graph: Graph[GraphState, Settings, EmergencyCall],
+    deps: Settings,
+    answer: str | None = None,
+    on_complete: Callable[[EmergencyCall, Sequence[Any]], None] | None = None,
+) -> RunGraphNode:
+    """Resume an existing graph-backed session turn."""
+    from ems_prepared.policies.pydantic_graph import tcpr_subgraph
+
+    tcpr_result = await tcpr_subgraph.run_graph(deps=deps, answer=answer)
+    if tcpr_result is not None:
+        if isinstance(tcpr_result, End):
+            await async_wrapper(
+                deps.emit(
+                    deps,
+                    "The emergency call has been processed.",
+                )
+            )
+        return tcpr_result
+
+    node, persistence = await resume_existing_from_persistence(deps, graph)
+    return await _run_loaded_graph(
+        graph,
+        deps,
+        node,
+        persistence,
+        answer=answer,
+        on_complete=on_complete,
+    )
+
+
+async def run_graph(
+    graph: Graph[GraphState, Settings, EmergencyCall],
+    deps: Settings,
+    answer: str | None = None,
+    on_complete: Callable[[EmergencyCall, Sequence[Any]], None] | None = None,
+) -> RunGraphNode:
+    """Run the graph."""
+    return await resume_existing_graph(
+        graph,
+        deps,
+        answer=answer,
+        on_complete=on_complete,
+    ) if answer is not None else await _run_initial_graph(
+        graph,
+        deps,
+        on_complete=on_complete,
+    )
+
+
+async def _run_initial_graph(
+    graph: Graph[GraphState, Settings, EmergencyCall],
+    deps: Settings,
+    *,
+    on_complete: Callable[[EmergencyCall, Sequence[Any]], None] | None = None,
+) -> RunGraphNode:
+    from ems_prepared.policies.pydantic_graph import tcpr_subgraph
+
+    tcpr_result = await tcpr_subgraph.run_graph(deps=deps, answer=None)
+    if tcpr_result is not None:
+        if isinstance(tcpr_result, End):
+            await async_wrapper(
+                deps.emit(
+                    deps,
+                    "The emergency call has been processed.",
+                )
+            )
+        return tcpr_result
+
+    node: BaseNode[GraphState, Settings, EmergencyCall]
+    node, _, persistence = await resume_from_persistence(deps, graph)
+    return await _run_loaded_graph(
+        graph,
+        deps,
+        node,
+        persistence,
+        answer=None,
+        on_complete=on_complete,
+    )
 
 
 def save_graph_run_results(
@@ -235,10 +330,11 @@ def save_graph_run_results(
 
     Note: Logging should be completed before calling this function.
     """
-    if graph_run.result is not None:
-        save_mermaid_graph(graph, deps.storage.save_path)
-        if on_complete is not None:
-            on_complete(
-                graph_run.result.state.call_state,
-                graph_run.result.state.message_history,
-            )
+    result = graph_run.result
+    assert result is not None
+    save_mermaid_graph(graph, deps.storage.save_path)
+    if on_complete is not None:
+        on_complete(
+            result.state.call_state,
+            result.state.message_history,
+        )

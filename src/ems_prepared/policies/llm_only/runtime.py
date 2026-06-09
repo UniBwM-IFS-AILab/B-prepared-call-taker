@@ -42,6 +42,7 @@ class AgentConversationPolicy(ConversationPolicy):
 
     async def handle_input(self, text: str) -> list[BackendEvent]:
         """Advance the agent loop with one caller message."""
+        self._restore_snapshot()
         return await self._run_turn(text)
 
     async def close(self) -> None:
@@ -138,25 +139,24 @@ class AgentConversationPolicy(ConversationPolicy):
         }
         self.deps.save_agent_snapshot(snapshot)
 
+    def _restore_snapshot(self) -> None:
+        if self.deps.load_agent_snapshot is None:
+            raise SessionResumeError(
+                f"Missing agent runtime snapshot for session: {self.deps.session_id}"
+            )
 
-async def build_agent_policy(deps: Settings) -> AgentConversationPolicy:
-    """Build one agent policy runtime."""
-    state = EmergencyCall()
-    history: list = []
-    snapshot: dict | None = None
-    if deps.load_agent_snapshot is not None:
-        snapshot = deps.load_agent_snapshot()
-
-    if deps.resume_expected and snapshot is None:
-        raise SessionResumeError(
-            f"Missing agent runtime snapshot for session: {deps.session_id}"
-        )
-
-    if snapshot is not None:
+        snapshot = self.deps.load_agent_snapshot()
+        if snapshot is None:
+            raise SessionResumeError(
+                f"Missing agent runtime snapshot for session: {self.deps.session_id}"
+            )
         if not isinstance(snapshot, dict):
             raise SessionResumeError(
-                f"Invalid agent runtime snapshot for session: {deps.session_id}"
+                f"Invalid agent runtime snapshot for session: {self.deps.session_id}"
             )
+
+        state = EmergencyCall()
+        history: list = []
         try:
             raw_state = snapshot.get("state")
             raw_history = snapshot.get("history")
@@ -168,14 +168,20 @@ async def build_agent_policy(deps: Settings) -> AgentConversationPolicy:
                 history = list(ModelMessagesTypeAdapter.validate_python(raw_history))
         except Exception as exc:
             raise SessionResumeError(
-                f"Failed to restore agent runtime snapshot for session: {deps.session_id}"
+                f"Failed to restore agent runtime snapshot for session: {self.deps.session_id}"
             ) from exc
 
+        self.policy.state = state
+        self.policy.history = history
+
+
+async def build_agent_policy(deps: Settings) -> AgentConversationPolicy:
+    """Build one agent policy runtime."""
     return AgentConversationPolicy(
         policy=AgentPolicy(
             agent=build_emergency_agent(deps),
-            state=state,
-            history=history,
+            state=EmergencyCall(),
+            history=[],
             deps=deps,
         ),
         deps=deps,

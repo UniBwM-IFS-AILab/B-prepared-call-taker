@@ -15,8 +15,8 @@ from ems_prepared.model.contracts import (
     ConversationPolicy,
     MessageRole,
     MessageType,
-    SessionResumeError,
     SessionParameters,
+    SessionResumeError,
 )
 from ems_prepared.model.session_service import SessionService
 from tests.fakes import FakeSessionBackend
@@ -111,10 +111,10 @@ async def test_start_session_returns_handle_and_initial_events(
 
 
 @pytest.mark.asyncio
-async def test_handle_input_marks_completion_and_end_session_cleans_up(
+async def test_handle_input_marks_completion_and_stops_future_turns(
     monkeypatch, tmp_path
 ) -> None:
-    """A completed session should stop advancing and be removable."""
+    """A completed session should stop advancing and remain completed."""
     monkeypatch.chdir(tmp_path)
     policy = FakeConversationPolicy(
         start_events=[BackendEvent(kind=BackendEventKind.QUESTION, text="where?")],
@@ -145,7 +145,6 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
 
     events = await service.handle_input(handle.session_id, "at home")
     repeated = await service.handle_input(handle.session_id, "ignored")
-    ended = await service.end_session(handle.session_id)
     state = service.get_view_state(handle.session_id)
     history = service.get_history(handle.session_id)
 
@@ -157,7 +156,7 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
     ]
     assert repeated == []
     assert state is not None
-    assert state.is_complete is False
+    assert state.is_complete is True
     assert history is not None
     assert [entry.role for entry in history.messages] == [
         "assistant",
@@ -170,7 +169,6 @@ async def test_handle_input_marks_completion_and_end_session_cleans_up(
         "The emergency call has been processed.",
     ]
     assert policy.close_calls == 2
-    assert ended is True
     assert len(session_backend.events) == 2
 
 
@@ -209,13 +207,12 @@ async def test_submit_survey_writes_to_session_directory(monkeypatch, tmp_path) 
 
 
 @pytest.mark.asyncio
-async def test_handle_input_rebuilds_with_resume_expected(
+async def test_handle_input_rebuilds_deps_with_inferred_origin(
     monkeypatch,
     tmp_path,
 ) -> None:
-    """Existing-session turns should rebuild deps in resume mode with inferred origin."""
+    """Existing-session turns should rebuild deps with inferred origin."""
     monkeypatch.chdir(tmp_path)
-    seen_resume_expected: list[bool] = []
     seen_call_origin: list[InputMode] = []
     policy = FakeConversationPolicy(
         start_events=[BackendEvent(kind=BackendEventKind.QUESTION, text="where?")]
@@ -223,7 +220,6 @@ async def test_handle_input_rebuilds_with_resume_expected(
     session_backend = FakeSessionBackend()
 
     async def factory(deps: Settings) -> ConversationPolicy:
-        seen_resume_expected.append(deps.resume_expected)
         seen_call_origin.append(deps.call_origin)
         return policy
 
@@ -244,7 +240,6 @@ async def test_handle_input_rebuilds_with_resume_expected(
 
     _ = await service.handle_input(handle.session_id, "at home")
 
-    assert seen_resume_expected == [False, True]
     assert seen_call_origin == [InputMode.API, InputMode.API]
 
 
@@ -253,11 +248,12 @@ async def test_handle_input_propagates_resume_failures(monkeypatch, tmp_path) ->
     """Existing-session turns should fail loudly when policy restoration is impossible."""
     monkeypatch.chdir(tmp_path)
     session_backend = FakeSessionBackend()
-    seen_resume_expected: list[bool] = []
+    build_calls = 0
 
     async def factory(deps: Settings) -> ConversationPolicy:
-        seen_resume_expected.append(deps.resume_expected)
-        if deps.resume_expected:
+        nonlocal build_calls
+        build_calls += 1
+        if build_calls > 1:
             raise SessionResumeError("missing runtime state")
         return FakeConversationPolicy(start_events=[])
 
@@ -279,9 +275,10 @@ async def test_handle_input_propagates_resume_failures(monkeypatch, tmp_path) ->
     with pytest.raises(SessionResumeError):
         await service.handle_input(handle.session_id, "hello")
 
-    assert seen_resume_expected == [False, True]
+    assert build_calls == 2
 
 
+@pytest.mark.asyncio
 @pytest.mark.asyncio
 async def test_service_raises_for_unknown_policy(monkeypatch, tmp_path) -> None:
     """Unknown policies should fail before a session is created."""
