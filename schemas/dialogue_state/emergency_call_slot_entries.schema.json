@@ -1,0 +1,2303 @@
+{
+  "items": {
+    "anyOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "patient_age",
+            "description": "The age of the patient.",
+            "title": "Patient Age",
+            "type": "string"
+          },
+          "value": {
+            "description": "The age of the patient.",
+            "title": "Patient Age",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallPatientAgeSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "patient_gender",
+            "description": "The age of the patient.",
+            "title": "Patient Age",
+            "type": "string"
+          },
+          "value": {
+            "enum": [
+              "male",
+              "female",
+              "other",
+              "unknown"
+            ],
+            "title": "Patient Age",
+            "type": "string",
+            "description": "The age of the patient."
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallPatientGenderSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "covid_vaccination_status",
+            "description": "The COVID-19 vaccination status of the patient (e.g., unvaccinated, partially vaccinated, fully vaccinated, boosted).",
+            "title": "COVID-19 Vaccination Status",
+            "type": "string"
+          },
+          "value": {
+            "description": "The COVID-19 vaccination status of the patient (e.g., unvaccinated, partially vaccinated, fully vaccinated, boosted).",
+            "minLength": 1,
+            "title": "COVID-19 Vaccination Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallCovidVaccinationStatusSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "heavy_injury",
+            "description": "Indicates if the patient is currently experiencing a heavy injury (severe physical trauma). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Heavy Injury",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a heavy injury (severe physical trauma). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Heavy Injury",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHeavyInjurySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "vital_threat_injury",
+            "description": "Indicates if the injury is life threatening. Examples of vital threats / additions:\n        - Impaired consciousness\n        - impaired breathing\n        - circulatory problems\n        - severe bleeding or severe pain for specific causes:\n            - fall from a height > 3m\n            - stuck or crushed\n            - high-speed trauma (e.g., car accident)\n            - penetrating injury (head, thorax, abdomen)\n        [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Vital Threat Injury",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the injury is life threatening. Examples of vital threats / additions:\n        - Impaired consciousness\n        - impaired breathing\n        - circulatory problems\n        - severe bleeding or severe pain for specific causes:\n            - fall from a height > 3m\n            - stuck or crushed\n            - high-speed trauma (e.g., car accident)\n            - penetrating injury (head, thorax, abdomen)\n        [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Vital Threat Injury",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallVitalThreatInjurySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "heavy_non_traumatic_bleeding",
+            "description": "Indicates if the patient is currently experiencing non-traumatic bleeding (bleeding not caused by an injury). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Non-Traumatic Bleeding",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing non-traumatic bleeding (bleeding not caused by an injury). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Non-Traumatic Bleeding",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHeavyNonTraumaticBleedingSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "gastrointestinal_bleeding",
+            "description": "Indicates if the patient is currently experiencing gastrointestinal bleeding (bleeding from the digestive tract). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Gastrointestinal Bleeding",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing gastrointestinal bleeding (bleeding from the digestive tract). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Gastrointestinal Bleeding",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallGastrointestinalBleedingSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "gynecological_bleeding",
+            "description": "Indicates if the patient is currently experiencing gynecological bleeding (bleeding from the female reproductive tract). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Gynecological Bleeding",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing gynecological bleeding (bleeding from the female reproductive tract). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Gynecological Bleeding",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallGynecologicalBleedingSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "epistaxis",
+            "description": "Indicates if the patient is currently experiencing epistaxis (nosebleed). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Epistaxis",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing epistaxis (nosebleed). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Epistaxis",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallEpistaxisSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "intoxication",
+            "description": "Indicates if the patient is currently experiencing acute poisoning (sudden exposure to a toxic substance). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Poisoning",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing acute poisoning (sudden exposure to a toxic substance). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Poisoning",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallIntoxicationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "life_threatening_intoxication",
+            "description": "Indicates if the patient is currently experiencing life-threatening intoxication (severe poisoning that poses a risk to life). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Life-Threatening Intoxication",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing life-threatening intoxication (severe poisoning that poses a risk to life). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Life-Threatening Intoxication",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallLifeThreateningIntoxicationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "imminent_childbirth",
+            "description": "Indicates if the patient is currently experiencing imminent childbirth (the baby is about to be born). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Imminent Childbirth",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing imminent childbirth (the baby is about to be born). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Imminent Childbirth",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallImminentChildbirthSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "frequent_pregnancy_contraction",
+            "description": "Indicates if the patient is currently experiencing contractions every less than 3 minutes. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pregnancy Contraction Frequency < 3 min",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing contractions every less than 3 minutes. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pregnancy Contraction Frequency < 3 min",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallFrequentPregnancyContractionSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "ongoing_delivery",
+            "description": "Indicates if the patient is currently in the process of delivering the baby. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Ongoing Delivery",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently in the process of delivering the baby. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Ongoing Delivery",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallOngoingDeliverySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "finisehd_delivery",
+            "description": "Indicates if the patient has just finished delivering the baby. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Finished Delivery",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient has just finished delivering the baby. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Finished Delivery",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallFinisehdDeliverySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "vaginal_bleeding",
+            "description": "Indicates if the patient is currently experiencing vaginal bleeding during pregnancy or childbirth. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Vaginal Bleeding",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing vaginal bleeding during pregnancy or childbirth. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Vaginal Bleeding",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallVaginalBleedingSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "severe_pain",
+            "description": "Indicates if the patient is currently experiencing severe pain. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Pain",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing severe pain. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Pain",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSeverePainSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "unbearable_pain",
+            "description": "Indicates if the patient is currently experiencing unbearable pain (pain that cannot be tolerated). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Unbearable Pain",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing unbearable pain (pain that cannot be tolerated). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Unbearable Pain",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallUnbearablePainSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "thunderclap_headache",
+            "description": "Indicates if the patient is currently experiencing a thunderclap headache (a sudden and severe headache that comes on quickly). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Thunderclap Headache",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a thunderclap headache (a sudden and severe headache that comes on quickly). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Thunderclap Headache",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallThunderclapHeadacheSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "colicky_pain",
+            "description": "Indicates if the patient is currently experiencing colicky pain (intermittent and severe abdominal pain). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Colicky Pain",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing colicky pain (intermittent and severe abdominal pain). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Colicky Pain",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallColickyPainSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_mental_health_issue",
+            "description": "Indicates if the patient is currently experiencing an acute psychiatric disorder (sudden onset of mental health issues). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Issues with Mental Health",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute psychiatric disorder (sudden onset of mental health issues). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Issues with Mental Health",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteMentalHealthIssueSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_self_harm_risk",
+            "description": "Indicates if the patient is currently at risk of self-harm (intentionally causing harm to oneself). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Self-Harm Risk",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently at risk of self-harm (intentionally causing harm to oneself). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Self-Harm Risk",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteSelfHarmRiskSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_violence_risk",
+            "description": "Indicates if the patient is currently at risk of violence (potential to harm others). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Violence Risk",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently at risk of violence (potential to harm others). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Violence Risk",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteViolenceRiskSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "suicidal_tendency",
+            "description": "Indicates if the patient is currently exhibiting suicidal tendencies (thoughts or behaviors indicating a desire to harm oneself). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Suicidal Tendency",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently exhibiting suicidal tendencies (thoughts or behaviors indicating a desire to harm oneself). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Suicidal Tendency",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSuicidalTendencySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "known_metabolic_disorder",
+            "description": "Indicates if the patient is currently experiencing a metabolic disorder (a condition that affects the body's metabolism). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Metabolic Disorder",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a metabolic disorder (a condition that affects the body's metabolism). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Metabolic Disorder",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallKnownMetabolicDisorderSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "diabetic",
+            "description": "Indicates if the patient is currently experiencing diabetes (a metabolic disorder characterized by high blood sugar levels). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Diabetic",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing diabetes (a metabolic disorder characterized by high blood sugar levels). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Diabetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallDiabeticSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "noticable_coldness",
+            "description": "Indicates if the patient is currently experiencing noticeable coldness (a sensation of being unusually cold) [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Noticable Coldness",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing noticeable coldness (a sensation of being unusually cold) [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Noticable Coldness",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallNoticableColdnessSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "noticable_heat",
+            "description": "Indicates if the patient is currently experiencing noticeable heat (a sensation of being hot). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Noticable Heat",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing noticeable heat (a sensation of being hot). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Noticable Heat",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallNoticableHeatSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "metabolic_decompensation",
+            "description": "Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Metabolic Decompensation",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Metabolic Decompensation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallMetabolicDecompensationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "hyperthermia",
+            "description": "Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature) with potentially vital threat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hyperthermia",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature) with potentially vital threat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hyperthermia",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHyperthermiaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "hypothermia",
+            "description": "Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature) with potentially vital threat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypothermia",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature) with potentially vital threat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypothermia",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHypothermiaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_paralysis",
+            "description": "Indicates if the patient is currently experiencing an acute motor deficit (loss of movement or weakness in a limb). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Motor Deficit",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute motor deficit (loss of movement or weakness in a limb). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Motor Deficit",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteParalysisSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_speech_disorder",
+            "description": "Indicates if the patient is currently experiencing an acute speech disorder (difficulty speaking or understanding speech). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Speech Disorder",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute speech disorder (difficulty speaking or understanding speech). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Speech Disorder",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteSpeechDisorderSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_speech_comprehension_disorder",
+            "description": "Indicates if the patient is currently experiencing an acute speech comprehension disorder (difficulty understanding speech). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Speech Comprehension Disorder",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute speech comprehension disorder (difficulty understanding speech). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Speech Comprehension Disorder",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteSpeechComprehensionDisorderSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_visual_disturbance",
+            "description": "Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision). E.g. Blindness, double vision, visual field defects. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Visual Disturbance",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision). E.g. Blindness, double vision, visual field defects. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Visual Disturbance",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteVisualDisturbanceSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_severe_headache",
+            "description": "Indicates if the patient is currently experiencing an acute strong headache (unprecedented and severe headache). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Headache",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an acute strong headache (unprecedented and severe headache). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Headache",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteSevereHeadacheSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_hemisensory_loss",
+            "description": "Indicates if the patient is currently experiencing acute hemisensory loss (loss of sensation on one side of the body). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Hemisensory Loss",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing acute hemisensory loss (loss of sensation on one side of the body). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Hemisensory Loss",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteHemisensoryLossSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_vertigo_with_falling_risk",
+            "description": "Indicates if the patient is currently experiencing acute vertigo with a fall (sudden dizziness leading to a fall). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Vertigo with Fall",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing acute vertigo with a fall (sudden dizziness leading to a fall). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Vertigo with Fall",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteVertigoWithFallingRiskSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "seizure",
+            "description": "Indicates if the patient is currently experiencing a seizure (sudden, uncontrolled electrical disturbance in the brain). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Seizure",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a seizure (sudden, uncontrolled electrical disturbance in the brain). [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Seizure",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSeizureSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "neurological_deficits",
+            "description": "Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system). Should only be true if consciousness is not normal. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Neurological Deficits",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system). Should only be true if consciousness is not normal. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Neurological Deficits",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallNeurologicalDeficitsSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "prolonged_deadly_seizure",
+            "description": "Indicates if the patient is currently experiencing ongoing seizures (recurrent episodes of abnormal electrical activity in the brain). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Ongoing Seizures",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing ongoing seizures (recurrent episodes of abnormal electrical activity in the brain). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Ongoing Seizures",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallProlongedDeadlySeizureSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "status_epilepticus",
+            "description": "Indicates if the patient is currently experiencing status epilepticus (a prolonged seizure lasting more than 5 minutes or multiple seizures without recovery in between). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Status Epilepticus",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing status epilepticus (a prolonged seizure lasting more than 5 minutes or multiple seizures without recovery in between). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Status Epilepticus",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallStatusEpilepticusSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_chest_discomfort",
+            "description": "Indicates if the patient is currently experiencing chest discomfort. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Chest Discomfort",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing chest discomfort. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Chest Discomfort",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteChestDiscomfortSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_circulatory_problems",
+            "description": "Indicates if the patient is currently experiencing acute circulatory problems. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Circulatory Problems",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing acute circulatory problems. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Circulatory Problems",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteCirculatoryProblemsSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "acute_chest_pain",
+            "description": "Indicates if the patient is currently experiencing acute chest pain. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Chest Pain",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing acute chest pain. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Acute Chest Pain",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAcuteChestPainSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "cold_sweat",
+            "description": "Indicates if the patient is currently experiencing cold sweat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cold Sweat",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing cold sweat. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cold Sweat",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallColdSweatSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "pallor",
+            "description": "Indicates if the patient is currently experiencing pallor (pale skin). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pallor",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing pallor (pale skin). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pallor",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallPallorSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "hypertensive_crisis",
+            "description": "Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypertensive Crisis",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypertensive Crisis",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHypertensiveCrisisSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "hypotensive_collapse",
+            "description": "Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypotensive Collapse",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Hypotensive Collapse",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallHypotensiveCollapseSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "tachycardia",
+            "description": "Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Tachycardia",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Tachycardia",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallTachycardiaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "bradycardia",
+            "description": "Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Bradycardia",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Bradycardia",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallBradycardiaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "arrhythmia",
+            "description": "Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Arrhythmia",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Arrhythmia",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallArrhythmiaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "pacemaker_malfunction",
+            "description": "Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pacemaker Malfunction",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Pacemaker Malfunction",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallPacemakerMalfunctionSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "allergic_reaction",
+            "description": "Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Allergic Reaction",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Allergic Reaction",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAllergicReactionSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "known_anaphylaxis",
+            "description": "Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Anaphylaxis",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Anaphylaxis",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallKnownAnaphylaxisSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "now_unresponsive",
+            "description": "Indicates if the patient is currently unresponsive unlike normal. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Normal Responsiveness",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently unresponsive unlike normal. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Normal Responsiveness",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallNowUnresponsiveSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "unconscious",
+            "description": "Indicates if the patient is currently unconscious. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Unconscious",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently unconscious. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Unconscious",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallUnconsciousSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "rapidly_progressing_unconsciousness",
+            "description": "Indicates if the patient is currently experiencing rapidly progressing unconsciousness. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Rapidly Progressing Unconsciousness",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing rapidly progressing unconsciousness. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Rapidly Progressing Unconsciousness",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallRapidlyProgressingUnconsciousnessSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "now_insufficient_air",
+            "description": "Indicates if the patient is currently breathing irregularly. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Irregular Breathing",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently breathing irregularly. [RD1]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Irregular Breathing",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallNowInsufficientAirSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "rapidly_progressive_respiratory_distress",
+            "description": "Indicates if the patient is currently experiencing rapidly progressive respiratory distress. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Rapidly Progressive Respiratory Distress",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing rapidly progressive respiratory distress. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Rapidly Progressive Respiratory Distress",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallRapidlyProgressiveRespiratoryDistressSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "severe_dyspnoea",
+            "description": "Indicates if the patient is currently experiencing severe dyspnoea (difficulty breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Dyspnoea",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing severe dyspnoea (difficulty breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Dyspnoea",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSevereDyspnoeaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "cyanosis",
+            "description": "Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin). [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cyanosis",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin). [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cyanosis",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallCyanosisSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "stridor",
+            "description": "Indicates if the patient is currently experiencing stridor (a high-pitched wheezing sound caused by disrupted airflow). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Stridor",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing stridor (a high-pitched wheezing sound caused by disrupted airflow). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Stridor",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallStridorSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "abnormal_breathing_sounds",
+            "description": "Indicates if the patient is currently experiencing abnormal breath sounds. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Abnormal Breath Sounds",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing abnormal breath sounds. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Abnormal Breath Sounds",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAbnormalBreathingSoundsSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "aspiration",
+            "description": "Indicates if the patient is currently experiencing aspiration (inhalation of foreign objects into the airway). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Aspiration",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing aspiration (inhalation of foreign objects into the airway). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Aspiration",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAspirationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "abnormal_chest_movement",
+            "description": "Indicates if the patient is currently experiencing abnormal chest movement during breathing. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Abnormal Chest Movement",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing abnormal chest movement during breathing. [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Abnormal Chest Movement",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAbnormalChestMovementSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "bradypnea",
+            "description": "Indicates if the patient is currently experiencing bradypnea (abnormally slow breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Bradypnea",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing bradypnea (abnormally slow breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Bradypnea",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallBradypneaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "tachypnea",
+            "description": "Indicates if the patient is currently experiencing tachypnea (abnormally rapid breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Tachypnea",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing tachypnea (abnormally rapid breathing). [RD2]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Tachypnea",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallTachypneaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "apnea",
+            "description": "Indicates if the patient is currently experiencing apnea (temporary cessation of breathing). [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Apnea",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing apnea (temporary cessation of breathing). [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Apnea",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallApneaSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "agonal_respiration",
+            "description": "Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns). [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Agonal Breathing",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns). [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Agonal Breathing",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallAgonalRespirationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "cardiac_arrest",
+            "description": "Indicates if the patient is currently experiencing cardiac arrest. [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cardiac Arrest",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing cardiac arrest. [RD2][CPR]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Cardiac Arrest",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallCardiacArrestSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "suffocation",
+            "description": "Indicates if the patient is currently experiencing suffocation (inability to breathe). [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Suffocation",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing suffocation (inability to breathe). [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Suffocation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSuffocationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "severe_accident",
+            "description": "Indicates if the patient is currently involved in a severe accident. [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Accident",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently involved in a severe accident. [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Accident",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSevereAccidentSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "severe_injury",
+            "description": "Indicates if the patient is currently experiencing a severe injury. [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Injury",
+            "type": "string"
+          },
+          "value": {
+            "description": "Indicates if the patient is currently experiencing a severe injury. [RD2][Immediate]",
+            "examples": [
+              true,
+              false
+            ],
+            "title": "Severe Injury",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSevereInjurySlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "caller_name",
+            "description": "Name of the person making the emergency call.",
+            "title": "Caller Name",
+            "type": "string"
+          },
+          "value": {
+            "description": "Name of the person making the emergency call.",
+            "minLength": 1,
+            "title": "Caller Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallCallerNameSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "caller_phone_number",
+            "description": "Phone number of the caller.",
+            "title": "Caller Phone",
+            "type": "string"
+          },
+          "value": {
+            "description": "Phone number of the caller.",
+            "minLength": 1,
+            "title": "Caller Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallCallerPhoneNumberSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "emergency_location",
+            "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
+            "title": "Distinctive Location",
+            "type": "string"
+          },
+          "value": {
+            "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
+            "minLength": 1,
+            "title": "Distinctive Location",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallEmergencyLocationSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "situation_description",
+            "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
+            "title": "Situation Description",
+            "type": "string"
+          },
+          "value": {
+            "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
+            "minLength": 1,
+            "title": "Situation Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallSituationDescriptionSlot",
+        "type": "object"
+      }
+    ]
+  },
+  "title": "EmergencyCallSlotEntries",
+  "type": "array"
+}

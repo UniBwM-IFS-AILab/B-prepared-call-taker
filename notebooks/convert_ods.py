@@ -11,7 +11,7 @@
 #     "pointblank==0.24.0",
 #     "altair==6.1.0",
 #     "sqlalchemy==2.0.50",
-#     "pyarrow>=8.0.0",
+##     "pyarrow>=8.0.0",
 # ]
 # requires-python = ">=3.13"
 # [tool.uv.sources]
@@ -249,25 +249,25 @@ def _(correct_paths):
     pl_fds_schema = pl.Schema(
         {
             "source": pl.String,
-            "dialog_id": pl.UInt64,
+            "dialog_id": pl.Int64,
             "turn_index": pl.UInt32,
             "speaker": pl.String,  # pl.Enum(valid_speakers),
             "text": pl.String,
             "state": pl.String,
             # "state": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()}), #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
             "path": pl.String,
-        
+
         }
     )
     full_dataset = pl.DataFrame(schema=pl_fds_schema)
     # full_dataset = pl.DataFrame()
-    for _path in correct_paths:
+    for _dialog_id, _path in enumerate(sorted(correct_paths), start=1):
         _ods_df = pl.read_ods(
             _path, 
             drop_empty_rows=True, 
             drop_empty_cols=True, 
             # schema_overrides={"State": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()})}
-        )#.col('State').fill_null(pl.lit("{}"))
+        )
 
         _body_df = _ods_df.slice(0, _ods_df.height - 1)
         _final_row = _ods_df.tail(1)
@@ -277,7 +277,7 @@ def _(correct_paths):
             _body_df.rename({"State": "state"})
             .with_row_index(name="turn_index")
             .with_columns(
-                dialog_id=pl.lit(file_hash, dtype=pl.UInt64),
+                dialog_id=pl.lit(_dialog_id, dtype=pl.Int64),
                 source=pl.lit(f"{_path.parent.name}/{_path.name}".strip(".ods")),
                 path=pl.lit(str(_path)),
                 # audio=pl.lit()
@@ -288,17 +288,8 @@ def _(correct_paths):
         )
         full_dataset.vstack(filter_ods_df, in_place=True).rechunk()
 
-    # filter_ods_df#.to_dicts
     full_dataset
-    # _ods_df.hash_rows(seed=42).sum()
     return (full_dataset,)
-
-
-@app.cell
-def _(full_dataset_state):
-    full_dataset_state
-
-    return
 
 
 @app.cell
@@ -328,10 +319,10 @@ def state(full_dataset):
     # )
     full_dataset_state.write_database(
         table_name="records",
-        connection="sqlite:///data.sqlite",
+        connection="sqlite:///dialog_data.sqlite",
         if_table_exists="replace",
     )
-    return (full_dataset_state,)
+    return
 
 
 @app.cell
@@ -380,7 +371,7 @@ def _(full_dataset):
     return
 
 
-@app.cell
+@app.cell(disabled=True)
 def _(audio_df, full_dataset):
     matches = full_dataset.with_columns(
         path_stem=pl.col("path").map_elements(

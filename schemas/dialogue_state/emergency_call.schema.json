@@ -1,0 +1,1375 @@
+{
+  "description": "Model representing an emergency call with essential details.",
+  "properties": {
+    "patient_age": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The age of the patient.",
+      "title": "Patient Age"
+    },
+    "patient_gender": {
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "unknown"
+      ],
+      "title": "Patient Age",
+      "type": "string",
+      "default": "unknown",
+      "description": "The age of the patient."
+    },
+    "covid_vaccination_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The COVID-19 vaccination status of the patient (e.g., unvaccinated, partially vaccinated, fully vaccinated, boosted).",
+      "title": "COVID-19 Vaccination Status"
+    },
+    "heavy_injury": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a heavy injury (severe physical trauma). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Heavy Injury"
+    },
+    "vital_threat_injury": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the injury is life threatening. Examples of vital threats / additions:\n        - Impaired consciousness\n        - impaired breathing\n        - circulatory problems\n        - severe bleeding or severe pain for specific causes:\n            - fall from a height > 3m\n            - stuck or crushed\n            - high-speed trauma (e.g., car accident)\n            - penetrating injury (head, thorax, abdomen)\n        [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Vital Threat Injury"
+    },
+    "heavy_non_traumatic_bleeding": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing non-traumatic bleeding (bleeding not caused by an injury). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Non-Traumatic Bleeding"
+    },
+    "gastrointestinal_bleeding": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing gastrointestinal bleeding (bleeding from the digestive tract). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Gastrointestinal Bleeding"
+    },
+    "gynecological_bleeding": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing gynecological bleeding (bleeding from the female reproductive tract). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Gynecological Bleeding"
+    },
+    "epistaxis": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing epistaxis (nosebleed). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Epistaxis"
+    },
+    "intoxication": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute poisoning (sudden exposure to a toxic substance). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Poisoning"
+    },
+    "life_threatening_intoxication": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing life-threatening intoxication (severe poisoning that poses a risk to life). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Life-Threatening Intoxication"
+    },
+    "imminent_childbirth": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing imminent childbirth (the baby is about to be born). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Imminent Childbirth"
+    },
+    "frequent_pregnancy_contraction": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing contractions every less than 3 minutes. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pregnancy Contraction Frequency < 3 min"
+    },
+    "ongoing_delivery": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently in the process of delivering the baby. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Ongoing Delivery"
+    },
+    "finisehd_delivery": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient has just finished delivering the baby. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Finished Delivery"
+    },
+    "vaginal_bleeding": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing vaginal bleeding during pregnancy or childbirth. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Vaginal Bleeding"
+    },
+    "severe_pain": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing severe pain. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Pain"
+    },
+    "unbearable_pain": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing unbearable pain (pain that cannot be tolerated). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Unbearable Pain"
+    },
+    "thunderclap_headache": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a thunderclap headache (a sudden and severe headache that comes on quickly). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Thunderclap Headache"
+    },
+    "colicky_pain": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing colicky pain (intermittent and severe abdominal pain). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Colicky Pain"
+    },
+    "acute_mental_health_issue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute psychiatric disorder (sudden onset of mental health issues). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Issues with Mental Health"
+    },
+    "acute_self_harm_risk": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently at risk of self-harm (intentionally causing harm to oneself). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Self-Harm Risk"
+    },
+    "acute_violence_risk": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently at risk of violence (potential to harm others). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Violence Risk"
+    },
+    "suicidal_tendency": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently exhibiting suicidal tendencies (thoughts or behaviors indicating a desire to harm oneself). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Suicidal Tendency"
+    },
+    "known_metabolic_disorder": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a metabolic disorder (a condition that affects the body's metabolism). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Metabolic Disorder"
+    },
+    "diabetic": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing diabetes (a metabolic disorder characterized by high blood sugar levels). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Diabetic"
+    },
+    "noticable_coldness": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing noticeable coldness (a sensation of being unusually cold) [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Noticable Coldness"
+    },
+    "noticable_heat": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing noticeable heat (a sensation of being hot). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Noticable Heat"
+    },
+    "metabolic_decompensation": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing metabolic decompensation (a worsening of a metabolic disorder). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Metabolic Decompensation"
+    },
+    "hyperthermia": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing hyperthermia (abnormally high body temperature) with potentially vital threat. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hyperthermia"
+    },
+    "hypothermia": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing hypothermia (abnormally low body temperature) with potentially vital threat. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypothermia"
+    },
+    "acute_paralysis": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute motor deficit (loss of movement or weakness in a limb). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Motor Deficit"
+    },
+    "acute_speech_disorder": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute speech disorder (difficulty speaking or understanding speech). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Speech Disorder"
+    },
+    "acute_speech_comprehension_disorder": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute speech comprehension disorder (difficulty understanding speech). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Speech Comprehension Disorder"
+    },
+    "acute_visual_disturbance": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute visual disturbance (sudden changes in vision). E.g. Blindness, double vision, visual field defects. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Visual Disturbance"
+    },
+    "acute_severe_headache": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an acute strong headache (unprecedented and severe headache). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Headache"
+    },
+    "acute_hemisensory_loss": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute hemisensory loss (loss of sensation on one side of the body). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Hemisensory Loss"
+    },
+    "acute_vertigo_with_falling_risk": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute vertigo with a fall (sudden dizziness leading to a fall). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Vertigo with Fall"
+    },
+    "seizure": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a seizure (sudden, uncontrolled electrical disturbance in the brain). [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Seizure"
+    },
+    "neurological_deficits": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing neurological deficits (loss of function in the nervous system). Should only be true if consciousness is not normal. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Neurological Deficits"
+    },
+    "prolonged_deadly_seizure": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing ongoing seizures (recurrent episodes of abnormal electrical activity in the brain). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Ongoing Seizures"
+    },
+    "status_epilepticus": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing status epilepticus (a prolonged seizure lasting more than 5 minutes or multiple seizures without recovery in between). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Status Epilepticus"
+    },
+    "acute_chest_discomfort": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing chest discomfort. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Chest Discomfort"
+    },
+    "acute_circulatory_problems": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute circulatory problems. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Circulatory Problems"
+    },
+    "acute_chest_pain": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing acute chest pain. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Acute Chest Pain"
+    },
+    "cold_sweat": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cold sweat. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cold Sweat"
+    },
+    "pallor": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing pallor (pale skin). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pallor"
+    },
+    "hypertensive_crisis": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a hypertensive crisis (severely high blood pressure). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypertensive Crisis"
+    },
+    "hypotensive_collapse": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a hypotensive collapse (severely low blood pressure). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Hypotensive Collapse"
+    },
+    "tachycardia": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing tachycardia (abnormally fast heart rate). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Tachycardia"
+    },
+    "bradycardia": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing bradycardia (abnormally slow heart rate). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Bradycardia"
+    },
+    "arrhythmia": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing arrhythmia (irregular heartbeat). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Arrhythmia"
+    },
+    "pacemaker_malfunction": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a malfunction of a pacemaker (device that regulates heart rhythm). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Pacemaker Malfunction"
+    },
+    "allergic_reaction": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing an allergic reaction (immune response to a substance). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Allergic Reaction"
+    },
+    "known_anaphylaxis": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing anaphylaxis (severe allergic reaction). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Anaphylaxis"
+    },
+    "now_unresponsive": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently unresponsive unlike normal. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Normal Responsiveness"
+    },
+    "unconscious": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently unconscious. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Unconscious"
+    },
+    "rapidly_progressing_unconsciousness": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing rapidly progressing unconsciousness. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Rapidly Progressing Unconsciousness"
+    },
+    "now_insufficient_air": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently breathing irregularly. [RD1]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Irregular Breathing"
+    },
+    "rapidly_progressive_respiratory_distress": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing rapidly progressive respiratory distress. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Rapidly Progressive Respiratory Distress"
+    },
+    "severe_dyspnoea": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing severe dyspnoea (difficulty breathing). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Dyspnoea"
+    },
+    "cyanosis": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cyanosis (bluish discoloration of the skin). [RD2][Immediate]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cyanosis"
+    },
+    "stridor": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing stridor (a high-pitched wheezing sound caused by disrupted airflow). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Stridor"
+    },
+    "abnormal_breathing_sounds": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing abnormal breath sounds. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Abnormal Breath Sounds"
+    },
+    "aspiration": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing aspiration (inhalation of foreign objects into the airway). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Aspiration"
+    },
+    "abnormal_chest_movement": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing abnormal chest movement during breathing. [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Abnormal Chest Movement"
+    },
+    "bradypnea": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing bradypnea (abnormally slow breathing). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Bradypnea"
+    },
+    "tachypnea": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing tachypnea (abnormally rapid breathing). [RD2]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Tachypnea"
+    },
+    "apnea": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing apnea (temporary cessation of breathing). [RD2][CPR]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Apnea"
+    },
+    "agonal_respiration": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing agonal breathing (gasping or irregular breathing patterns). [RD2][CPR]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Agonal Breathing"
+    },
+    "cardiac_arrest": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing cardiac arrest. [RD2][CPR]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Cardiac Arrest"
+    },
+    "suffocation": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing suffocation (inability to breathe). [RD2][Immediate]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Suffocation"
+    },
+    "severe_accident": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently involved in a severe accident. [RD2][Immediate]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Accident"
+    },
+    "severe_injury": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Indicates if the patient is currently experiencing a severe injury. [RD2][Immediate]",
+      "examples": [
+        true,
+        false,
+        null
+      ],
+      "title": "Severe Injury"
+    },
+    "caller_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Name of the person making the emergency call.",
+      "title": "Caller Name"
+    },
+    "caller_phone_number": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Phone number of the caller.",
+      "title": "Caller Phone"
+    },
+    "emergency_location": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
+      "title": "Distinctive Location"
+    },
+    "situation_description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
+      "title": "Situation Description"
+    }
+  },
+  "title": "EmergencyCall",
+  "type": "object"
+}
