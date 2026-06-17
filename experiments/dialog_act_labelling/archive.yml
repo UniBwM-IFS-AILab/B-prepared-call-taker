@@ -1,0 +1,337 @@
+schema_version: 3
+source:
+  standard: ISO 24617-2:2020
+  section: Annex C.3 communicative functions
+  notes:
+    - Definitions are concise paraphrases intended for LLM label guidance, not a replacement for the standard.
+    - Examples are short canonical examples drawn from or adapted minimally from Annex C.3 where available.
+    - Source dimensions are defined in the Python enum.
+    - Labelling constraints such as slot_parametrized and policy_relevant are defined in the dedicated
+      Pydantic labelling configuration model.
+selection_rules:
+  - Choose the most specific communicative function supported by the utterance and dialogue context.
+  - Use previous turns for responsive functions such as answer, confirm, correction, acceptRequest, declineOffer,
+    and similar labels.
+  - Use feedback labels for processing or understanding signals about prior utterances, not for task-domain
+    facts.
+  - Multiple labels may be emitted for one utterance when it performs multiple communicative acts.
+communicative_functions:
+  question:
+    definition:
+      "Generic information-seeking act: the sender tries to obtain information they assume the
+      addressee possesses."
+    examples:
+      - And so?
+  propositionalQuestion:
+    definition: Question asking whether a proposition is true.
+    examples:
+      - Does the meeting start at ten?
+  checkQuestion:
+    definition:
+      Question asking for confirmation of a proposition the sender tentatively believes to be
+      true.
+    examples:
+      - The meeting starts at ten, right?
+  setQuestion:
+    definition:
+      Question asking which value, entity, time, place, person, reason, or other set member
+      satisfies a property.
+    examples:
+      - What time does the meeting start?
+      - How far is it to the station?
+  choiceQuestion:
+    definition: Question asking which one of an explicit set of alternative propositions is true.
+    examples:
+      - Should the telephone cable go in the telephone line slot or in the external line slot?
+  testQuestion:
+    definition:
+      Question where the sender already knows the answer and asks to test whether the addressee
+      knows it.
+    examples: []
+  inform:
+    definition:
+      "Information-providing act: the sender makes information available to the addressee and
+      presents it as correct."
+    examples:
+      - The 6.34 to Breda leaves from platform 2.
+  agreement:
+    definition: Act expressing that the sender agrees with or accepts prior information as true.
+    examples:
+      - Exactly
+      - Precies!
+      - Netop!
+  disagreement:
+    definition: Act expressing that the sender rejects prior information as false.
+    examples:
+      - uh… no
+  correction:
+    definition: Act that rejects information assumed by the addressee and provides replacement information.
+    examples:
+      - To Montreal, not to Ottawa
+  answer:
+    definition:
+      Information-providing act that supplies information the addressee wanted to know, typically
+      in response to a question.
+    examples:
+      - send error document ready
+  confirm:
+    definition: Answer confirming that a proposition being checked is true.
+    examples:
+      - Indeed
+  disconfirm:
+    definition: Answer rejecting a proposition being checked as false.
+    examples:
+      - si
+      - jo
+      - toch niet
+      - toch wel
+      - doch
+  offer:
+    definition:
+      Commissive act where the sender conditionally commits to perform an action if the addressee
+      consents.
+    examples:
+      - I will look that up for you
+  promise:
+    definition: Commissive act where the sender commits to perform an action believed to benefit the addressee.
+    examples:
+      - Shall I begin?
+      - Would you like to have some coffee?
+  addressRequest:
+    definition:
+      Response indicating the sender is considering performing an action that was requested,
+      possibly conditionally.
+    examples:
+      - 'A: "Give me the gun." S: "If you push the bag to me"'
+  acceptRequest:
+    definition: Response committing to perform an action that was requested.
+    examples:
+      - 'A: "Could you close the door please?" B: "Sure."'
+  declineRequest:
+    definition: Response committing not to perform an action that was requested.
+    examples:
+      - Not now.
+  addressSuggest:
+    definition: Response indicating the sender is considering a suggested action, possibly under conditions.
+    examples:
+      - 'A: "Let’s go together." S: "Only if we’re in full agreement about how to proceed when we get there."'
+  acceptSuggest:
+    definition: Response committing to perform or go along with a suggested action.
+    examples:
+      - 'A: "Shall we go and have a look around?" B: "Let''s do so."'
+  declineSuggest:
+    definition: Response indicating the sender will not perform or go along with a suggested action.
+    examples:
+      - I’d rather not.
+  request:
+    definition:
+      Directive act asking the addressee to perform an action, conditional on the addressee
+      consenting.
+    examples:
+      - Please turn to page five
+      - Don't do this ever again, please
+  instruct:
+    definition: Directive act making the addressee feel obliged to perform an action.
+    examples:
+      - Go right round until you get to just above that.
+  suggest:
+    definition: Directive act inviting the addressee to consider an action believed to be in their interest.
+    examples:
+      - Let's wait for the speaker to finish.
+  addressOffer:
+    definition:
+      Response indicating the sender is considering whether the addressee should perform an
+      offered action.
+    examples:
+      - Yes please
+      - Je vous en prie
+  acceptOffer:
+    definition: Response indicating the sender wants the addressee to perform the offered action.
+    examples:
+      - Yes please
+      - Je vous en prie
+      - Graag
+      - Bitte
+  declineOffer:
+    definition: Response indicating the sender does not want the addressee to perform the offered action.
+    examples:
+      - No thank you
+      - Nej tak
+      - Non merci
+  autoPositive:
+    definition: Feedback act indicating the sender successfully processed previous utterance(s).
+    examples:
+      - Uh-huh
+      - Okay
+      - nodding
+      - "Yes"
+  autoNegative:
+    definition: Feedback act indicating the sender had trouble processing previous utterance(s).
+    examples:
+      - I beg your pardon
+      - Como?
+  alloPositive:
+    definition:
+      Feedback act indicating the sender believes the addressee successfully processed previous
+      utterance(s).
+    examples:
+      - Correct
+      - Right
+  alloNegative:
+    definition:
+      Feedback act indicating the sender believes the addressee had trouble processing previous
+      utterance(s).
+    examples:
+      - No no no no no
+  feedbackElicitation:
+    definition: Feedback act asking whether the addressee successfully processed previous utterance(s).
+    examples:
+      - Okay?
+      - Capisce?
+      - Ja?
+  turnAccept:
+    definition:
+      Turn-management act signalling willingness to take the speaker role as requested by a
+      previous speaker.
+    examples:
+      - 'A: "What do you say, Craig?" C: "OK, let me see."'
+  turnTake:
+    definition: Turn-management act taking the currently available speaker role.
+    examples:
+      - Uh... (turn-initial)
+  turnGrab:
+    definition: Turn-management act taking the speaker role away from the current speaker.
+    examples:
+      - Hold on
+      - raised hand as stop signal
+  turnAssign:
+    definition: Turn-management act passing the speaker role to a designated participant.
+    examples:
+      - Craig?
+  turnRelease:
+    definition: Turn-management act making the speaker role available to others.
+    examples:
+      - declining intonation followed by a pause
+  turnKeep:
+    definition: Turn-management act keeping the speaker role.
+    examples:
+      - Uh (not turn-initial)
+  stalling:
+    definition: Time-management act used to gain a little time while constructing the contribution.
+    examples:
+      - Let me see...
+      - Uh...
+      - speaking slowly
+      - We... we went to…
+  pausing:
+    definition: Time-management act used to suspend the dialogue for a short while.
+    examples:
+      - Just a moment
+  interactionStructuring:
+    definition:
+      Act explicitly structuring the interaction, e.g. opening/closing a topic or announcing
+      what comes next.
+    examples:
+      - And the windows, we had to replace all the windows
+  opening:
+    definition: Act indicating the sender is ready and willing to engage in dialogue.
+    examples:
+      - Okay (at the start of a multi-party dialogue)
+  topicShift:
+    definition: Act indicating the sender will continue on a different topic.
+    examples:
+      - Something else.
+  selfError:
+    definition: Act signalling that the sender made a mistake in speaking.
+    examples:
+      - yes oh sorry no...
+  retraction:
+    definition: Act withdrawing something the sender just said within the same turn.
+    examples:
+      - then we're going to g--
+  selfCorrection:
+    definition:
+      Act correcting the sender’s own speaking error or improving their own formulation within
+      the same turn.
+    examples:
+      - then we're going to g-- ... turn straight back
+  completion:
+    definition: Act assisting the addressee in completing an utterance.
+    examples:
+      - 'A: "which should leave us plenty of time to uh... uh" S: "get to Corning"'
+  correctMisspeaking:
+    definition:
+      Act correcting part of the addressee’s utterance under the assumption that the addressee
+      misspoke.
+    examples:
+      - 'A: "...pick up the bananas..." S: "to pick up the oranges"'
+  initGreeting:
+    definition: Initial greeting signalling the sender’s presence and awareness of the addressee.
+    examples:
+      - Hello!
+      - Good morning
+      - How are you?
+  returnGreeting:
+    definition: Greeting returned in response to an initial greeting.
+    examples:
+      - 'I: "Schiphol Information, good morning." C: "Good morning"'
+  initSelfIntroduction:
+    definition: Initial self-introduction making the sender known to the addressee.
+    examples:
+      - Schiphol Information.
+  returnSelfIntroduction:
+    definition: Self-introduction made in response to another self-introduction.
+    examples:
+      - 'I: "Schiphol Information, good morning." C: "Good morning, this is De Bruin in Arnhem."'
+  apology:
+    definition: Act expressing regret and pressuring the addressee to acknowledge it.
+    examples:
+      - sorry, pick up the oranges
+  acceptApology:
+    definition: Act mitigating or accepting the addressee’s expressed regret.
+    examples:
+      - No problem.
+  thanking:
+    definition: Act expressing gratitude for an addressee’s action.
+    examples:
+      - Thanks a lot.
+      - Muito obrigado
+      - Tack so mycket
+      - Evcharisto
+  acceptThanking:
+    definition: Act mitigating or accepting the addressee’s expressed gratitude.
+    examples:
+      - Don't mention it
+      - De nada
+      - parakalo
+  initGoodbye:
+    definition: Initial goodbye signalling the sender’s current utterance is their last contribution.
+    examples:
+      - Bye bye, see you later
+  returnGoodbye:
+    definition: Goodbye returned in response to an initial goodbye, acknowledging the end of the dialogue.
+    examples:
+      - Bye bye, see you.
+  compliment:
+    definition: Act expressing positive evaluation of the addressee’s appearance, qualities, or achievement.
+    examples:
+      - Well done!
+      - You look great
+  congratulation:
+    definition: Act expressing pleasure in the addressee’s success or good fortune.
+    examples:
+      - Congratulations!
+  sympathyExpression:
+    definition: Act expressing sympathy about something that happened to the addressee.
+    examples:
+      - I'm sorry to hear that
+  contactCheck:
+    definition: Contact-management act verifying that the addressee is ready or available to communicate.
+    examples:
+      - Yes?
+      - Hello?
+  contactIndication:
+    definition: Contact-management act indicating the sender is ready or available to communicate.
+    examples:
+      - "Yes"
+      - Oh hi

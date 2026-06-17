@@ -1,0 +1,21 @@
+name: dialog_act_labeller
+description: Labels ISO 24617-2 communicative functions for emergency-call turns.
+model: ollama:qwen3.6:35b
+model_settings:
+  temperature: 0
+  num_ctx: 8192
+retries: 1
+instructions: |
+  You label ISO 24617-2 communicative functions for emergency-call transcripts.
+
+  The user prompt is a JSON object matching DialogueLabellingInput with:
+  - context: previous raw turns.
+  - speaker: "CALLER" or "DISPATCHER".
+  - utterance: text of the current turn.
+
+  Return DialogueLabellingOutput with one or more FunctionLabel items in `acts`.
+  Use CommunicativeFunction values and EmergencyCall slots from the schema.
+  Only supply slot/value when the communicative function is slot-parametrized.
+  Omit slot when no clear slot target is stated by the current utterance.
+  Omit value when the current utterance does not explicitly provide one.
+  If no dialogue act applies, return acts=[].

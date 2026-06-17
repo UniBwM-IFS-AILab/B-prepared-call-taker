@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "medical_emergency_call_dialogue_act.schema.json",
+  "title": "Emergency Call Dialogue Act",
+  "oneOf": [
+    {
+      "title": "greeting",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act"],
+      "properties": {
+        "act": { "const": "greeting" }
+      }
+    },
+    {
+      "title": "goodbye",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act"],
+      "properties": {
+        "act": { "const": "goodbye" }
+      }
+    },
+    {
+      "title": "question",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act", "slot"],
+      "properties": {
+        "act": { "const": "question" },
+        "slot": {
+          "$ref": "EmergencyCallSlots.schema.json#/$defs/slotId"
+        }
+      }
+    },
+    {
+      "title": "inform",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act", "slot", "value"],
+      "properties": {
+        "act": { "const": "inform" },
+        "slot": {
+          "$ref": "EmergencyCallSlots.schema.json#/$defs/slotId"
+        },
+        "value": {
+          "type": ["string", "integer", "boolean"]
+        }
+      }
+    },
+    {
+      "title": "confirm",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act", "value"],
+      "properties": {
+        "act": { "const": "confirm" },
+        "value": { "type": "boolean" }
+      }
+    },
+    {
+      "title": "feedback",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act", "value"],
+      "properties": {
+        "act": { "const": "feedback" },
+        "value": { "type": "boolean" }
+      }
+    },
+    {
+      "title": "instruct",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act", "action"],
+      "properties": {
+        "act": { "const": "instruct" },
+        "action": {
+          "type": "string",
+          "enum": [
+            "stay_on_line",
+            "stay_with_patient",
+            "wait_for_ambulance",
+            "call_again_if_change",
+            "enable_responder_access"
+          ]
+        }
+      }
+    }
+  ]
+}
