@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Dialog Review UI</title>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jedison@latest/dist/umd/jedison.umd.js"></script>
+    </head>
+    <body class="bg-light">
+        <main class="container-fluid py-4">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h1 class="h3 mb-3">Dialog Review UI</h1>
+                            <div class="row g-3 align-items-end mb-3">
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    <label class="form-label" for="schema-file"
+                                        >Schema file</label
+                                    >
+                                    <input
+                                        id="schema-file"
+                                        class="form-control"
+                                        type="file"
+                                        accept=".json,application/json"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    <label class="form-label" for="data-file"
+                                        >Data file</label
+                                    >
+                                    <input
+                                        id="data-file"
+                                        class="form-control"
+                                        type="file"
+                                        accept=".json,.jsonl,.ndjson,application/json"
+                                        disabled
+                                    />
+                                </div>
+                                <div class="col-12 col-xl-4">
+                                    <div
+                                        id="status"
+                                        class="alert alert-secondary py-2 mb-0"
+                                        role="status"
+                                    >
+                                        Load a schema file to begin.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                class="d-flex flex-wrap gap-2 align-items-end mb-3"
+                            >
+                                <select
+                                    id="dialog-select"
+                                    class="form-select flex-shrink-0"
+                                    style="width: 14ch"
+                                    aria-label="Dialog"
+                                    disabled
+                                ></select>
+                                <button
+                                    id="download-jsonl"
+                                    class="btn btn-primary"
+                                    type="button"
+                                    disabled
+                                >
+                                    Download JSONL
+                                </button>
+                                <span
+                                    id="export-indicator"
+                                    class="align-self-center d-inline-flex justify-content-center text-secondary"
+                                    style="width: 1.5rem"
+                                    title="No data"
+                                    aria-label="No data"
+                                >
+                                    <i class="fas fa-minus-circle"></i>
+                                </span>
+                                <button
+                                    id="preview-dialog-button"
+                                    class="btn btn-outline-secondary"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#dialog-preview-panel"
+                                    aria-expanded="false"
+                                    aria-controls="dialog-preview-panel"
+                                    disabled
+                                >
+                                    Preview Dialog JSON
+                                </button>
+                            </div>
+
+                            <div
+                                id="dialog-preview-panel"
+                                class="collapse mb-4"
+                            >
+                                <!--<div class="form-label">Dialog ID</div>-->
+                                <pre
+                                    class="border rounded bg-white p-3 mb-0 overflow-auto font-monospace"
+                                ><code id="dialog-preview" class="language-json"></code></pre>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table
+                                    class="table table-bordered table-hover table-sm align-middle mb-0"
+                                    style="min-width: 100%"
+                                >
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Turn</th>
+                                            <th>Speaker</th>
+                                            <th>Text</th>
+                                            <th>State</th>
+                                            <th>Acts</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <dialog
+            id="editor-dialog"
+            class="border-0 rounded shadow p-0"
+            style="
+                width: calc(100vw - 48px);
+                max-width: calc(100vw - 48px);
+                height: calc(100vh - 48px);
+                max-height: calc(100vh - 48px);
+            "
+        >
+            <form method="dialog" class="card border-0 h-100">
+                <div class="card-body d-flex flex-column h-100 overflow-hidden">
+                    <div class="flex-grow-1 overflow-auto pe-1">
+                        <div id="row-editor"></div>
+                        <div class="mt-3">
+                            <button
+                                id="preview-value-button"
+                                class="btn btn-outline-secondary"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#value-preview-panel"
+                                aria-expanded="false"
+                                aria-controls="value-preview-panel"
+                            >
+                                Preview JSON
+                            </button>
+                        </div>
+                        <div id="value-preview-panel" class="collapse mt-3">
+                            <pre
+                                class="border rounded bg-white p-3 mb-0 overflow-auto font-monospace"
+                            ><code id="value-preview" class="language-json"></code></pre>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button
+                            id="save-row"
+                            class="btn btn-primary"
+                            type="button"
+                        >
+                            Save row
+                        </button>
+                        <button class="btn btn-outline-secondary" type="submit">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </dialog>
+
+        <script>
+            const DELETE_MARKER = Symbol("delete");
+            const state = {
+                schema: null,
+                refParser: null,
+                rows: [],
+                dialogs: [],
+                selectedDialogId: null,
+                editingDialogId: null,
+                editingRowIndex: null,
+                editingRowsSnapshot: null,
+                editingTouchedStatePaths: null,
+                editingLastDraftState: null,
+                editorSaved: false,
+                exportBaselineJsonl: "",
+                sourceName: "",
+                jedison: null,
+            };
+
+            const elements = {
+                schemaFile: document.getElementById("schema-file"),
+                dataFile: document.getElementById("data-file"),
+                dialogSelect: document.getElementById("dialog-select"),
+                rows: document.getElementById("rows"),
+                status: document.getElementById("status"),
+                downloadJsonl: document.getElementById("download-jsonl"),
+                exportIndicator: document.getElementById("export-indicator"),
+                editorDialog: document.getElementById("editor-dialog"),
+                editorContainer: document.getElementById("row-editor"),
+                previewValueButton: document.getElementById(
+                    "preview-value-button",
+                ),
+                previewDialogButton: document.getElementById(
+                    "preview-dialog-button",
+                ),
+                valuePreviewPanel: document.getElementById(
+                    "value-preview-panel",
+                ),
+                valuePreview: document.getElementById("value-preview"),
+                dialogPreviewPanel: document.getElementById(
+                    "dialog-preview-panel",
+                ),
+                dialogPreview: document.getElementById("dialog-preview"),
+                saveRow: document.getElementById("save-row"),
+            };
+
+            elements.schemaFile.addEventListener("change", handleSchemaFile);
+            elements.dataFile.addEventListener("change", handleDataFile);
+            elements.dialogSelect.addEventListener("change", () => {
+                state.selectedDialogId = elements.dialogSelect.value;
+                renderRows();
+                updateDialogPreview();
+            });
+            elements.downloadJsonl.addEventListener("click", downloadJsonl);
+            elements.saveRow.addEventListener("click", saveRow);
+            elements.editorDialog.addEventListener("close", closeEditor);
+            window.addEventListener("beforeunload", handleBeforeUnload);
+            elements.dialogPreviewPanel.addEventListener(
+                "shown.bs.collapse",
+                () => {
+                    syncPreviewDialogButton(true);
+                },
+            );
+            elements.dialogPreviewPanel.addEventListener(
+                "hidden.bs.collapse",
+                () => {
+                    syncPreviewDialogButton(false);
+                },
+            );
+
+            function setStatus(message) {
+                elements.status.textContent = String(message)
+                    .replace(/\s+/g, " ")
+                    .trim();
+            }
+
+            async function handleSchemaFile(event) {
+                const file = event.target.files && event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                try {
+                    const schema = JSON.parse(await file.text());
+                    await setSchema(schema);
+                    renderRows();
+                    updateReadyState();
+                    setStatus(
+                        state.rows.length
+                            ? `Schema loaded. ${state.rows.length} rows loaded.`
+                            : "Schema loaded. Data missing.",
+                    );
+                } catch (error) {
+                    setStatus("Schema load failed.");
+                }
+            }
+
+            async function handleDataFile(event) {
+                const file = event.target.files && event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    state.rows = parseRows(file.name, text).sort(compareRows);
+                    state.sourceName = file.name;
+                    regroupDialogs();
+                    populateDialogSelect();
+                    renderRows();
+                    updateDialogPreview();
+                    markExportBaseline();
+                    updateReadyState();
+                    setStatus(
+                        state.schema
+                            ? `Schema loaded. ${state.rows.length} rows loaded.`
+                            : `${state.rows.length} rows loaded. Schema missing.`,
+                    );
+                } catch (error) {
+                    setStatus("Data load failed.");
+                }
+            }
+
+            function updateReadyState() {
+                const hasRows = state.rows.length > 0;
+                const hasDialog = Boolean(currentDialog());
+                const editing = elements.editorDialog.open;
+                elements.dataFile.disabled = editing;
+                elements.dialogSelect.disabled = !hasRows || editing;
+                elements.downloadJsonl.disabled = !hasRows || editing;
+                elements.previewDialogButton.disabled = !hasDialog;
+                if (!hasDialog) {
+                    bootstrap.Collapse.getOrCreateInstance(
+                        elements.dialogPreviewPanel,
+                        { toggle: false },
+                    ).hide();
+                    syncPreviewDialogButton(false);
+                    return;
+                }
+                syncPreviewDialogButton(
+                    elements.dialogPreviewPanel.classList.contains("show"),
+                );
+            }
+
+            function parseRows(fileName, text) {
+                const cleanText = text.replace(/^\uFEFF/, "");
+                const lower = fileName.toLowerCase();
+
+                if (lower.endsWith(".json")) {
+                    const parsed = JSON.parse(cleanText);
+                    const rows = Array.isArray(parsed)
+                        ? parsed
+                        : parsed.records;
+                    if (!Array.isArray(rows)) {
+                        throw new Error(
+                            "JSON input must be an array or object with a records array.",
+                        );
+                    }
+                    return rows.map(normalizeRow);
+                }
+
+                if (lower.endsWith(".jsonl") || lower.endsWith(".ndjson")) {
+                    return cleanText
+                        .split(/\r?\n/)
+                        .filter((line) => line.trim())
+                        .map((line) => normalizeRow(JSON.parse(line)));
+                }
+
+                throw new Error("Only JSON and JSONL inputs are supported.");
+            }
+
+            function normalizeRow(row) {
+                const result = cloneValue(row);
+
+                if (
+                    !Array.isArray(result.dialogue_acts) &&
+                    Array.isArray(result.acts)
+                ) {
+                    result.dialogue_acts = result.acts;
+                }
+
+                let parsedState = result.state;
+                if (typeof parsedState === "string") {
+                    const trimmed = parsedState.trim();
+                    parsedState =
+                        !trimmed || trimmed === "null"
+                            ? {}
+                            : JSON.parse(trimmed);
+                }
+                if (parsedState == null) {
+                    parsedState = {};
+                }
+
+                result.state = parsedState;
+                if (!Array.isArray(result.dialogue_acts)) {
+                    result.dialogue_acts = [];
+                }
+                return result;
+            }
+
+            function regroupDialogs() {
+                const groups = new Map();
+                for (const row of state.rows) {
+                    const key = String(row.dialog_id);
+                    if (!groups.has(key)) {
+                        groups.set(key, []);
+                    }
+                    groups.get(key).push(row);
+                }
+
+                state.dialogs = Array.from(groups.entries())
+                    .map(([dialogId, rows]) => ({
+                        dialogId,
+                        rows: rows.sort(compareRows),
+                    }))
+                    .sort(
+                        (left, right) =>
+                            Number(left.dialogId) - Number(right.dialogId),
+                    );
+                state.selectedDialogId = state.dialogs.length
+                    ? state.dialogs[0].dialogId
+                    : null;
+            }
+
+            function populateDialogSelect() {
+                elements.dialogSelect.replaceChildren();
+                for (const dialog of state.dialogs) {
+                    const option = document.createElement("option");
+                    option.value = dialog.dialogId;
+                    option.textContent = `Dialog ${dialog.dialogId}`;
+                    elements.dialogSelect.append(option);
+                }
+                if (state.selectedDialogId != null) {
+                    elements.dialogSelect.value = state.selectedDialogId;
+                }
+            }
+
+            function renderRows() {
+                elements.rows.replaceChildren();
+                const dialog = currentDialog();
+                if (!dialog) {
+                    return;
+                }
+
+                for (const row of dialog.rows) {
+                    const tr = document.createElement("tr");
+                    tr.append(
+                        cell(String(row.turn_index)),
+                        cell(row.speaker),
+                        cell(row.text),
+                        jsonCell(row.state),
+                        jsonCell(row.dialogue_acts),
+                        actionCell(row),
+                    );
+                    elements.rows.append(tr);
+                }
+            }
+
+            function cell(text) {
+                const td = document.createElement("td");
+                td.textContent = text;
+                return td;
+            }
+
+            function jsonCell(value) {
+                const td = document.createElement("td");
+                const pre = document.createElement("pre");
+                pre.className = "mb-0 font-monospace small";
+                const code = document.createElement("code");
+                code.className = "language-json";
+                code.textContent = JSON.stringify(value, null, 2);
+                pre.append(code);
+                td.append(pre);
+                return td;
+            }
+
+            function actionCell(row) {
+                const td = document.createElement("td");
+                td.className = "text-nowrap";
+                const button = document.createElement("button");
+                button.className = "btn btn-sm btn-outline-primary";
+                button.type = "button";
+                button.textContent = "Edit";
+                button.addEventListener("click", () => openEditor(row));
+                td.append(button);
+                return td;
+            }
+
+            function openEditor(row) {
+                const dialog = currentDialog();
+                if (!dialog) {
+                    return;
+                }
+
+                if (!state.schema || !state.refParser) {
+                    setStatus("Schema needed for editing.");
+                    return;
+                }
+
+                state.editingDialogId = String(row.dialog_id);
+                state.editingRowIndex = dialog.rows.findIndex(
+                    (item) => rowKey(item) === rowKey(row),
+                );
+                state.editingRowsSnapshot = dialog.rows.map((item) =>
+                    cloneValue(item),
+                );
+                state.editingTouchedStatePaths = {};
+                state.editingLastDraftState = cloneValue(row.state);
+                state.editorSaved = false;
+                initJedison(row);
+                elements.editorDialog.showModal();
+                updateReadyState();
+            }
+
+            async function setSchema(schema) {
+                // Schema preprocessing moved into DataRow.model_json_schema().
+                // const editorSchema = cloneValue(schema);
+                // configureEditorSchema(editorSchema);
+                const refParser = new Jedison.RefParser();
+                await refParser.dereference(schema);
+                state.schema = schema;
+                state.refParser = refParser;
+                destroyJedison();
+            }
+
+            function initJedison(data) {
+                destroyJedison();
+                elements.editorContainer.replaceChildren();
+
+                state.jedison = new Jedison.Create({
+                    container: elements.editorContainer,
+                    theme: new Jedison.ThemeBootstrap5(),
+                    iconLib: "fontawesome5",
+                    refParser: state.refParser,
+                    schema: state.schema,
+                    data: cloneValue(data),
+                    showErrors: "change",
+                    btnContents: false,
+                    enablePropertiesToggle: false,
+                    enableCollapseToggle: true,
+                    editJsonData: true,
+                });
+                state.jedison.on("change", handleEditorChange);
+                updateValuePreview();
+                updateDialogPreview();
+            }
+
+            function handleEditorChange(initiator) {
+                const dialog = editingDialog();
+                if (initiator === "api") {
+                    updateValuePreview();
+                    return;
+                }
+                if (
+                    !state.jedison ||
+                    !dialog ||
+                    state.editingRowIndex == null ||
+                    !state.editingRowsSnapshot
+                ) {
+                    return;
+                }
+
+                const draftRow = normalizeRow(state.jedison.getValue() || {});
+                draftRow.dialog_id =
+                    state.editingRowsSnapshot[state.editingRowIndex].dialog_id;
+                draftRow.turn_index =
+                    state.editingRowsSnapshot[state.editingRowIndex].turn_index;
+                const touchedStateDelta = diffState(
+                    state.editingLastDraftState,
+                    draftRow.state,
+                );
+                recordDeltaMask(
+                    state.editingTouchedStatePaths,
+                    touchedStateDelta,
+                );
+                state.editingLastDraftState = cloneValue(draftRow.state);
+                const rebuiltRows = rebuildEditedDialogRows(
+                    state.editingRowsSnapshot,
+                    state.editingRowIndex,
+                    draftRow,
+                    state.editingTouchedStatePaths,
+                );
+                replaceRows(dialog.rows, rebuiltRows);
+                renderRows();
+                updateValuePreview();
+                updateDialogPreview();
+            }
+
+            function saveRow() {
+                if (!state.jedison) {
+                    return;
+                }
+
+                const issues = state.jedison.getErrors();
+                if (issues.length) {
+                    state.jedison.showValidationErrors();
+                    return;
+                }
+
+                handleEditorChange();
+                state.editorSaved = true;
+                elements.editorDialog.close();
+            }
+
+            function closeEditor() {
+                const dialog = editingDialog();
+                if (dialog && state.editingRowsSnapshot && !state.editorSaved) {
+                    replaceRows(dialog.rows, state.editingRowsSnapshot);
+                    renderRows();
+                }
+
+                destroyJedison();
+                state.editingDialogId = null;
+                state.editingRowIndex = null;
+                state.editingRowsSnapshot = null;
+                state.editingTouchedStatePaths = null;
+                state.editingLastDraftState = null;
+                state.editorSaved = false;
+                renderJsonCode(elements.valuePreview, "");
+                updateDialogPreview();
+                updateExportIndicator();
+                updateReadyState();
+            }
+
+            function destroyJedison() {
+                if (
+                    state.jedison &&
+                    typeof state.jedison.destroy === "function"
+                ) {
+                    state.jedison.destroy();
+                }
+                state.jedison = null;
+            }
+
+            function updateValuePreview() {
+                if (!state.jedison) {
+                    renderJsonCode(elements.valuePreview, "");
+                    return;
+                }
+
+                const value = state.jedison.getValue();
+                renderJsonCode(
+                    elements.valuePreview,
+                    `${JSON.stringify(value, null, 2)}\n`,
+                );
+            }
+
+            function updateDialogPreview() {
+                const dialog = currentDialog();
+                if (!dialog) {
+                    renderJsonCode(elements.dialogPreview, "");
+                    return;
+                }
+
+                renderJsonCode(
+                    elements.dialogPreview,
+                    `${JSON.stringify(dialog.rows, null, 2)}\n`,
+                );
+            }
+
+            function renderJsonCode(element, text) {
+                element.textContent = text;
+            }
+
+            function syncPreviewDialogButton(expanded) {
+                elements.previewDialogButton.classList.toggle(
+                    "btn-primary",
+                    expanded,
+                );
+                elements.previewDialogButton.classList.toggle(
+                    "btn-outline-secondary",
+                    !expanded,
+                );
+            }
+
+            function markExportBaseline() {
+                state.exportBaselineJsonl = rowsAsJsonl();
+                updateExportIndicator();
+            }
+
+            function updateExportIndicator() {
+                if (!state.rows.length) {
+                    setExportIndicator(
+                        "fas fa-minus-circle",
+                        "text-secondary",
+                        "No data",
+                    );
+                    return;
+                }
+
+                if (hasExportChanges()) {
+                    setExportIndicator(
+                        "fas fa-exclamation-triangle",
+                        "text-warning",
+                        "Needs download",
+                    );
+                    return;
+                }
+
+                setExportIndicator(
+                    "fas fa-check-circle",
+                    "text-success",
+                    "Up to date",
+                );
+            }
+
+            function setExportIndicator(iconClass, textClass, label) {
+                elements.exportIndicator.className =
+                    `align-self-center d-inline-flex justify-content-center ${textClass}`;
+                elements.exportIndicator.title = label;
+                elements.exportIndicator.setAttribute("aria-label", label);
+                elements.exportIndicator.innerHTML = `<i class="${iconClass}"></i>`;
+            }
+
+            function handleBeforeUnload(event) {
+                if (!hasPendingUnsavedChanges()) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.returnValue = "";
+            }
+
+            function hasPendingUnsavedChanges() {
+                return hasExportChanges() || hasEditorChanges();
+            }
+
+            function hasExportChanges() {
+                return state.rows.length > 0 && rowsAsJsonl() !== state.exportBaselineJsonl;
+            }
+
+            function hasEditorChanges() {
+                if (
+                    !elements.editorDialog.open ||
+                    !state.jedison ||
+                    state.editingRowIndex == null ||
+                    !state.editingRowsSnapshot
+                ) {
+                    return false;
+                }
+
+                const originalRow =
+                    state.editingRowsSnapshot[state.editingRowIndex];
+                const draftRow = normalizeRow(state.jedison.getValue() || {});
+                draftRow.dialog_id = originalRow.dialog_id;
+                draftRow.turn_index = originalRow.turn_index;
+                return !deepEqual(draftRow, originalRow);
+            }
+
+            function rebuildEditedDialogRows(
+                sourceRows,
+                rowIndex,
+                editedRow,
+                touchedStatePaths = null,
+            ) {
+                const rebuiltRows = sourceRows.map((row) => cloneValue(row));
+                copyRow(rebuiltRows[rowIndex], editedRow);
+
+                const sourceStates = sourceRows.map((row) =>
+                    cloneValue(row.state),
+                );
+                const overriddenStatePaths = {};
+                recordDeltaMask(
+                    overriddenStatePaths,
+                    diffState(sourceStates[rowIndex], editedRow.state),
+                );
+                recordDeltaMask(overriddenStatePaths, touchedStatePaths);
+                let previousState = cloneValue(rebuiltRows[rowIndex].state);
+
+                for (
+                    let index = rowIndex + 1;
+                    index < rebuiltRows.length;
+                    index += 1
+                ) {
+                    const delta = diffState(
+                        sourceStates[index - 1],
+                        sourceStates[index],
+                    );
+                    const propagatedDelta = removeOverriddenDeltaPaths(
+                        delta,
+                        overriddenStatePaths,
+                    );
+                    rebuiltRows[index].state = applyDelta(
+                        previousState,
+                        propagatedDelta,
+                    );
+                    previousState = cloneValue(rebuiltRows[index].state);
+                }
+
+                return rebuiltRows;
+            }
+
+            function replaceRows(targetRows, sourceRows) {
+                for (let index = 0; index < targetRows.length; index += 1) {
+                    copyRow(targetRows[index], sourceRows[index]);
+                }
+            }
+
+            function copyRow(target, source) {
+                target.dialog_id = source.dialog_id;
+                target.turn_index = source.turn_index;
+                target.speaker = source.speaker;
+                target.text = source.text;
+                target.state = cloneValue(source.state);
+                target.dialogue_acts = cloneValue(source.dialogue_acts);
+            }
+
+            function diffState(previousState, currentState) {
+                const previous = isPlainObject(previousState)
+                    ? previousState
+                    : {};
+                const current = isPlainObject(currentState) ? currentState : {};
+                const delta = {};
+                const keys = new Set([
+                    ...Object.keys(previous),
+                    ...Object.keys(current),
+                ]);
+
+                for (const key of keys) {
+                    if (!(key in current)) {
+                        delta[key] = DELETE_MARKER;
+                        continue;
+                    }
+                    if (!(key in previous)) {
+                        delta[key] = cloneValue(current[key]);
+                        continue;
+                    }
+
+                    if (
+                        isPlainObject(previous[key]) &&
+                        isPlainObject(current[key])
+                    ) {
+                        const nested = diffState(previous[key], current[key]);
+                        if (Object.keys(nested).length) {
+                            delta[key] = nested;
+                        }
+                        continue;
+                    }
+
+                    if (!deepEqual(previous[key], current[key])) {
+                        delta[key] = cloneValue(current[key]);
+                    }
+                }
+
+                return delta;
+            }
+
+            function applyDelta(baseState, delta) {
+                const result = isPlainObject(baseState)
+                    ? cloneValue(baseState)
+                    : {};
+                for (const [key, value] of Object.entries(delta)) {
+                    if (value === DELETE_MARKER) {
+                        delete result[key];
+                        continue;
+                    }
+                    if (isPlainObject(value) && isPlainObject(result[key])) {
+                        result[key] = applyDelta(result[key], value);
+                        continue;
+                    }
+                    result[key] = cloneValue(value);
+                }
+                return result;
+            }
+
+            function recordDeltaMask(targetMask, deltaMask) {
+                if (!isPlainObject(targetMask) || !isPlainObject(deltaMask)) {
+                    return;
+                }
+
+                for (const [key, value] of Object.entries(deltaMask)) {
+                    if (!isPlainObject(value)) {
+                        targetMask[key] = true;
+                        continue;
+                    }
+                    if (targetMask[key] === true) {
+                        continue;
+                    }
+                    if (!isPlainObject(targetMask[key])) {
+                        targetMask[key] = {};
+                    }
+                    recordDeltaMask(targetMask[key], value);
+                }
+            }
+
+            function removeOverriddenDeltaPaths(delta, overriddenPaths) {
+                if (!isPlainObject(delta)) {
+                    return overriddenPaths === undefined
+                        ? cloneValue(delta)
+                        : undefined;
+                }
+
+                if (!isPlainObject(overriddenPaths)) {
+                    return overriddenPaths === undefined
+                        ? cloneValue(delta)
+                        : undefined;
+                }
+
+                const result = {};
+                for (const [key, value] of Object.entries(delta)) {
+                    if (!(key in overriddenPaths)) {
+                        result[key] = cloneValue(value);
+                        continue;
+                    }
+
+                    const prunedValue = removeOverriddenDeltaPaths(
+                        value,
+                        overriddenPaths[key],
+                    );
+                    if (prunedValue === undefined) {
+                        continue;
+                    }
+                    if (
+                        isPlainObject(prunedValue) &&
+                        !Object.keys(prunedValue).length
+                    ) {
+                        continue;
+                    }
+                    result[key] = prunedValue;
+                }
+                return result;
+            }
+
+            function rowsAsJsonl() {
+                return `${state.rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
+            }
+
+            function downloadJsonl() {
+                const content = rowsAsJsonl();
+                const name = state.sourceName || "dialog_rows.jsonl";
+                const blob = new Blob([content], {
+                    type: "application/x-ndjson",
+                });
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = name;
+                anchor.click();
+                URL.revokeObjectURL(url);
+                markExportBaseline();
+            }
+
+            function currentDialog() {
+                return (
+                    state.dialogs.find(
+                        (dialog) => dialog.dialogId === state.selectedDialogId,
+                    ) || null
+                );
+            }
+
+            function editingDialog() {
+                return (
+                    state.dialogs.find(
+                        (dialog) => dialog.dialogId === state.editingDialogId,
+                    ) || null
+                );
+            }
+
+            function rowKey(row) {
+                return `${row.dialog_id}:${row.turn_index}`;
+            }
+
+            function compareRows(left, right) {
+                if (left.dialog_id !== right.dialog_id) {
+                    return left.dialog_id - right.dialog_id;
+                }
+                return left.turn_index - right.turn_index;
+            }
+
+            function cloneValue(value) {
+                if (typeof structuredClone === "function") {
+                    return structuredClone(value);
+                }
+                return JSON.parse(JSON.stringify(value));
+            }
+
+            function deepEqual(left, right) {
+                if (left === right) {
+                    return true;
+                }
+                if (Array.isArray(left) && Array.isArray(right)) {
+                    return (
+                        left.length === right.length &&
+                        left.every((item, index) =>
+                            deepEqual(item, right[index]),
+                        )
+                    );
+                }
+                if (isPlainObject(left) && isPlainObject(right)) {
+                    const leftKeys = Object.keys(left);
+                    const rightKeys = Object.keys(right);
+                    return (
+                        leftKeys.length === rightKeys.length &&
+                        leftKeys.every((key) =>
+                            deepEqual(left[key], right[key]),
+                        )
+                    );
+                }
+                return false;
+            }
+
+            function isPlainObject(value) {
+                return (
+                    value != null &&
+                    typeof value === "object" &&
+                    !Array.isArray(value)
+                );
+            }
+
+            updateExportIndicator();
+            updateReadyState();
+        </script>
+    </body>
+</html>
