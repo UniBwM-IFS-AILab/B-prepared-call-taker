@@ -10,7 +10,7 @@ from .comm_func_schema import FunctionLabel
 LOGGER = logging.getLogger("dialog_act_labelling")
 MAX_ACTS_PER_TURN = 3
 
-type valid_speaker = Literal["CALLER", "DISPATCHER"]
+type valid_speaker = Literal["CALLER", "DISPATCHER", "EXTRA", "PATIENT", "BYSTANDER"]
 
 
 class DialogueTurn(BaseModel):

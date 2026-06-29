@@ -1,26 +1,13 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import RootModel, ValidationError
+from pydantic import ValidationError
 
-from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
-from ems_prepared.dialogue_state.generate_strict_model import inline_json_schema_refs
 from ems_prepared.dialogue_state.schema_variants import (
-    slot_entry_type_from_model,
-    slot_name_type_from_model,
+    EmergencyCallSlotEntries,
+    EmergencyCallSlotNames,
+    inline_json_schema_refs,
 )
-
-
-class EmergencyCallSlotNames(
-    RootModel[list[slot_name_type_from_model(EmergencyCall)]]  # pyrefly: ignore [not-a-type] # ty: ignore [invalid-type-form]
-):
-    pass
-
-
-class EmergencyCallSlotEntries(
-    RootModel[list[slot_entry_type_from_model(EmergencyCall)]]  # pyrefly: ignore [not-a-type] # ty: ignore [invalid-type-form]
-):
-    pass
 
 
 def _entry_schema_for(slot_name: str) -> dict:

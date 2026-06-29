@@ -1,11 +1,10 @@
-from typing import TypeVar
-
-import jsonref
+from typing import Any, TypeVar
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 from ems_prepared.dialogue_state.schema_variants import (
     field_attrs_from_original,
+    inline_json_schema_refs,
     strip_none_from_annotation,
 )
 
@@ -22,29 +21,6 @@ class InlinedSchemaBaseModel(BaseModel):
     def model_json_schema(cls, *args, **kwargs):
         schema = super().model_json_schema(*args, **kwargs)
         return inline_json_schema_refs(schema)
-
-
-def inline_json_schema_refs(schema: dict) -> dict:
-    """Inline `$ref` targets in a JSON schema and drop the now-unused `$defs`.
-
-    This is used to produce a flatter schema for consumers that handle inline
-    object schemas better than schemas with indirection.
-
-    Example output:
-    {
-      "type": "object",
-      "properties": {
-        "caller_name": {"type": "string"}
-      }
-    }
-    """
-    schema = jsonref.replace_refs(
-        schema,
-        proxies=False,
-        merge_props=True,
-    )
-    schema.pop("$defs", None)
-    return schema
 
 def generate_strict_model(model: type[ModelT]) -> type[InlinedSchemaBaseModel]:
     """Generate a model with the same fields but non-null input types.
@@ -72,7 +48,7 @@ def generate_strict_model(model: type[ModelT]) -> type[InlinedSchemaBaseModel]:
             continue
 
         strict_fields[field_name] = (
-            strip_none_from_annotation(field_info.annotation),
+            strip_none_from_annotation(field_info.rebuild_annotation()),
             Field(**field_attrs_from_original(field_info, default_none=True)),
         )
 

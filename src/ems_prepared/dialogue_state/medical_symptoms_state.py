@@ -52,10 +52,12 @@ class Gender(StrEnum):
 class Extras(KeyQuestionSymptom):
     """Model for any additional fields that might be added to MedicalEmergency in the future."""
 
-    patient_age: int | Unknown = Field(
+    patient_age: int | None = Field(
         default=None,
         title="Patient Age",
         description="The age of the patient.",
+        gt=-1,
+        max_digits=3,
     )
     patient_gender: Gender = Field(
         default=Gender.UNKNOWN,

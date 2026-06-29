@@ -1,8 +1,0 @@
-timestamp	speaker	message
-2025-12-24 12:09:26	operator	Hello, thank you for calling the emergency services. My name is [Agent Name]. What is your name?
-2025-12-24 12:09:37	caller	my name is agent name
-2025-12-24 12:09:37	operator	Thank you, [Agent Name]. What is the emergency location?
-2025-12-24 12:09:58	caller	its on the sidewalk at street 65 in Munihc
-2025-12-24 12:09:58	operator	Thank you. Can you tell me what happened?
-2025-12-24 12:10:13	caller	i just found an unrepsonsiv drunk person on the sidewalk
-2025-12-24 12:10:14	operator	The emergency call has been processed. Thank you.

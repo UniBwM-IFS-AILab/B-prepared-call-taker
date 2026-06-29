@@ -4,6 +4,8 @@
     "patient_age": {
       "anyOf": [
         {
+          "exclusiveMinimum": -1,
+          "max_digits": 3,
           "type": "integer"
         },
         {
@@ -21,10 +23,10 @@
         "other",
         "unknown"
       ],
-      "title": "Patient Age",
+      "title": "Patient Gender",
       "type": "string",
       "default": "unknown",
-      "description": "The age of the patient."
+      "description": "The gender of the patient."
     },
     "covid_vaccination_status": {
       "anyOf": [
@@ -1354,7 +1356,7 @@
       ],
       "default": null,
       "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
-      "title": "Distinctive Location"
+      "title": "Emergency Location"
     },
     "situation_description": {
       "anyOf": [
@@ -1368,6 +1370,19 @@
       "default": null,
       "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
       "title": "Situation Description"
+    },
+    "persons_affected": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The number of persons affected by the emergency.",
+      "title": "Persons Affected"
     }
   },
   "title": "EmergencyCall",

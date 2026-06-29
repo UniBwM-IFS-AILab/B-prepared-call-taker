@@ -143,19 +143,3 @@ flag "--mode <mode>" {
 }
 '''
 run = 'uv run --group auto_label -m experiments.dialog_act_labelling.label_vllm "${usage_source?}" "${usage_target?}" --mode "${usage_mode?}" --context-window 8'
-
-[tasks.review_ui_build]
-description = "Build the Potato review UI from the repo-local dialog_acts.jsonl file"
-usage = '''
-arg "[source]" help="Path to dialog_acts JSONL" default="dialog_acts.jsonl"
-arg "[output_dir]" help="Output Potato project directory" default="experiments/dialog_act_labelling/review_ui/project"
-'''
-run = 'uv run --group review_ui -m experiments.dialog_act_labelling.review_ui.build_potato_review_ui "${usage_source?}" --output-dir "${usage_output_dir?}"'
-
-[tasks.review_ui_start]
-description = "Start the Potato review UI server for the generated project"
-usage = '''
-arg "[project_dir]" help="Potato project directory containing config.yaml" default="experiments/dialog_act_labelling/review_ui/project"
-flag "--port <port>" help="Port for Potato server" default="8000"
-'''
-run = 'cd "${usage_project_dir?}" && uv run --group review_ui potato start config.yaml -p "${usage_port?}"'

@@ -1,7 +1,0 @@
-{"timestamp": "2025-12-24 11:58:06", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_07.md"}}
-{"timestamp": "2025-12-24 11:58:17", "event": "extraction", "question": "With whom am I speaking, please?", "response": "he i am ger many", "result": {"caller_name": "ger many"}}
-{"timestamp": "2025-12-24 11:58:17", "event": "state_merged", "state": {"call_state": {"caller_name": "ger many", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-24 11:58:36", "event": "extraction", "question": "Where exactly is the emergency location?", "response": "its in fictiouslocation, at streetname 45", "result": {"emergency_location": "fictiouslocation, at streetname 45"}}
-{"timestamp": "2025-12-24 11:58:36", "event": "state_merged", "state": {"call_state": {"caller_name": "ger many", "emergency_location": "fictiouslocation, at streetname 45", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-24 11:58:52", "event": "extraction", "question": "What has just happened acutely?", "response": "i have really bad breathing problems", "result": {"severe_dyspnoea": true, "rd1": true, "rd2": true}}
-{"timestamp": "2025-12-24 11:58:53", "event": "state_merged", "state": {"call_state": {"severe_dyspnoea": true, "caller_name": "ger many", "emergency_location": "fictiouslocation, at streetname 45", "emergency_type": "intro", "rd1": true, "rd2": true}}}

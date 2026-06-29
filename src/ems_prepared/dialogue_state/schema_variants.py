@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import jsonref
 from types import NoneType, UnionType
 from typing import Annotated, Any, Literal, TypeAliasType, Union, get_args, get_origin
 
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import BaseModel, ConfigDict, Field, RootModel, create_model
+
+from ems_prepared.dialogue_state.emergency_call_state import EmergencyCall
 
 
 def field_attrs_from_original(
@@ -40,6 +43,17 @@ def field_attrs_from_original(
         )
 
     return attrs
+
+
+def inline_json_schema_refs(schema: dict) -> dict:
+    """Inline `$ref` targets in a JSON schema and drop the now-unused `$defs`."""
+    schema = jsonref.replace_refs(
+        schema,
+        proxies=False,
+        merge_props=True,
+    )
+    schema.pop("$defs", None)
+    return schema
 
 
 def strip_none_from_annotation(annotation: Any) -> Any:
@@ -182,3 +196,47 @@ def slot_entry_type_from_model(model: type[BaseModel]):
         variants.append(variant)
 
     return Union[tuple(variants)]  # pyrefly: ignore [not-a-type]
+
+
+class InlinedSchemaRootModel(RootModel):
+    @classmethod
+    def model_json_schema(cls, *args, **kwargs):
+        schema = super().model_json_schema(*args, **kwargs)
+        return inline_json_schema_refs(schema)
+
+
+def slot_value_schema(field_name: str) -> dict[str, Any]:
+    """Build an object schema for the value of one `EmergencyCall` slot."""
+    exposed_field_names = set(EmergencyCall.model_json_schema().get("properties", {}))
+    if field_name not in exposed_field_names:
+        raise ValueError(f"{field_name!r} is not exposed in EmergencyCall JSON schema.")
+
+    field_info = EmergencyCall.model_fields[field_name]
+    schema_model = create_model(
+        f"EmergencyCall{''.join(part.title() for part in field_name.split('_'))}ValueOutput",
+        __config__=ConfigDict(extra="forbid"),
+        value=(field_info.annotation, Field(**field_attrs_from_original(field_info))),
+    )
+    schema = inline_json_schema_refs(schema_model.model_json_schema())
+    value_schema = schema["properties"]["value"]
+
+    if value_schema.get("type") == "string" and "const" not in value_schema:
+        value_schema.setdefault("minLength", 1)
+
+    for branch in value_schema.get("anyOf", []):
+        if branch.get("type") == "string" and "const" not in branch:
+            branch.setdefault("minLength", 1)
+
+    return schema
+
+
+class EmergencyCallSlotNames(
+    RootModel[list[slot_name_type_from_model(EmergencyCall)]]  # pyrefly: ignore [not-a-type] # ty: ignore [invalid-type-form]
+):
+    pass
+
+
+class EmergencyCallSlotEntries(
+    InlinedSchemaRootModel[list[slot_entry_type_from_model(EmergencyCall)]]  # pyrefly: ignore [not-a-type] # ty: ignore [invalid-type-form]
+):
+    pass

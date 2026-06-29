@@ -1,7 +1,0 @@
-{"timestamp": "2025-12-19 15:32:02", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_17.md"}}
-{"timestamp": "2025-12-19 15:32:21", "event": "state_merged", "state": {"caller_name": "Nico Michel"}}
-{"timestamp": "2025-12-19 15:32:21", "event": "extraction", "result": {"caller_name": "Nico Michel"}, "question": "Thank you, Nico. What is the address of the emergency?", "response": "Hi, this is Nico Michel calling. thanks for picking up."}
-{"timestamp": "2025-12-19 15:32:40", "event": "state_merged", "state": {"caller_name": "Nico Michel", "emergency_location": "entenbachweg 27 in M\u00fcnchen Kieferngarten"}}
-{"timestamp": "2025-12-19 15:32:40", "event": "extraction", "result": {"caller_name": "Nico Michel", "emergency_location": "entenbachweg 27 in M\u00fcnchen Kieferngarten"}, "question": "Thank you. Can you tell me what happened?", "response": "it is the elderly home at the entenbachweg 27 in M\u00fcnchen Kieferngarten."}
-{"timestamp": "2025-12-19 15:34:50", "event": "state_merged", "state": {"cardiac_arrest": true, "caller_name": "Nico Michel", "emergency_location": "entenbachweg 27 in M\u00fcnchen Kieferngarten", "cpr_needed": true, "rd1": true, "rd2": true}}
-{"timestamp": "2025-12-19 15:34:50", "event": "complete", "state": {"cardiac_arrest": true, "caller_name": "Nico Michel", "emergency_location": "entenbachweg 27 in M\u00fcnchen Kieferngarten", "cpr_needed": true, "rd1": true, "rd2": true}}

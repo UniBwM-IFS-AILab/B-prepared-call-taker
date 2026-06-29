@@ -41,7 +41,10 @@ with app.setup:
 
 @app.cell
 def _():
-    search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/Medical_Transcripts_files"))
+    search_dir = Path(
+        os.path.expanduser(r"T:\\Ale's space\\Transkripte\\Medical_Transcripts_files")
+    )
+    # search_dir = Path(os.path.expanduser(r"~/Documents/DialogData/Medical_Transcripts_files"))
     audio_dir = Path(
         os.path.expanduser(
             r"~/Spaces/B-prepared/Datasets/Schulungsgespräche Notrufannahme/"
@@ -65,6 +68,11 @@ def _():
 @app.cell
 def _(search_dir):
     len(list(search_dir.rglob("[!~$]*.ods")))
+    return
+
+
+@app.cell
+def _():
     return
 
 
@@ -95,8 +103,10 @@ def _(valid_speakers):
         except ValidationError:
             return False
 
+
     def speaker_is_valid(value: str | None) -> bool:
         return value in valid_speakers
+
 
     def non_empty(value: str | None) -> bool:
         return value is not None
@@ -149,7 +159,7 @@ def _():
 
 
 @app.cell
-def _(pa_import_schema, pl_report_schema, search_dir):
+def errors(pa_import_schema, pl_report_schema, search_dir):
     correct_paths = []
     errors = []
 
@@ -165,6 +175,7 @@ def _(pa_import_schema, pl_report_schema, search_dir):
         try:
             pa_import_schema.validate(body_df, lazy=True)
         except pa.errors.SchemaErrors as exc:
+            print(final_row)
             contains_error = True
             errors.append(
                 exc.failure_cases.with_columns(
@@ -209,6 +220,43 @@ def _(pa_import_schema, pl_report_schema, search_dir):
             )
             continue
 
+        required_speakers = {"CALLER", "DISPATCHER"}
+        speaker_col = "speaker"
+
+        present_speakers = set(
+            body_df.select(
+                pl.col(speaker_col)
+                .cast(pl.Utf8)
+                .str.strip_chars()
+                .str.to_uppercase()
+                .drop_nulls()
+                .unique()
+            )
+            .to_series()
+            .to_list()
+        )
+
+        missing_speakers = required_speakers - present_speakers
+
+        if missing_speakers:
+            contains_error = True
+            errors.append(
+                pl.DataFrame(
+                    {
+                        "source_file": [file_id],
+                        "approx_line_number": [1],
+                        "origin": ["transcript"],
+                        "exception_class": ["SpeakerCheckError"],
+                        "description": [
+                            f"Speaker column must contain both CALLER and DISPATCHER at least once. "
+                            f"Missing: {', '.join(sorted(missing_speakers))}"
+                        ],
+                        "cell_value": [", ".join(sorted(present_speakers))],
+                    },
+                    schema=pl_report_schema,
+                )
+            )
+
         final_state = final_row["State"][0]
         try:
             EmergencyCall.model_validate_json(final_state)
@@ -223,9 +271,7 @@ def _(pa_import_schema, pl_report_schema, search_dir):
                         "approx_line_number": [final_line_number],
                         "exception_class": "ValidationError",
                         "description": [str(exc)],
-                        "cell_value": [
-                            final_state or f"last line:{_ods_df.height + 2}"
-                        ],
+                        "cell_value": [final_state or f"last line:{_ods_df.height + 2}"],
                     },
                     schema=pl_report_schema,
                 )
@@ -239,7 +285,7 @@ def _(pa_import_schema, pl_report_schema, search_dir):
         else pl.DataFrame(schema=pl_report_schema)
     )
 
-    errors.write_csv(os.path.expanduser(r"~/Documents/DialogData/validation_errors.csv"))
+    # errors.write_csv(os.path.expanduser(r"~/Documents/DialogData/validation_errors.csv"))//
     errors
     return (correct_paths,)
 
@@ -256,16 +302,15 @@ def _(correct_paths):
             "state": pl.String,
             # "state": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()}), #Struct(fields={name: pl.Bool | pl.String for name in EmergencyCall.model_fields.keys()})
             "path": pl.String,
-
         }
     )
     full_dataset = pl.DataFrame(schema=pl_fds_schema)
     # full_dataset = pl.DataFrame()
     for _dialog_id, _path in enumerate(sorted(correct_paths), start=1):
         _ods_df = pl.read_ods(
-            _path, 
-            drop_empty_rows=True, 
-            drop_empty_cols=True, 
+            _path,
+            drop_empty_rows=True,
+            drop_empty_cols=True,
             # schema_overrides={"State": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()})}
         )
 
@@ -294,6 +339,9 @@ def _(correct_paths):
 
 @app.cell
 def state(full_dataset):
+    raw_dataset_path = Path(__file__).with_name("dialog_data_raw.jsonl")
+    full_dataset.write_ndjson(raw_dataset_path)
+
     # Ensure 'state' column exists and fill missing values for non‑caller turns
     full_dataset_state = full_dataset.with_columns(
         state=pl.when(pl.col("turn_index") != 0 & pl.col("state").is_null())
@@ -301,7 +349,7 @@ def state(full_dataset):
             pl.coalesce(pl.col("state").fill_null(strategy="forward"), pl.lit("{}"))
         )  # copy previous row or '{}'
         .otherwise(
-            pl.col("state").struct.json_encode(), # keep caller’s own state unchanged
+            pl.col("state").struct.json_encode(),  # keep caller’s own state unchanged
         )
         .fill_null(pl.lit("{}"))
     )
@@ -309,24 +357,27 @@ def state(full_dataset):
     # Show the updated DataFrame so you can verify the changes
     # full_dataset_state
 
-    full_dataset_state = full_dataset_state.filter(pl.col("speaker").eq("EXTRA").not_())
-    full_dataset_state.write_ndjson("dialog_data.jsonl") 
+    full_dataset_state = full_dataset_state.filter(
+        pl.col("speaker").eq("EXTRA").not_()
+    ).with_columns(**{"dialog_acts": []})
+    full_dataset_state.write_ndjson("dialog_data.jsonl")
     # full_dataset_state.match_to_schema(
     #     {"state": pl.Struct(fields={name: pl.String for name in EmergencyCall.model_fields.keys()})},
     #     extra_columns="ignore",
     #     missing_struct_fields="insert",
     #     extra_struct_fields="ignore"
     # )
-    full_dataset_state.write_database(
-        table_name="records",
-        connection="sqlite:///dialog_data.sqlite",
-        if_table_exists="replace",
-    )
-    return
+    # full_dataset_state.write_database(
+    #     table_name="records",
+    #     connection="sqlite:///dialog_data.sqlite",
+    #     if_table_exists="replace",
+    # )
+    return (full_dataset_state,)
 
 
 @app.cell
-def _():
+def _(full_dataset_state):
+    full_dataset_state
     return
 
 
@@ -385,91 +436,36 @@ def _(audio_df, full_dataset):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    ## Merge cells
+    ## Merge cells moved
+
+    The consecutive-turn merge pipeline now lives in `merge_turns.py`.
+    Run it after this notebook writes `dialog_data_raw.jsonl`.
     """)
     return
 
 
 @app.cell
 def _():
-    import json
-
-    from ems_prepared.util.custom_deepmerge import ignore_empty_merger
-
-    def merge_states(series: pl.Series) -> str:
-        """Merge a series of state JSON strings using ignore_empty_merger."""
-        merged: dict = {}
-        for val in series.to_list():
-            if val is None:
-                continue
-            parsed = json.loads(val)
-            if not parsed:
-                continue
-            merged = ignore_empty_merger.merge(merged, parsed)
-        return pl.Series([json.dumps(merged, sort_keys=True)])
-
+    merge_states = None
     return (merge_states,)
 
 
 @app.cell
 def _(full_dataset, merge_states):
-    fds_clean = (
-        (  # give rows with the same speaker from the same call the same consecutive_count to allow merging
-            full_dataset.with_columns(
-                (
-                    (pl.col("speaker") != pl.col("speaker").shift(1))
-                    & (pl.col("dialog_id") == pl.col("dialog_id").shift(1))
-                    & (pl.col("turn_index") > pl.col("turn_index").shift(1))
-                )
-                .cum_sum()
-                .over("dialog_id")
-                .alias("consecutive_count")
-            ).group_by("consecutive_count", "dialog_id", maintain_order=True)
-        )
-        .agg(
-            pl.col("speaker").len().alias("num_merged"),
-            turn_index=pl.col("turn_index"),
-            speaker=pl.col("speaker").unique(),
-            text=pl.col("text"),
-            source=pl.col("source").unique(),
-            state=pl.col("state").map_batches(merge_states, pl.String),
-        )
-        .sort("dialog_id", "turn_index", descending=False, maintain_order=True)
-        .with_columns(turn_id=pl.cum_count("dialog_id").over("dialog_id"))
-    )
-    fds_clean
+    _ = full_dataset, merge_states
+    fds_clean = None
     return (fds_clean,)
 
 
 @app.cell
 def _(fds_clean, valid_speakers):
-    violations = fds_clean.filter(
-        (pl.col("speaker").list.unique().list.len() != 1)
-        | (pl.col("source").list.unique().list.len() != 1)
-        | (pl.col("state").list.unique().list.len() != 1)
-        | (pl.col("speaker").list.set_difference(valid_speakers).list.len == 0)
-        | (pl.col("turn_index").list.len == pl.col("text").list.len)
-    )
-    assert violations.height == 0, (
-        f"\nFound {violations.height} violations:\n{violations}"
-    )
-    violations
+    _ = fds_clean, valid_speakers
     return
 
 
 @app.cell
 def _(fds_clean):
-    fds_checked = fds_clean.select(
-        dialog_id=pl.col("dialog_id"),
-        turn_id=pl.cum_count("dialog_id").over("dialog_id"),
-        speaker=pl.col("speaker").list.first(),
-        text=pl.col("text").list.agg(pl.element().str.strip_chars().str.join(" ")),
-        state=pl.col("state").list.first(),
-        source=pl.col("source").list.agg(
-            pl.element().str.strip_chars().str.join(" ")
-        ),  # .str.join(" "),
-    )
-    fds_checked
+    _ = fds_clean
     return
 
 

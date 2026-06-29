@@ -9,8 +9,8 @@
       },
       {
         "const": "patient_gender",
-        "description": "The age of the patient.",
-        "title": "Patient Age",
+        "description": "The gender of the patient.",
+        "title": "Patient Gender",
         "type": "string"
       },
       {
@@ -744,13 +744,19 @@
       {
         "const": "emergency_location",
         "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
-        "title": "Distinctive Location",
+        "title": "Emergency Location",
         "type": "string"
       },
       {
         "const": "situation_description",
         "description": "Description of what just happened. The reason for calling the emergency line. \nThis should only be filled once.",
         "title": "Situation Description",
+        "type": "string"
+      },
+      {
+        "const": "persons_affected",
+        "description": "The number of persons affected by the emergency.",
+        "title": "Persons Affected",
         "type": "string"
       }
     ]

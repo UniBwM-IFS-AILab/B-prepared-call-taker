@@ -28,8 +28,8 @@
         "properties": {
           "name": {
             "const": "patient_gender",
-            "description": "The age of the patient.",
-            "title": "Patient Age",
+            "description": "The gender of the patient.",
+            "title": "Patient Gender",
             "type": "string"
           },
           "value": {
@@ -39,9 +39,9 @@
               "other",
               "unknown"
             ],
-            "title": "Patient Age",
+            "title": "Patient Gender",
             "type": "string",
-            "description": "The age of the patient."
+            "description": "The gender of the patient."
           }
         },
         "required": [
@@ -2256,13 +2256,13 @@
           "name": {
             "const": "emergency_location",
             "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
-            "title": "Distinctive Location",
+            "title": "Emergency Location",
             "type": "string"
           },
           "value": {
             "description": "A location description that allows for exact pinpointing where the emergency is occurring.It must be precise enough so that is distinct within the area of the department that takes the call.",
             "minLength": 1,
-            "title": "Distinctive Location",
+            "title": "Emergency Location",
             "type": "string"
           }
         },
@@ -2294,6 +2294,28 @@
           "value"
         ],
         "title": "EmergencyCallSituationDescriptionSlot",
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "const": "persons_affected",
+            "description": "The number of persons affected by the emergency.",
+            "title": "Persons Affected",
+            "type": "string"
+          },
+          "value": {
+            "description": "The number of persons affected by the emergency.",
+            "title": "Persons Affected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "EmergencyCallPersonsAffectedSlot",
         "type": "object"
       }
     ]

@@ -1575,7 +1575,7 @@ dependencies = [
     { name = "sglang" },
     { name = "sqlalchemy" },
     { name = "transformers" },
-    { name = "vllm" },
+    { name = "vllm", marker = "sys_platform == 'linux'" },
 ]
 
 [package.dev-dependencies]
@@ -1668,7 +1668,7 @@ requires-dist = [
     { name = "sglang", specifier = ">=0.5.2" },
     { name = "sqlalchemy", specifier = ">=2.0.40" },
     { name = "transformers", specifier = ">=5.5.4" },
-    { name = "vllm", specifier = ">=0.21.0" },
+    { name = "vllm", marker = "sys_platform == 'linux'", specifier = ">=0.21.0" },
 ]
 
 [package.metadata.requires-dev]

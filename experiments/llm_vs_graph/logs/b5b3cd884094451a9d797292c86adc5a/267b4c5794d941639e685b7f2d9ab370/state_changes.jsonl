@@ -1,7 +1,0 @@
-{"timestamp": "2026-01-05 22:47:14", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_01.md"}}
-{"timestamp": "2026-01-05 22:47:48", "event": "state_merged", "state": {"caller_name": "Lisa"}}
-{"timestamp": "2026-01-05 22:47:48", "event": "extraction", "result": {"caller_name": "Lisa"}, "question": "Thank you, Lisa. What is the address of the emergency?", "response": "Lisa"}
-{"timestamp": "2026-01-05 22:49:00", "event": "state_merged", "state": {"caller_name": "Lisa", "emergency_location": "Frauenstra\u00dfe 6"}}
-{"timestamp": "2026-01-05 22:49:00", "event": "extraction", "result": {"caller_name": "Lisa", "emergency_location": "Frauenstra\u00dfe 6"}, "question": "Thank you. Can you please describe what happened?", "response": "Frauenstra\u00dfe 6"}
-{"timestamp": "2026-01-05 22:50:44", "event": "state_merged", "state": {"neurological_deficits": true, "caller_name": "Lisa", "emergency_location": "Frauenstra\u00dfe 6", "situation_description": "My wife's behaviour is not normal, and she has some problems talking and moving", "rd1": true, "rd2": true}}
-{"timestamp": "2026-01-05 22:50:44", "event": "complete", "state": {"neurological_deficits": true, "caller_name": "Lisa", "emergency_location": "Frauenstra\u00dfe 6", "situation_description": "My wife's behaviour is not normal, and she has some problems talking and moving", "rd1": true, "rd2": true}}

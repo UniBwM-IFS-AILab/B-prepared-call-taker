@@ -1,3 +1,0 @@
-{"timestamp": "2026-01-01 23:39:54", "event": "metadata", "session": {"policy": "agent", "scenario": "Scenario_08.md"}}
-{"timestamp": "2026-01-01 23:40:07", "event": "state_merged", "state": {"now_unresponsive": true, "rd1": true}}
-{"timestamp": "2026-01-01 23:40:07", "event": "extraction", "result": {"now_unresponsive": true, "rd1": true}, "question": "Can you tell me the exact location of the emergency?", "response": "There is a man who is unresponsive"}

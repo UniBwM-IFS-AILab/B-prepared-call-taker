@@ -25,7 +25,7 @@ dependencies = [
   "sqlalchemy>=2.0.40",
   "sglang>=0.5.2",
   "transformers>=5.5.4",
-  "vllm>=0.21.0",
+  "vllm>=0.21.0; sys_platform == 'linux'",
 ]
 
 [project.scripts]

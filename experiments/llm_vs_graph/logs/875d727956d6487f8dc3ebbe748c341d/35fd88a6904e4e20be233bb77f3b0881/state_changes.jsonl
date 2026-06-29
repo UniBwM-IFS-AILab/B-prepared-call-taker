@@ -1,7 +1,0 @@
-{"timestamp": "2025-12-24 11:47:19", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_03.md"}}
-{"timestamp": "2025-12-24 11:47:35", "event": "extraction", "question": "With whom am I speaking, please?", "response": "My name is Tobi Mcguir", "result": {"caller_name": "Tobi Mcguir"}}
-{"timestamp": "2025-12-24 11:47:35", "event": "state_merged", "state": {"call_state": {"caller_name": "Tobi Mcguir", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-24 11:47:55", "event": "extraction", "question": "Where exactly is the emergency location?", "response": "Its at home in the WoodAv 69", "result": {"emergency_location": "WoodAv 69"}}
-{"timestamp": "2025-12-24 11:47:55", "event": "state_merged", "state": {"call_state": {"caller_name": "Tobi Mcguir", "emergency_location": "WoodAv 69", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-24 11:48:11", "event": "extraction", "question": "What has just happened acutely?", "response": "my wife has strong chest pain", "result": {"acute_chest_pain": true, "situation_description": "my wife has strong chest pain.", "rd1": true, "rd2": true}}
-{"timestamp": "2025-12-24 11:48:11", "event": "state_merged", "state": {"call_state": {"acute_chest_pain": true, "caller_name": "Tobi Mcguir", "emergency_location": "WoodAv 69", "emergency_type": "intro", "situation_description": "my wife has strong chest pain.", "rd1": true, "rd2": true}}}

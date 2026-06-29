@@ -1,8 +1,0 @@
-{"timestamp": "2025-12-22 20:27:17", "event": "metadata", "session": {"policy": "graph", "scenario": "Scenario_17.md"}}
-{"timestamp": "2025-12-22 20:27:33", "event": "extraction", "question": "With whom am I speaking, please?", "response": "Hello my name is Simone", "result": {"caller_name": "Simone"}}
-{"timestamp": "2025-12-22 20:27:34", "event": "state_merged", "state": {"call_state": {"caller_name": "Simone", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-22 20:27:56", "event": "extraction", "question": "Where exactly is the emergency location?", "response": "It's in the care unit", "result": {"emergency_location": "care unit"}}
-{"timestamp": "2025-12-22 20:27:56", "event": "state_merged", "state": {"call_state": {"caller_name": "Simone", "emergency_location": "care unit", "emergency_type": "intro"}}}
-{"timestamp": "2025-12-22 20:28:52", "event": "extraction", "question": "What has just happened acutely?", "response": "Mr. Schweigers heart has stopped beating. What should I do?", "result": {"cardiac_arrest": true, "cpr_needed": true, "rd1": true, "rd2": true}}
-{"timestamp": "2025-12-22 20:28:52", "event": "state_merged", "state": {"call_state": {"cardiac_arrest": true, "caller_name": "Simone", "emergency_location": "care unit", "emergency_type": "intro", "cpr_needed": true, "rd1": true, "rd2": true}}}
-{"timestamp": "2025-12-22 20:28:53", "event": "emergency_type_set", "state": {"call_state": {"cardiac_arrest": true, "caller_name": "Simone", "emergency_location": "care unit", "emergency_type": "medical", "cpr_needed": true, "rd1": true, "rd2": true}}}

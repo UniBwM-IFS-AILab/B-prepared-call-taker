@@ -4,8 +4,10 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from experiments.dialog_act_labelling.label import label_dataset
-from experiments.dialog_act_labelling.resume_checkpoint import load_resume_checkpoint
+from experiments.auto_label_dialogue_acts.label import label_dataset
+from experiments.auto_label_dialogue_acts.resume_checkpoint import (
+    load_resume_checkpoint,
+)
 from experiments.dialog_act_labelling.schemas import DialogueLabellingOutput
 
 
@@ -65,7 +67,7 @@ def test_label_dataset_skips_existing_rows_without_losing_context(
 
     fake_agent = FakeAgent()
     monkeypatch.setattr(
-        "experiments.dialog_act_labelling.label.build_labelling_agent",
+        "experiments.auto_label_dialogue_acts.label.build_labelling_agent",
         lambda **_kwargs: fake_agent,
     )
 

@@ -63,7 +63,7 @@ def normalize_survey_json(
       - metadata: object
       - timestamp: string
       - responses: list[object]
-      - feedback: string (optional)
+      - feedback: string (optional) 
     """
 
     timestamp = src.get("timestamp")
