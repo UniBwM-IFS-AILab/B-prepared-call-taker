@@ -16,6 +16,31 @@ Use `uv` and set `GOOGLE_API_KEY` to run the agent:
 | Graph policy in the terminal | `uv run python -m ems_prepared.policies.pydantic_graph.emergency_main_graph` | Runs the hybrid FSM/graph-based policy directly. |
 | LLM-only baseline in the terminal | `uv run python -m ems_prepared.policies.llm_only.agent` | Runs the baseline agent directly. |
 
+## Usage
+
+```bash
+$ uv run python -m ems_prepared.adapters.gradio.app --help
+usage: app.py [-h] [--scenario-dir SCENARIO_DIR] [--user-id USER_ID] [--policy {graph,agent,random}] [--debug] [--random-scenario] [--experiment-name EXPERIMENT_NAME]
+
+CLI for configuring and running the Gradio app.
+
+options:
+-h, --help            show this help message and exit
+--scenario-dir SCENARIO_DIR
+                        Path to the directory containing scenario descriptions.
+--user-id, --user, -u USER_ID
+                        User ID as an integer (default: 0).
+--policy, -p {graph,agent,random}
+                        Policy to use: 'graph' (default) for pydantic_graph, 'agent' for LLM-only agent, or 'random' to select one randomly.
+--debug               Enable debug mode to show additional session information in the UI.
+--random-scenario, --rs
+                        Enable random scenario selection on each session reset.
+--experiment-name, --experiment, -e EXPERIMENT_NAME
+                        Optional name for the experiment/run to group logs into a subdirectory (e.g., 'exp_2024_12').
+
+Examples: python cli.py --scenario-dir ./scenarios --user-id 42 --policy graph --debug --random-scenario --experiment-name exp_2024_12
+```
+
 ## Repository Structure
 
 ```text
