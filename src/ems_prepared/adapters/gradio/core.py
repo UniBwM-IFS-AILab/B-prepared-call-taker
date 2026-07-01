@@ -46,11 +46,6 @@ except ImportError:
     from typing_extensions import NotRequired
 
 
-# =============================================================================
-# Type Definitions
-# =============================================================================
-
-
 class ChatMessageMetadata(TypedDict, total=False):
     """Metadata for ChatMessage."""
 
@@ -78,20 +73,11 @@ class ChatMessageDict(TypedDict):
     options: NotRequired[ChatMessageOption]
 
 
-# =============================================================================
-# Constants
-# =============================================================================
-
 # Completion message shown when conversation ends
 COMPLETION_MESSAGE = ChatMessage(
     content="The emergency call has been processed. Thank you.",
     metadata={"id": "completion_message"},
 )
-
-
-# =============================================================================
-# Session Management
-# =============================================================================
 
 
 async def cleanup_session(policy, deps: Settings | None) -> None:
@@ -161,18 +147,13 @@ async def init_session(
     return policy, deps
 
 
-# =============================================================================
-# Scenario Utilities
-# =============================================================================
-
-
 def get_scenario_directory() -> Path:
     """Get the docs directory from environment variable or command line argument.
 
     Priority:
     1. Command line argument --scenario-dir
     2. Environment variable SCENARIO_DIR
-    3. Default to ./docs relative to current working directory
+    3. Default to ./assets relative to current working directory
     """
     if args.scenario_dir:
         scenario_dir = Path(args.scenario_dir).resolve()
@@ -181,7 +162,7 @@ def get_scenario_directory() -> Path:
         scenario_dir = Path(env_scenario_dir).resolve()
     # Final fallback to default
     else:
-        scenario_dir = Path.cwd() / "docs" / "scenarios"
+        scenario_dir = Path.cwd() / "assets" / "scenarios"
 
     scenario_dir.mkdir(parents=True, exist_ok=True)
     return scenario_dir
@@ -227,11 +208,6 @@ def construct_scenario_desc(filename: str | None) -> str:
 
     scenario_content = read_md(filename)
     return f"{instructions}\n\n{scenario_content}" if instructions else scenario_content
-
-
-# =============================================================================
-# Policy Runners
-# =============================================================================
 
 
 async def invoke_graph(graph, deps: Settings, msg: str | None):

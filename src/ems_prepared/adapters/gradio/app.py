@@ -40,10 +40,6 @@ from ems_prepared.util.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-# Streaming Helpers
-# =============================================================================
-
 
 async def stream_message_to_history(
     history: list[ChatMessageDict | ChatMessage],
@@ -249,10 +245,6 @@ def format_session_info(
         f"**Scenario:** {scenario_str}"
     )
 
-
-# =============================================================================
-# UI with Session State
-# =============================================================================
 
 demo = gr.Blocks(
     title="Emergency Call Simulator",
@@ -637,7 +629,9 @@ with demo:
     submit_event = (
         gr.on(
             triggers=[input_box.submit, send.click],
-            fn=lambda: None,  # this seems necessary for te send button to disable properly
+            fn=lambda: (
+                None
+            ),  # this seems necessary for te send button to disable properly
         )
         .then(
             user_submit,
@@ -681,10 +675,6 @@ with demo:
         ),
         outputs=[input_box, send, reset, md_picker],
     )
-
-    # ==========================================================================
-    # Survey Event Handlers
-    # ==========================================================================
 
     def check_all_answered(*values):
         """Enable submit button only when all survey questions are answered."""
@@ -811,8 +801,6 @@ def notify_share_url(share_url: str) -> None:
 
 
 if __name__ == "__main__":
-    # TODO: use load / unload events to manage session lifecycle, can reset trigger the same logic? [maybe we can deal with the server not being reachable anymore? don't throw any errors in that case]
-
     # Use the queue for scalability
     app, local_url, share_url = demo.queue(default_concurrency_limit=16).launch(
         pwa=True,

@@ -11,9 +11,6 @@ logger = logging.getLogger(__name__)
 # Available policies for random selection
 AVAILABLE_POLICIES = ["graph", "agent"]
 
-# TODO: pydantic configdict or typer?
-# TODO: use one CLI for gradio, cli loop and fastapi server
-
 
 @dataclass(frozen=True)
 class GradioAppArgs:

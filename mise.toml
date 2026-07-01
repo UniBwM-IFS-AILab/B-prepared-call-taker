@@ -2,8 +2,12 @@
 experimental = true
 python.uv_venv_auto = true
 idiomatic_version_file_enable_tools = ["python"]
-windows_shim_mode = 'symlink'
+windows_shim_mode = "symlink"
 env_shell_expand = true
+
+[settings.sops]
+age_key_file = "~/.config/mise/age.txt"
+strict = false
 
 [tools]
 uv = "latest"
@@ -19,53 +23,39 @@ node = "latest"
 [env]
 _.file = [".env.json", "env.json"]
 AGE_PUBLIC_KEY = "age194dj36ngpzv4rg9pzkmxed6l2gr894de47d370qp28ln7eku440s8l6j63"
-EDITOR = 'code'
-# TODO: check if this causes bugs on linux, do we need the else branch?
-# HOME = "{% if os() == 'windows' %}\"$HOMEPATH\"{% else %}$HOME{% endif %}" Does not work
+EDITOR = "code"
 SHELL = '{% if os() == "windows" %}pwsh{% else %}$SHELL{% endif %}'
 
 SOPS_AGE_KEY_FILE = "{{xdg_config_home}}/mise/age.txt"
-SOPS_EDITOR = 'code --wait --new-window --disable-extensions'
+SOPS_EDITOR = "code --wait --new-window --disable-extensions"
 
-XDG_CONFIG_HOME = '{{xdg_config_home}}'
-XDG_DATA_HOME = '{{xdg_data_home}}'
-XDG_CACHE_HOME = '{{xdg_cache_home}}'
-XDG_STATE_HOME = '{{xdg_state_home}}'
+XDG_CONFIG_HOME = "{{xdg_config_home}}"
+XDG_DATA_HOME = "{{xdg_data_home}}"
+XDG_CACHE_HOME = "{{xdg_cache_home}}"
+XDG_STATE_HOME = "{{xdg_state_home}}"
 
 [hooks]
-enter = "mise i -q" # && mise en -s $env:SHELL"
-# Todo:
-# eval "$(ssh-agent -s)"
-# ssh-add ~/.ssh/ld1bsekl
-
-# above necessary for signing commits with ssh key. not sure if there is another way around it.
-
-[settings.sops]
-age_key_file = '~/.config/mise/age.txt'
-strict = false
-# age_recipients=
+enter = "mise i -q"
 
 [tasks.llm_only]
-alias = 'dumb'
+alias = "dumb"
 run = "uv run {{config_root}}/src/ems_prepared/policies/llm_only/agent.py"
 
 [tasks.ollama]
-shell = 'bash -c'
+shell = "bash -c"
 run = "ollama serve &"
 hide = true
 
 [tasks.cli]
-alias = 'ems'
+alias = "ems"
 run = "uv run {{config_root}}/src/ems_prepared/policies/pydantic_graph/emergency_main_graph.py"
 
 [tasks.server]
 run = "fastapi dev {{config_root}}/src/ems_prepared/adapters/app.py"
-# depends = ['ollama']
 
 [tasks.streamlit]
 alias = "sl"
 run = "streamlit run {{config_root}}/src/ems_prepared/adapters/streamlit_app.py"
-
 
 [tasks.gradio]
 # env = { SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/XXX/YYY/ZZZ" }

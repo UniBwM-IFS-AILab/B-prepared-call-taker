@@ -11,10 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-# =============================================================================
-# Survey Configuration Dataclasses
-# =============================================================================
-
 
 @dataclass(frozen=True)
 class SurveyQuestion:
@@ -69,10 +65,6 @@ class SurveyConfig:
         """
         return {idx: label for idx, label in enumerate(self.labels, 1)}
 
-
-# =============================================================================
-# Default Survey Configuration
-# =============================================================================
 
 # 5-point Likert scale labels
 DEFAULT_LIKERT_LABELS = (
