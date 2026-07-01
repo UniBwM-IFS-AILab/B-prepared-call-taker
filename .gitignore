@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# pixi environments
+.pixi
+*.egg-info
+
+# secretes
+.envrc
+.env
+*env.json
+.gradio/certificate.pem
+
+# logs
+logs/*
+
+# get rid of .keep files
+.keep
+
+# irrelevant
+context/
+_old/
+undefined/
+
+# settings
+.vscode/
+.zed/
+
+# Caches
+__marimo__/
+*.drawio.bkp
+typings/
+repo.bundle

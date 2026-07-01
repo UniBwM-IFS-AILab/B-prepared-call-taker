@@ -1,0 +1,17 @@
+# systemctl start ems-gradio@INSTANCE.service
+[Unit]
+Description=Emergency Call Simulator
+
+[Service]
+Type=simple
+WorkingDirectory=%h/ems-prepared
+# set Env vars, for mise (~/.local/bin/), apparently there is no nicer way to append to systemd's PATH
+Environment=HOME=%h
+Environment=PATH=%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/env mise run gradio -- -e %I --policy random
+Restart=always
+RestartSec=10
+RuntimeMaxSec=6d 23h
+
+[Install]
+WantedBy=default.target

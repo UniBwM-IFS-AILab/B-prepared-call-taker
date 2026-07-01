@@ -1,0 +1,124 @@
+[project]
+name = "ems-prepared"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+version = "0.1.0"
+dependencies = [
+  "colorlog>=6.10.1",
+  "deepmerge>=2.0",
+  "fastapi>=0.116.1",
+  "gradio>=6.1.0",
+  "langgraph>=1.0.3",
+  "loguru>=0.7.3",
+  "pycountry>=24.6.1",
+  "pydantic-ai>=0.4.3",
+  "pydantic-settings>=2.10.1",
+  "pyjson5>=1.6.9",
+  "python-dotenv-vault>=0.7",
+  "pyzmq>=27.1.0",
+  "rapidfuzz>=3.13.0",
+  "scikit-learn>=1.8.0",
+  "scipy>=1.16.3",
+  "seaborn>=0.13.2",
+]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[dependency-groups]
+call-graph = ["python-call-graph>=2.1.4"]
+call-uv = ["pycg>=0.0.8", "pyvis>=0.3.2"]
+dev = [
+  # "basedpyright>=1.31.0",
+  "datamodel-code-generator>=0.31.2",
+  "devtools>=0.12.2",
+  "ipykernel>=6.29.5",
+  "pip>=25.1.1",
+  "pre-commit>=4.2.0",
+  "ptpython>=3.0.30",
+  "pyrefly",
+  "toml-sort>=0.24.2",
+  "deepdiff>=8.5.0",
+  "loguru>=0.7.3",
+  "pyright>=1.1.403",
+  "mypy>=1.17.1",
+  "pandas>=2.3.3",
+  "odfpy>=1.4.1",
+  "marimo[recommended]>=0.17.7",
+  "streamlit>=1.51.0",
+  "matplotlib>=3.10.8",
+  "numpy>=2.3.1",
+  "pandas>=2.3.3",
+]
+experiment = ["pydantic-ai-examples>=0.2.18"]
+lsp = [
+  # "cst-lsp>=0.1.3",
+  "jedi-language-server>=0.45.1",
+]
+server = ["fastapi[standard]>=0.118.0"]
+test = ["pytest>=8.4.1", "pytest-sugar>=1.0.0", "pytest-asyncio>=0.23.6"]
+whisper = [
+  "accelerate>=1.9.0",
+  "cython>=3.1.2",
+  "datasets[audio]>=4.0.0",
+  "faster-whisper>=1.1.1",
+  "torch>=2.7.1",
+  "transformers>=4.54.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ems_prepared"]
+
+[tool.ruff.lint]
+ignore = ["D203", "D213", "E501"]
+select = [
+  "C901",
+  "D",
+  "E",
+  "E4",
+  "E7",
+  "E9",
+  "F",
+  "FAST",
+  "FURB",
+  "I",
+  "PERF",
+  "RUF",
+  "W",
+]
+
+[tool.basedpyright]
+reportImplicitStringConcatenation = false
+typeCheckingMode= "strict"
+ignore= ["**/__pycache__"]
+
+[tool.pyrefly]
+# ignore-errors-in-generated-code = true
+# use-untyped-imports = true
+# ignore-missing-source = true
+[tool.pyrefly.errors]
+# bad-assignment = false
+# invalid-argument = false
+# bad-argument-type=false
+# bad-override = false
+# unexpected-keyword = false
+# invalid-param-spec = false
+# unknown-name = false
+# missing-attribute = false
+
+[tool.ty]
+
+[tool.uv]
+default-groups = ["dev", "test"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
