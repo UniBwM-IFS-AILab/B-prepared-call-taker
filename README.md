@@ -6,23 +6,13 @@ This repository contains the emergency-call simulator, the graph-based hybrid po
 
 ![System Architecture](assets/system_arch.svg)
 
-## Installation
-
-- Python `>=3.13` and `uv`
-
-```bash
-uv sync
-```
-
-Set `GOOGLE_API_KEY` before running the app.
-
 ## Run
 
-Use the Gradio app unless you specifically want to work on one of the lower-level entrypoints.
+Use `uv` and set `GOOGLE_API_KEY` to run the agent:
 
 | Purpose | Command | Notes |
 | --- | --- | --- |
-| Main web UI | `uv run python -m ems_prepared.adapters.gradio.app --scenario-dir ./assets/scenarios` | Recommended entrypoint. The scenario directory must be passed explicitly in this checkout. |
+| Main web UI | `uv run python -m ems_prepared.adapters.gradio.app --help` | Recommended entrypoint. The scenario directory must be passed explicitly in this checkout. |
 | Graph policy in the terminal | `uv run python -m ems_prepared.policies.pydantic_graph.emergency_main_graph` | Runs the hybrid FSM/graph-based policy directly. |
 | LLM-only baseline in the terminal | `uv run python -m ems_prepared.policies.llm_only.agent` | Runs the baseline agent directly. |
 
@@ -49,15 +39,12 @@ ems-prepared/
 └── mise.toml
 ```
 
-## Scenarios and Evaluation Assets
+## Scenarios
 
-Scenario assets are in [assets/scenarios](/home/seapat/Desktop/ems-prepared-main/assets/scenarios).
-
-- [_Instructions.md](/home/seapat/Desktop/ems-prepared-main/assets/scenarios/_Instructions.md): shared caller instructions
-- [_Scenario_Template.md](/home/seapat/Desktop/ems-prepared-main/assets/scenarios/_Scenario_Template.md): template for new scenarios
-- [ScenarioGroundTruth](/home/seapat/Desktop/ems-prepared-main/assets/scenarios/ScenarioGroundTruth): reference outcome/state annotations
-
-The evaluation of the user experiments is done in [notebooks/experiment_evaluation.py](/home/seapat/Desktop/ems-prepared-main/notebooks/experiment_evaluation.py).
+- Scenario descriptions are stored in [assets/scenarios/](/home/seapat/Desktop/ems-prepared-main/assets/scenarios).
+- [_Instructions.md](/home/seapat/Desktop/ems-prepared-main/assets/scenarios/_Instructions.md) contains shared caller instructions shown with every description
+- [ScenarioGroundTruth/](/home/seapat/Desktop/ems-prepared-main/assets/scenarios/ScenarioGroundTruth) contains reference outcome/state annotations
+- The evaluation of the user experiments is done in [notebooks/experiment_evaluation.py](/home/seapat/Desktop/ems-prepared-main/notebooks/experiment_evaluation.py).
 
 ## Session Outputs
 
