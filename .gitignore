@@ -39,3 +39,4 @@ __marimo__/
 *.drawio.bkp
 typings/
 repo.bundle
+*.zip
