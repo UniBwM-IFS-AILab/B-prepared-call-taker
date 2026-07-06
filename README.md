@@ -1,4 +1,4 @@
-# ems-prepared
+# B-prepared-call-taker
 
 Code for *Preparing Citizens for Emergency Calls with a Hybrid FSM-LLM Dialogue Agent*.
 
