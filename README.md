@@ -89,13 +89,13 @@ Typical outputs include:
 - `deps.json`
 - graph persistence files and Mermaid exports for graph-based runs
 
-## Citation
+<!--## Citation
 
 ```bibtex
-@inproceedings{,
+@inproceedings{
   author = {},
   title = {},
   booktitle = {},
   year = {},
 }
-```
+```-->
